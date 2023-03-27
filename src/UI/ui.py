@@ -3,6 +3,8 @@ import tkinter.ttk as ttk
 from tkinter import *
 from tkinter.ttk import *
 import tkinter.messagebox
+import csv
+import os.path
 
 # GuitarBot UI
 # TODO: scrollbar, multiple phrases
@@ -46,7 +48,8 @@ strumSelection = StringVar(window)
 
 numPhrases = IntVar(window)
 
-# class for the chart module with chords and strumming inputs
+#### Table class ####
+# defines the chart module with chords and strumming inputs
 # TODO: save state
 class Table:
     def __init__(self, root):
@@ -64,7 +67,8 @@ class Table:
 
     def buildTable(self, num_cols, timeSelection, numMeasures, start, barCount):        
         # build chords/strum chart
-        for i in range(4):
+        s = self.phraseNum * 5
+        for i in range(s, s + 4):
             j = start
             while j <= num_cols:
                 if i == 0 and barCount <= int(numMeasures.get()):
@@ -293,6 +297,8 @@ class Table:
             count += 1
 
         return (leftArm, rightArm)
+    
+##### end of Table class ####
 
 tab = Table(tabFrame)
 
@@ -391,6 +397,40 @@ removeMeasureBtn.pack(side=LEFT)
 measuresDisplay.pack(side=LEFT)
 addMeasureBtn.pack(side=LEFT)
 
+# add/remove phrases
+def add_phrase():
+    print()
+    # update display
+    phrasesDisplay.config(state="ENABLED")
+    phrasesDisplay.delete(0, END)
+    phrasesDisplay.insert(END, numPhrases.get())
+    phrasesDisplay.config(state=DISABLED)
+
+def remove_phrase():
+    print()
+    # update display
+    phrasesDisplay.config(state="ENABLED")
+    phrasesDisplay.delete(0, END)
+    phrasesDisplay.insert(END, numPhrases.get())
+    phrasesDisplay.config(state=DISABLED)
+
+# buttons for adding/removing phrases
+phraseFrame = Frame(window)
+
+phrasesLabel = Label(phraseFrame, text="Phrases: ")
+phrasesDisplay = Entry(phraseFrame, width=2, font=('Arial',16))
+phrasesDisplay.insert(END, numPhrases.get())
+phrasesDisplay.config(state=DISABLED)
+
+addPhraseBtn = Button(phraseFrame, text="+", width=1, command=add_phrase)
+removePhraseBtn = Button(phraseFrame, text="-", width=1, command=remove_phrase)
+
+phrasesLabel.pack(side=LEFT)
+removePhraseBtn.pack(side=LEFT)
+phrasesDisplay.pack(side=LEFT)
+addPhraseBtn.pack(side=LEFT)
+phraseFrame.pack(pady=(10,5))
+
 def collect_chord_strum_data():
     # build lists with chord/strum info
     lists = tab.buildChordStrumData(timeSelection)
@@ -404,24 +444,40 @@ def collect_chord_strum_data():
     # bpm -> bpmInput.get()
     # duration of each strum = (60/bpm)/(numBeatsPerMeasure * 2)
 
-    # save prev state
-    # prevStrum = right_arm
-    # prevChords = left_arm
+    print(os.path.exists('../csv'))
+    write_to_csv('../csv/test.csv', left_arm, right_arm)
 
     print("left arm: ", left_arm)
     print("right arm: ", right_arm)
     print("song: ", song)
     tkinter.messagebox.showinfo("Alert", "Song sent to GuitarBot.")
 
-# create label and input for song to send to bot
-# song components should be comma delimited (Ex: Verse, Chorus, Bridge)
-songFrame = Frame(window)
+def write_to_csv(path, left_arm, right_arm):
+    file = open(path, 'w')
+    writer = csv.writer(file)
+    writer.writerow(left_arm)
+    writer.writerow(right_arm)
+    file.close()
 
-songInput = Entry(songFrame, width=12, font=('Arial',14))
-songLabel = Label(songFrame, text="Input: ")
-songLabel.pack(side=LEFT)
+# create inputs for song title/structure to send to bot
+# song components should be comma delimited (Ex: Verse, Chorus, Bridge)
+# TODO: make dropdown with multiple components
+songFrame = Frame(window)
+titleFrame = Frame(songFrame)
+inputFrame = Frame(songFrame)
+
+songTitle = Entry(titleFrame, width=12, font=('Arial',14))
+titleLabel = Label(titleFrame, text="Song Title:", width=8)
+titleLabel.pack(side=LEFT)
+songTitle.pack(side=LEFT)
+
+songInput = Entry(inputFrame, width=12, font=('Arial',14))
+inputLabel = Label(inputFrame, text="Input:", width=8, justify=RIGHT)
+inputLabel.pack(side=LEFT)
 songInput.pack(side=LEFT)
 
+titleFrame.pack()
+inputFrame.pack()
 songFrame.pack(pady=(20,5))
 
 send = Button(window, text="Send", width=4, command=collect_chord_strum_data)

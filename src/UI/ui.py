@@ -7,15 +7,16 @@ import csv
 import os.path
 
 # GuitarBot UI
-# TODO: scrollbar, multiple phrases
+# TODO: scrollbar, multiple phrases, load in csv
+phrases = []
 
 window = tk.Tk(className=' GuitarBot')
 window.geometry("1300x600")
 
 timeFrame = Frame(window)
 timeFrame.pack()
-tabFrame = Frame(window)
-tabFrame.pack()
+phrasesFrame = Frame(window)
+phrasesFrame.pack()
 
 timeSigs = [
     "2/4",
@@ -46,8 +47,6 @@ timeSelection = StringVar(window)
 numMeasures = StringVar(window)
 strumSelection = StringVar(window)
 
-numPhrases = IntVar(window)
-
 #### Table class ####
 # defines the chart module with chords and strumming inputs
 # TODO: save state
@@ -57,13 +56,7 @@ class Table:
         self.barCount = 0
         self.lastCol = 0
         self.name = ""
-        
-        # assign phrase number
-        if numPhrases is None:
-            numPhrases.set(0)
-
-        self.phraseNum = numPhrases.get()
-        numPhrases.set(numPhrases.get() + 1)
+        self.phraseNum = len(phrases)
 
     def buildTable(self, num_cols, timeSelection, numMeasures, start, barCount):        
         # build chords/strum chart
@@ -300,9 +293,10 @@ class Table:
     
 ##### end of Table class ####
 
-tab = Table(tabFrame)
+initPhrase = Table(phrasesFrame)
+phrases.append(initPhrase)
 
-def create_table(timeSelection, numMeasures):
+def create_table(phrase, timeSelection, numMeasures):
     # set default values if needed
     if len(timeSelection.get()) == 0:
         timeSelection.set("4/4")
@@ -310,7 +304,7 @@ def create_table(timeSelection, numMeasures):
         numMeasures.set("1")
 
     num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
-    tab.buildTable(num_cols, timeSelection, numMeasures, 0, 1)
+    phrase.buildTable(num_cols, timeSelection, numMeasures, 0, 1)
     print("table created")
 
 def update_table(event):
@@ -331,7 +325,7 @@ def update_table(event):
     measuresDisplay.config(state=DISABLED)
 
     num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
-    tab.editTable(num_cols, timeSelection, numMeasures)
+    initPhrase.editTable(num_cols, timeSelection, numMeasures)
     print("table updated")
 
 def ret_pressed(event):
@@ -344,7 +338,7 @@ def add_measure():
     numMeasures.set(int(numMeasures.get()) + 1)
     num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
 
-    tab.addMeasure(num_cols)
+    initPhrase.addMeasure(num_cols)
 
     # update display
     measuresDisplay.config(state="ENABLED")
@@ -356,7 +350,7 @@ def remove_measure():
     if int(numMeasures.get()) > 1:
         numMeasures.set(int(numMeasures.get()) - 1)
 
-        tab.removeMeasure()
+        initPhrase.removeMeasure()
 
         # update display
         measuresDisplay.config(state="ENABLED")
@@ -365,7 +359,7 @@ def remove_measure():
         measuresDisplay.config(state=DISABLED)
 
 # load default table
-create_table(timeSelection, numMeasures)
+create_table(initPhrase, timeSelection, numMeasures)
 
 # time signature / bpm / measure dropdowns
 timeMenu = OptionMenu(timeFrame, timeSelection, "4/4", *timeSigs, command=update_table)
@@ -403,7 +397,7 @@ def add_phrase():
     # update display
     phrasesDisplay.config(state="ENABLED")
     phrasesDisplay.delete(0, END)
-    phrasesDisplay.insert(END, numPhrases.get())
+    phrasesDisplay.insert(END, len(phrases))
     phrasesDisplay.config(state=DISABLED)
 
 def remove_phrase():
@@ -411,29 +405,29 @@ def remove_phrase():
     # update display
     phrasesDisplay.config(state="ENABLED")
     phrasesDisplay.delete(0, END)
-    phrasesDisplay.insert(END, numPhrases.get())
+    phrasesDisplay.insert(END, len(phrases))
     phrasesDisplay.config(state=DISABLED)
 
 # buttons for adding/removing phrases
-phraseFrame = Frame(window)
+phraseBtnsFrame = Frame(window)
 
-phrasesLabel = Label(phraseFrame, text="Phrases: ")
-phrasesDisplay = Entry(phraseFrame, width=2, font=('Arial',16))
-phrasesDisplay.insert(END, numPhrases.get())
+phrasesLabel = Label(phraseBtnsFrame, text="Phrases: ")
+phrasesDisplay = Entry(phraseBtnsFrame, width=2, font=('Arial',16))
+phrasesDisplay.insert(END, len(phrases))
 phrasesDisplay.config(state=DISABLED)
 
-addPhraseBtn = Button(phraseFrame, text="+", width=1, command=add_phrase)
-removePhraseBtn = Button(phraseFrame, text="-", width=1, command=remove_phrase)
+addPhraseBtn = Button(phraseBtnsFrame, text="+", width=1, command=add_phrase)
+removePhraseBtn = Button(phraseBtnsFrame, text="-", width=1, command=remove_phrase)
 
 phrasesLabel.pack(side=LEFT)
 removePhraseBtn.pack(side=LEFT)
 phrasesDisplay.pack(side=LEFT)
 addPhraseBtn.pack(side=LEFT)
-phraseFrame.pack(pady=(10,5))
+phraseBtnsFrame.pack(pady=(10,5))
 
 def collect_chord_strum_data():
     # build lists with chord/strum info
-    lists = tab.buildChordStrumData(timeSelection)
+    lists = initPhrase.buildChordStrumData(timeSelection)
     left_arm = lists[0]
     right_arm = lists[1]
     song = songInput.get()
@@ -444,24 +438,36 @@ def collect_chord_strum_data():
     # bpm -> bpmInput.get()
     # duration of each strum = (60/bpm)/(numBeatsPerMeasure * 2)
 
-    print(os.path.exists('../csv'))
-    write_to_csv('../csv/test.csv', left_arm, right_arm)
+    if songTitle.get() != "":
+        name = songTitle.get()
+    else:
+        name = "default"
+    
+    write_to_csv(name, left_arm, right_arm)
 
     print("left arm: ", left_arm)
     print("right arm: ", right_arm)
     print("song: ", song)
     tkinter.messagebox.showinfo("Alert", "Song sent to GuitarBot.")
 
-def write_to_csv(path, left_arm, right_arm):
-    file = open(path, 'w')
+def write_to_csv(name, left_arm, right_arm):
+    # check to make sure user does not accidentally overwrite existing song
+    if name != "default" and os.path.isfile('src/csv/' + name + '.csv'):
+        response = tkinter.messagebox.askquestion("Warning", "A song with the same name is already saved. Would you like to overwrite the " +
+                                    "contents of the existing song? (If you select no, song will be saved as a new file.)")
+        if response == 'no':
+            name = name + "1"
+
+    file = open('src/csv/' + name + '.csv', 'w')
     writer = csv.writer(file)
+    # TODO: figure out best format to write as
     writer.writerow(left_arm)
     writer.writerow(right_arm)
     file.close()
 
 # create inputs for song title/structure to send to bot
 # song components should be comma delimited (Ex: Verse, Chorus, Bridge)
-# TODO: make dropdown with multiple components
+# TODO: update UI to be more like a series of dropdowns
 songFrame = Frame(window)
 titleFrame = Frame(songFrame)
 inputFrame = Frame(songFrame)
@@ -484,7 +490,3 @@ send = Button(window, text="Send", width=4, command=collect_chord_strum_data)
 send.pack()
 
 window.mainloop()
-
-# vars for saving state when window is re-opened
-# prevStrum
-# prevChords

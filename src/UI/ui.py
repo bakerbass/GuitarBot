@@ -9,6 +9,7 @@ import os.path
 # GuitarBot UI
 # TODO: scrollbar, multiple phrases, load in csv
 phrases = []
+phraseDict = {}
 
 window = tk.Tk(className=' GuitarBot')
 window.geometry("1300x600")
@@ -61,6 +62,7 @@ class Table:
     def buildTable(self, num_cols, timeSelection, numMeasures, start, barCount):        
         # build chords/strum chart
         s = self.phraseNum * 5
+        # print(s)
         for i in range(s, s + 4):
             j = start
             while j <= num_cols:
@@ -253,7 +255,7 @@ class Table:
         # generate left arm data
         currMeasure = []
         count = 0
-        for e in reversed(self.root.grid_slaves(row=2)):
+        for e in reversed(self.root.grid_slaves(row=2 + (self.phraseNum * 5))):
             # print("count: ", count)
             # print("value: ", e.get())
             # print("numbeats: ", numBeatsPerMeasure)
@@ -272,7 +274,7 @@ class Table:
         currMeasure = []
         count = 0
         duration = (60/bpm)/(numBeatsPerMeasure * 2) # calculate duration of each strum
-        for e in reversed(self.root.grid_slaves(row=3)):
+        for e in reversed(self.root.grid_slaves(row=3 + (self.phraseNum * 5))):
             # code for appending duration to each strum stroke:
             # if (e.get() != ""):
             #     currMeasure.append((e.get(), duration))
@@ -393,7 +395,12 @@ addMeasureBtn.pack(side=LEFT)
 
 # add/remove phrases
 def add_phrase():
-    print()
+    newPhrase = Table(phrasesFrame)
+    phrases.append(newPhrase)
+    print(newPhrase.name)
+    print(newPhrase.phraseNum)
+    create_table(newPhrase, timeSelection, numMeasures)
+
     # update display
     phrasesDisplay.config(state="ENABLED")
     phrasesDisplay.delete(0, END)
@@ -426,11 +433,23 @@ addPhraseBtn.pack(side=LEFT)
 phraseBtnsFrame.pack(pady=(10,5))
 
 def collect_chord_strum_data():
-    # build lists with chord/strum info
-    lists = initPhrase.buildChordStrumData(timeSelection)
-    left_arm = lists[0]
-    right_arm = lists[1]
-    song = songInput.get()
+    # build phrase dict
+    for phrase in phrases:
+        name = phrase.name
+        data = phrase.buildChordStrumData(timeSelection) # in form (left_arm, right_arm) for each phrase
+        phraseDict[name] = data
+        
+    # parse song input
+    input = songInput.get()
+    parsed_input = input.replace(", ", ",").split(",")
+
+    # build complete left_arm, right_arm lists
+    left_arm = []
+    right_arm = []
+    for p in parsed_input:
+        if p in phraseDict.keys():
+            left_arm += phraseDict[p][0]
+            right_arm += phraseDict[p][1]
 
     # commands for getting the below values:
     # time signature -> timeSelection.get()
@@ -447,7 +466,7 @@ def collect_chord_strum_data():
 
     print("left arm: ", left_arm)
     print("right arm: ", right_arm)
-    print("song: ", song)
+    print("input: ", input)
     tkinter.messagebox.showinfo("Alert", "Song sent to GuitarBot.")
 
 def write_to_csv(name, left_arm, right_arm):

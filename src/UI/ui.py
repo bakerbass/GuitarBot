@@ -49,7 +49,7 @@ numMeasures = StringVar(window) # eventually remove
 
 #### Section class ####
 # defines the chart module with chords and strumming inputs
-# TODO: make measures select for each individual section
+# TODO: make measures select for each individual section (works for adding measures, fix for removing)
 class Section:
     def __init__(self, root):
         self.root = root

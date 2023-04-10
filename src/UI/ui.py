@@ -59,7 +59,7 @@ class Table:
         self.sectionNum = len(sections)
         self.offset = self.sectionNum * 5
         self.strumPattern = StringVar(root)
-        self.numMeasures = ""
+        self.numMeasures = StringVar(root)
 
     def buildTable(self, num_cols, timeSelection, numMeasures, start, barCount):        
         # build chords/strum chart
@@ -308,7 +308,7 @@ def create_table(section, timeSelection, numMeasures):
 
     num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
     section.buildTable(num_cols, timeSelection, numMeasures, 0, 1)
-    print("table created")
+    # print("table created")
 
 def update_table(event):
     # print("got these values",timeSelection.get(), numMeasures.get())
@@ -492,12 +492,16 @@ def write_to_csv(name, left_arm, right_arm):
     writer.writerow(right_arm)
     file.close()
 
+def load_from_csv():
+    print("load from csv")
+
 # create inputs for song title/structure to send to bot
 # song components should be comma delimited (Ex: Verse, Chorus, Bridge)
 # TODO: update UI to be more like a series of dropdowns
 songFrame = Frame(window)
 titleFrame = Frame(songFrame)
 inputFrame = Frame(songFrame)
+btnFrame = Frame(window)
 
 songTitle = Entry(titleFrame, width=12, font=('Arial',14))
 titleLabel = Label(titleFrame, text="Song Title:", width=10)
@@ -513,7 +517,13 @@ titleFrame.pack()
 inputFrame.pack()
 songFrame.pack(pady=(20,5))
 
-send = Button(window, text="Send", width=4, command=collect_chord_strum_data)
-send.pack()
+send = Button(btnFrame, text="Send", width=4, command=collect_chord_strum_data)
+load = Button(btnFrame, text="Load CSV", width=8, command=load_from_csv)
+label = Label(btnFrame, text="OR")
+send.pack(pady=1)
+label.pack()
+load.pack(pady=1)
+
+btnFrame.pack()
 
 window.mainloop()

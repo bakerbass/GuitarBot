@@ -7,7 +7,7 @@ import csv
 import os.path
 
 # GuitarBot UI
-# TODO: scrollbar, multiple sections, load in csv
+# TODO: scrollbar, load in csv
 sections = []
 sectionsDict = {}
 
@@ -49,7 +49,7 @@ numMeasures = StringVar(window)
 
 #### Table class ####
 # defines the chart module with chords and strumming inputs
-# TODO: save state
+# TODO: make measures select for each individual section
 class Table:
     def __init__(self, root):
         self.root = root
@@ -59,7 +59,7 @@ class Table:
         self.sectionNum = len(sections)
         self.offset = self.sectionNum * 5
         self.strumPattern = StringVar(root)
-        self.numMeasures = StringVar(root)
+        self.numMeasures = 1
 
     def buildTable(self, num_cols, timeSelection, numMeasures, start, barCount):        
         # build chords/strum chart
@@ -470,14 +470,14 @@ def collect_chord_strum_data():
     else:
         name = "default"
     
-    write_to_csv(name, left_arm, right_arm)
+    write_to_csv(name, input)
 
     print("left arm: ", left_arm)
     print("right arm: ", right_arm)
     print("input: ", input)
     tkinter.messagebox.showinfo("Alert", "Song sent to GuitarBot.")
 
-def write_to_csv(name, left_arm, right_arm):
+def write_to_csv(name, input):
     # check to make sure user does not accidentally overwrite existing song
     if name != "default" and os.path.isfile('src/csv/' + name + '.csv'):
         response = tkinter.messagebox.askquestion("Warning", "A song with the same name is already saved. Would you like to overwrite the " +
@@ -487,9 +487,23 @@ def write_to_csv(name, left_arm, right_arm):
 
     file = open('src/csv/' + name + '.csv', 'w')
     writer = csv.writer(file)
-    # TODO: figure out best format to write as
-    writer.writerow(left_arm)
-    writer.writerow(right_arm)
+
+    # csv vs txt??
+
+    # write general song data
+    writer.writerow(name)
+    writer.writerow(timeSelection.get())
+    writer.writerow(bpmInput.get())
+    writer.writerow(input)
+
+    # write individual section data
+    for section in sections:
+        writer.writerow(section.name)
+        writer.writerow(numMeasures.get())
+        data = section.buildChordStrumData(timeSelection)
+        writer.writerow(data[0]) # write left arm data
+        writer.writerow(data[1]) # write right arm data
+
     file.close()
 
 def load_from_csv():

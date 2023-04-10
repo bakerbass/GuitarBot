@@ -7,17 +7,17 @@ import csv
 import os.path
 
 # GuitarBot UI
-# TODO: scrollbar, multiple phrases, load in csv
-phrases = []
-phraseDict = {}
+# TODO: scrollbar, multiple sections, load in csv
+sections = []
+sectionsDict = {}
 
 window = tk.Tk(className=' GuitarBot')
 window.geometry("1300x600")
 
 timeFrame = Frame(window)
 timeFrame.pack()
-phrasesFrame = Frame(window)
-phrasesFrame.pack()
+sectionsFrame = Frame(window)
+sectionsFrame.pack()
 
 timeSigs = [
     "2/4",
@@ -37,7 +37,7 @@ strumOptions = [
     "Downs",
     "Ups",
 ]
-    
+
 strumPatterns = {
     "Down/Up": ["D", "U"],
     "Downs": ["D", ""],
@@ -46,7 +46,6 @@ strumPatterns = {
 
 timeSelection = StringVar(window)
 numMeasures = StringVar(window)
-strumSelection = StringVar(window)
 
 #### Table class ####
 # defines the chart module with chords and strumming inputs
@@ -57,13 +56,15 @@ class Table:
         self.barCount = 0
         self.lastCol = 0
         self.name = ""
-        self.phraseNum = len(phrases)
+        self.sectionNum = len(sections)
+        self.offset = self.sectionNum * 5
+        self.strumPattern = StringVar(root)
+        self.numMeasures = ""
 
     def buildTable(self, num_cols, timeSelection, numMeasures, start, barCount):        
         # build chords/strum chart
-        s = self.phraseNum * 5
-        # print(s)
-        for i in range(s, s + 4):
+        for i in range(0, 4):
+            # print(i + self.offset)
             j = start
             while j <= num_cols:
                 if i == 0 and barCount <= int(numMeasures.get()):
@@ -74,7 +75,7 @@ class Table:
 
                     labelText = "Bar " + str(barCount)
                     self.cell = Label(self.root, width=4, text=labelText)
-                    self.cell.grid(row=i, column=j + int(timeSelection.get()[0]), sticky=W, columnspan=int(timeSelection.get()[0]) * 2)
+                    self.cell.grid(row=i + self.offset, column=j + int(timeSelection.get()[0]), sticky=W, columnspan=int(timeSelection.get()[0]) * 2)
                     j += int(timeSelection.get()[0]) * 2
                     barCount += 1
                     continue
@@ -83,7 +84,7 @@ class Table:
                     if j == 0:
                         # add empty label at beginning of row (placeholder to align w/ below rows)
                         self.cell = Label(self.root, width=6, text="")
-                        self.cell.grid(row=i, column=j)
+                        self.cell.grid(row=i + self.offset, column=j)
                         j += 1
                         continue
 
@@ -91,9 +92,9 @@ class Table:
                 
                     # add space after last beat of measure
                     if j != 0 and j % len(beats.get(timeSelection.get())) == 0:
-                        self.cell.grid(row=i, column=j, padx=(0, 30))
+                        self.cell.grid(row=i + self.offset, column=j, padx=(0, 30))
                     else:
-                        self.cell.grid(row=i, column=j)
+                        self.cell.grid(row=i + self.offset, column=j)
 
                     self.cell.insert(END, beats.get(timeSelection.get())[(j - 1) % len(beats.get(timeSelection.get()))])
                     self.cell.config(state=DISABLED)
@@ -102,7 +103,7 @@ class Table:
                         if j == 0:
                             # add "Chords: " label at beginning of row
                             self.cell = Label(self.root, width=6, text="Chords: ")
-                            self.cell.grid(row=i, column=j)
+                            self.cell.grid(row=i + self.offset, column=j)
                             j += 1
                             continue
 
@@ -116,7 +117,7 @@ class Table:
                         if j != 0 and (j + 1) % len(beats.get(timeSelection.get())) == 0:
                             self.cell.bind("<Return>", ret_pressed)
 
-                        self.cell.grid(row=i, column=j, sticky=W, columnspan=2)
+                        self.cell.grid(row=i + self.offset, column=j, sticky=W, columnspan=2)
 
                         self.cell.insert(END, "")
                         j += 1
@@ -124,11 +125,11 @@ class Table:
                     # STRUM INPUTS
                     if j == 0:
                         # add "Strum Pattern: " dropdown at beginning of row
-                        if strumSelection.get() == "":
-                            strumSelection.set("Custom")
+                        if self.strumPattern.get() == "":
+                            self.strumPattern.set("Custom")
                         
-                        self.cell = OptionMenu(self.root, strumSelection, strumSelection.get(), *strumOptions, command=self.fillStrumPattern)
-                        self.cell.grid(row=i, column=j)
+                        self.cell = OptionMenu(self.root, self.strumPattern, self.strumPattern.get(), *strumOptions, command=self.fillStrumPattern)
+                        self.cell.grid(row=i + self.offset, column=j)
                         j += 1
                         continue
 
@@ -136,18 +137,18 @@ class Table:
 
                     # add spacing after last beat of measure
                     if j != 0 and j % len(beats.get(timeSelection.get())) == 0:
-                        self.cell.grid(row=i, column=j, padx=(0, 30))
+                        self.cell.grid(row=i + self.offset, column=j, padx=(0, 30))
                     else:
-                        self.cell.grid(row=i, column=j)
+                        self.cell.grid(row=i + self.offset, column=j)
 
-                    if strumSelection.get() != "Custom":
-                        self.cell.insert(END, strumPatterns.get(strumSelection.get())[(j + 1) % 2]) # autofill newly added cells with selected strum pattern
+                    if self.strumPattern.get() != "Custom":
+                        self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[(j + 1) % 2]) # autofill newly added cells with selected strum pattern
                     else:
                         self.cell.insert(END, "")
                 j += 1
 
         # set default focus to first input of last measure
-        self.root.grid_slaves(row=2, column=start + 1)[0].focus_set()
+        self.root.grid_slaves(row=2 + self.offset, column=start + 1)[0].focus_set()
         
         # update table fields barCount, lastCol
         self.barCount = barCount - 1
@@ -155,14 +156,14 @@ class Table:
 
         # place clear button
         self.cell = Button(self.root, text="Clear", width=4, command=self.clearTable)
-        self.cell.grid(row=5, column=j - 3, columnspan=2, sticky=W)
+        self.cell.grid(row=4 + self.offset, column=j - 3, columnspan=2, sticky=W)
 
-        # components for phrase name input
+        # components for section name input
         self.cell = Label(self.root, width=5, text="Name:")
-        self.cell.grid(row=5, column=j - 7, columnspan=2, sticky=E)
+        self.cell.grid(row=4 + self.offset, column=j - 7, columnspan=2, sticky=E)
         nameInput = Entry(self.root, width=6, font=('Arial',14))
         nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
-        nameInput.grid(row=5, column=j - 5, columnspan=2, sticky=W)
+        nameInput.grid(row=4 + self.offset, column=j - 5, columnspan=2, sticky=W)
 
     def __updateName(event, c, self, name):
         if c.keysym == "BackSpace":
@@ -174,7 +175,7 @@ class Table:
 
     def addMeasure(self, num_cols):
         # delete previous clear button, name label/input (will get re-added during the buildTable() call)
-        for e in self.root.grid_slaves(row=5):
+        for e in self.root.grid_slaves(row=4 + self.offset):
             e.grid_forget()
 
         self.buildTable(num_cols, timeSelection, numMeasures, self.lastCol + 1, self.barCount + 1)
@@ -191,23 +192,23 @@ class Table:
         self.barCount -= 1
 
         # set default focus to first input of last measure
-        self.root.grid_slaves(row=2, column=self.lastCol - int(timeSelection.get()[0]) * 2 + 1)[0].focus_set()
+        self.root.grid_slaves(row=2 + self.offset, column=self.lastCol - int(timeSelection.get()[0]) * 2 + 1)[0].focus_set()
 
         # put bar label back
         labelText = "Bar " + str(self.barCount)
         self.cell = Label(self.root, width=4, text=labelText)
-        self.cell.grid(row=0, column=self.lastCol - int(timeSelection.get()[0]), sticky=W, columnspan=int(timeSelection.get()[0]) * 2)
+        self.cell.grid(row=0 + self.offset, column=self.lastCol - int(timeSelection.get()[0]), sticky=W, columnspan=int(timeSelection.get()[0]) * 2)
 
         # put clear button back
         self.cell = Button(self.root, text="Clear", width=4, command=self.clearTable)
-        self.cell.grid(row=5, column=self.lastCol - 2, columnspan=2, sticky=W)
+        self.cell.grid(row=4 + self.offset, column=self.lastCol - 2, columnspan=2, sticky=W)
 
-        # put components for phrase name input back
+        # put components for section name input back
         self.cell = Label(self.root, width=5, text="Name:")
-        self.cell.grid(row=5, column=self.lastCol - 6, columnspan=2, sticky=E)
+        self.cell.grid(row=4 + self.offset, column=self.lastCol - 6, columnspan=2, sticky=E)
         nameInput = Entry(self.root, width=6, font=('Arial',14))
         nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
-        nameInput.grid(row=5, column=self.lastCol - 4, columnspan=2, sticky=W)
+        nameInput.grid(row=4 + self.offset, column=self.lastCol - 4, columnspan=2, sticky=W)
         # print("measure removed")
 
     def editTable(self, num_cols, timeSelection, numMeasures):
@@ -219,32 +220,32 @@ class Table:
 
     def clearTable(self):
         count = 0
-        for e in reversed(self.root.grid_slaves(row=2)):
+        for e in reversed(self.root.grid_slaves(row=2 + self.offset)):
             if count != 0:
                 e.delete(0, END)
             count += 1
 
         count = 0
-        for e in reversed(self.root.grid_slaves(row=3)):
+        for e in reversed(self.root.grid_slaves(row=3 + self.offset)):
             if count != 0:
                 e.delete(0, END)
             count += 1
 
         # clear name input
-        self.root.grid_slaves(row=5, column=self.lastCol-4)[0].delete(0, END)
+        self.root.grid_slaves(row=4 + self.offset, column=self.lastCol-4)[0].delete(0, END)
         
         print("table cleared")
 
-    def fillStrumPattern(self, strumSelection):
+    def fillStrumPattern(self, event):
         # implementation choice: autofill entire table on selection? Or just set that selection for new bars?      
         count = 0
 
-        for e in reversed(self.root.grid_slaves(row=3)):
+        for e in reversed(self.root.grid_slaves(row=3 + self.offset)):
             if count != 0:
                 e.delete(0, END)
-                if strumSelection != "Custom":
-                    e.insert(END, strumPatterns.get(strumSelection)[(count + 1) % 2]) 
-            count += 1 
+                if self.strumPattern.get() != "Custom":
+                    e.insert(END, strumPatterns.get(self.strumPattern.get())[(count + 1) % 2]) 
+            count += 1
 
     def buildChordStrumData(self, timeSelection):
         leftArm = []
@@ -255,7 +256,7 @@ class Table:
         # generate left arm data
         currMeasure = []
         count = 0
-        for e in reversed(self.root.grid_slaves(row=2 + (self.phraseNum * 5))):
+        for e in reversed(self.root.grid_slaves(row=2 + self.offset)):
             # print("count: ", count)
             # print("value: ", e.get())
             # print("numbeats: ", numBeatsPerMeasure)
@@ -274,7 +275,7 @@ class Table:
         currMeasure = []
         count = 0
         duration = (60/bpm)/(numBeatsPerMeasure * 2) # calculate duration of each strum
-        for e in reversed(self.root.grid_slaves(row=3 + (self.phraseNum * 5))):
+        for e in reversed(self.root.grid_slaves(row=3 + self.offset)):
             # code for appending duration to each strum stroke:
             # if (e.get() != ""):
             #     currMeasure.append((e.get(), duration))
@@ -295,10 +296,10 @@ class Table:
     
 ##### end of Table class ####
 
-initPhrase = Table(phrasesFrame)
-phrases.append(initPhrase)
+initSection = Table(sectionsFrame)
+sections.append(initSection)
 
-def create_table(phrase, timeSelection, numMeasures):
+def create_table(section, timeSelection, numMeasures):
     # set default values if needed
     if len(timeSelection.get()) == 0:
         timeSelection.set("4/4")
@@ -306,7 +307,7 @@ def create_table(phrase, timeSelection, numMeasures):
         numMeasures.set("1")
 
     num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
-    phrase.buildTable(num_cols, timeSelection, numMeasures, 0, 1)
+    section.buildTable(num_cols, timeSelection, numMeasures, 0, 1)
     print("table created")
 
 def update_table(event):
@@ -327,7 +328,7 @@ def update_table(event):
     measuresDisplay.config(state=DISABLED)
 
     num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
-    initPhrase.editTable(num_cols, timeSelection, numMeasures)
+    initSection.editTable(num_cols, timeSelection, numMeasures)
     print("table updated")
 
 def ret_pressed(event):
@@ -340,7 +341,8 @@ def add_measure():
     numMeasures.set(int(numMeasures.get()) + 1)
     num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
 
-    initPhrase.addMeasure(num_cols)
+    for section in sections:
+        section.addMeasure(num_cols)
 
     # update display
     measuresDisplay.config(state="ENABLED")
@@ -352,7 +354,8 @@ def remove_measure():
     if int(numMeasures.get()) > 1:
         numMeasures.set(int(numMeasures.get()) - 1)
 
-        initPhrase.removeMeasure()
+        for section in sections:
+            section.removeMeasure()
 
         # update display
         measuresDisplay.config(state="ENABLED")
@@ -361,7 +364,7 @@ def remove_measure():
         measuresDisplay.config(state=DISABLED)
 
 # load default table
-create_table(initPhrase, timeSelection, numMeasures)
+create_table(initSection, timeSelection, numMeasures)
 
 # time signature / bpm / measure dropdowns
 timeMenu = OptionMenu(timeFrame, timeSelection, "4/4", *timeSigs, command=update_table)
@@ -393,51 +396,56 @@ removeMeasureBtn.pack(side=LEFT)
 measuresDisplay.pack(side=LEFT)
 addMeasureBtn.pack(side=LEFT)
 
-# add/remove phrases
-def add_phrase():
-    newPhrase = Table(phrasesFrame)
-    phrases.append(newPhrase)
-    print(newPhrase.name)
-    print(newPhrase.phraseNum)
-    create_table(newPhrase, timeSelection, numMeasures)
+# add/remove sections
+def add_section():
+    newSection = Table(sectionsFrame)
+    sections.append(newSection)
+    # print(newSection.name)
+    # print(newSection.sectionNum)
+    create_table(newSection, timeSelection, numMeasures)
 
     # update display
-    phrasesDisplay.config(state="ENABLED")
-    phrasesDisplay.delete(0, END)
-    phrasesDisplay.insert(END, len(phrases))
-    phrasesDisplay.config(state=DISABLED)
+    sectionsDisplay.config(state="ENABLED")
+    sectionsDisplay.delete(0, END)
+    sectionsDisplay.insert(END, len(sections))
+    sectionsDisplay.config(state=DISABLED)
 
-def remove_phrase():
-    print()
-    # update display
-    phrasesDisplay.config(state="ENABLED")
-    phrasesDisplay.delete(0, END)
-    phrasesDisplay.insert(END, len(phrases))
-    phrasesDisplay.config(state=DISABLED)
+def remove_section():
+    if (len(sections) > 1):
+        removedSection = sections.pop()
+        for i in range(5):
+            for e in removedSection.root.grid_slaves(row=removedSection.offset + 4 - i):
+                e.grid_forget()
 
-# buttons for adding/removing phrases
-phraseBtnsFrame = Frame(window)
+        # update display
+        sectionsDisplay.config(state="ENABLED")
+        sectionsDisplay.delete(0, END)
+        sectionsDisplay.insert(END, len(sections))
+        sectionsDisplay.config(state=DISABLED)
 
-phrasesLabel = Label(phraseBtnsFrame, text="Phrases: ")
-phrasesDisplay = Entry(phraseBtnsFrame, width=2, font=('Arial',16))
-phrasesDisplay.insert(END, len(phrases))
-phrasesDisplay.config(state=DISABLED)
+# buttons for adding/removing sections
+sectionBtnsFrame = Frame(window)
 
-addPhraseBtn = Button(phraseBtnsFrame, text="+", width=1, command=add_phrase)
-removePhraseBtn = Button(phraseBtnsFrame, text="-", width=1, command=remove_phrase)
+sectionsLabel = Label(sectionBtnsFrame, text="Sections: ")
+sectionsDisplay = Entry(sectionBtnsFrame, width=2, font=('Arial',16))
+sectionsDisplay.insert(END, len(sections))
+sectionsDisplay.config(state=DISABLED)
 
-phrasesLabel.pack(side=LEFT)
-removePhraseBtn.pack(side=LEFT)
-phrasesDisplay.pack(side=LEFT)
-addPhraseBtn.pack(side=LEFT)
-phraseBtnsFrame.pack(pady=(10,5))
+addSectionBtn = Button(sectionBtnsFrame, text="+", width=1, command=add_section)
+removeSectionBtn = Button(sectionBtnsFrame, text="-", width=1, command=remove_section)
+
+sectionsLabel.pack(side=LEFT)
+removeSectionBtn.pack(side=LEFT)
+sectionsDisplay.pack(side=LEFT)
+addSectionBtn.pack(side=LEFT)
+sectionBtnsFrame.pack(pady=(10,5))
 
 def collect_chord_strum_data():
-    # build phrase dict
-    for phrase in phrases:
-        name = phrase.name
-        data = phrase.buildChordStrumData(timeSelection) # in form (left_arm, right_arm) for each phrase
-        phraseDict[name] = data
+    # build section dict
+    for section in sections:
+        name = section.name
+        data = section.buildChordStrumData(timeSelection) # in form (left_arm, right_arm) for each section
+        sectionsDict[name] = data
         
     # parse song input
     input = songInput.get()
@@ -446,10 +454,10 @@ def collect_chord_strum_data():
     # build complete left_arm, right_arm lists
     left_arm = []
     right_arm = []
-    for p in parsed_input:
-        if p in phraseDict.keys():
-            left_arm += phraseDict[p][0]
-            right_arm += phraseDict[p][1]
+    for section in parsed_input:
+        if section in sectionsDict.keys():
+            left_arm += sectionsDict[section][0]
+            right_arm += sectionsDict[section][1]
 
     # commands for getting the below values:
     # time signature -> timeSelection.get()
@@ -492,12 +500,12 @@ titleFrame = Frame(songFrame)
 inputFrame = Frame(songFrame)
 
 songTitle = Entry(titleFrame, width=12, font=('Arial',14))
-titleLabel = Label(titleFrame, text="Song Title:", width=8)
+titleLabel = Label(titleFrame, text="Song Title:", width=10)
 titleLabel.pack(side=LEFT)
 songTitle.pack(side=LEFT)
 
 songInput = Entry(inputFrame, width=12, font=('Arial',14))
-inputLabel = Label(inputFrame, text="Input:", width=8, justify=RIGHT)
+inputLabel = Label(inputFrame, text="Input (v, c,...):", width=10)
 inputLabel.pack(side=LEFT)
 songInput.pack(side=LEFT)
 

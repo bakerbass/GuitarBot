@@ -7,7 +7,7 @@ import csv
 import os.path
 
 # GuitarBot UI
-# TODO: scrollbar, load in csv
+# TODO: scrollbar, load in csv, bug with adding sections in 2/4
 sections = []
 sectionsDict = {}
 
@@ -45,11 +45,10 @@ strumPatterns = {
 }
 
 timeSelection = StringVar(window)
-numMeasures = StringVar(window) # eventually remove
 
 #### Section class ####
 # defines the chart module with chords and strumming inputs
-# TODO: make measures select for each individual section (works for adding measures, fix for removing)
+# TODO:
 class Section:
     def __init__(self, root):
         self.root = root
@@ -61,7 +60,7 @@ class Section:
         self.strumPattern = StringVar(root)
         self.numMeasures = 1
 
-    def buildTable(self, num_cols, timeSelection, numMeasures, start, barCount):        
+    def buildTable(self, num_cols, timeSelection, start, barCount):        
         # build chords/strum chart
         for i in range(0, 4):
             # print(i + self.offset)
@@ -184,7 +183,7 @@ class Section:
         for e in self.root.grid_slaves(row=4 + self.offset):
             e.grid_forget()
 
-        self.buildTable(num_cols, timeSelection, numMeasures, self.lastCol + 1, self.barCount + 1)
+        self.buildTable(num_cols, timeSelection, self.lastCol + 1, self.barCount + 1)
         # print("measure added")
 
     def removeMeasure(self):
@@ -218,12 +217,12 @@ class Section:
         nameInput.grid(row=4 + self.offset, column=self.lastCol - 4, columnspan=2, sticky=W)
         # print("measure removed")
 
-    def editTable(self, num_cols, timeSelection, numMeasures):
+    def editTable(self, num_cols, timeSelection):
         # delete prev rows
         for w in self.root.grid_slaves():
             w.grid_forget()
         
-        self.buildTable(num_cols, timeSelection, numMeasures, 0, 1)
+        self.buildTable(num_cols, timeSelection, 0, 1)
 
     def clearTable(self):
         count = 0
@@ -306,26 +305,21 @@ class Section:
 initSection = Section(sectionsFrame)
 sections.append(initSection)
 
-def create_table(section, timeSelection, numMeasures):
+def create_table(section, timeSelection):
     # set default values if needed
     if len(timeSelection.get()) == 0:
         timeSelection.set("4/4")
-    # if len(numMeasures.get()) == 0:
-    #     numMeasures.set("1")
 
     num_cols = int(timeSelection.get()[0]) * section.numMeasures * 2
-    section.buildTable(num_cols, timeSelection, numMeasures, 0, 1)
+    section.buildTable(num_cols, timeSelection, 0, 1)
     # print("table created")
 
 def update_table(event):
     # set default values if needed
     if len(timeSelection.get()) == 0:
         timeSelection.set("4/4")
-    # if len(numMeasures.get()) == 0:
-    #     numMeasures.set("4")
 
     # reset number of measures back to 1
-    # numMeasures.set(1)
     initSection.numMeasures = 1
 
     # update sections list
@@ -343,7 +337,7 @@ def update_table(event):
     # measuresDisplay.config(state=DISABLED)
 
     num_cols = int(timeSelection.get()[0]) * initSection.numMeasures * 2
-    initSection.editTable(num_cols, timeSelection, numMeasures)
+    initSection.editTable(num_cols, timeSelection)
     print("table updated")
 
 # OLD EVENT HANDLERS
@@ -386,7 +380,7 @@ def remove_measure(section):
         # measuresDisplay.config(state=DISABLED)
 
 # load default table
-create_table(initSection, timeSelection, numMeasures)
+create_table(initSection, timeSelection)
 
 # time signature / bpm / measure dropdowns
 timeMenu = OptionMenu(timeFrame, timeSelection, "4/4", *timeSigs, command=update_table)
@@ -400,7 +394,7 @@ bpmLabel = Label(timeFrame, text="bpm: ")
 bpmLabel.pack(side=LEFT)
 bpmInput.pack(side=LEFT)
 
-# UI for Add/Remove Measures
+# OLD UI for Add/Remove Measures
 # measuresLabel = Label(timeFrame, text="Measures: ")
 # measuresDisplay = Entry(timeFrame, width=2, font=('Arial',16))
 
@@ -425,7 +419,7 @@ def add_section():
     sections.append(newSection)
     # print(newSection.name)
     # print(newSection.sectionNum)
-    create_table(newSection, timeSelection, numMeasures)
+    create_table(newSection, timeSelection)
 
     # update display
     sectionsDisplay.config(state="ENABLED")

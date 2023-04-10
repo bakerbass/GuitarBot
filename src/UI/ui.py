@@ -190,8 +190,9 @@ class Section:
     def removeMeasure(self):
         # delete all components in last measure
         for i in range(int(timeSelection.get()[0]) * 2):
-            for e in self.root.grid_slaves(column=self.lastCol - i):
-                e.grid_forget()
+            for j in range(5):
+                for e in self.root.grid_slaves(column=self.lastCol - i, row=j + self.offset):
+                    e.grid_forget()
 
         # update last column
         self.lastCol = self.lastCol - int(timeSelection.get()[0]) * 2
@@ -337,26 +338,25 @@ def update_table(event):
     initSection.editTable(num_cols, timeSelection, numMeasures)
     print("table updated")
 
+# OLD EVENT HANDLERS
 # def ret_pressed(event, section):
 #     add_measure(section)
 
 # def backspace_pressed(event, section):
 #     remove_measure(section)
 
-def add_measure_all_sections():
-    for section in sections:
-        add_measure(section)
+# def add_measure_all_sections():
+#     for section in sections:
+#         add_measure(section)
 
-def remove_measure_all_sections():
-    for section in sections:
-        remove_measure(section)
+# def remove_measure_all_sections():
+#     for section in sections:
+#         remove_measure(section)
 
 def add_measure(section):
     section.numMeasures = section.numMeasures + 1
     num_cols = int(timeSelection.get()[0]) * section.numMeasures * 2
 
-    # for section in sections:
-    #     section.addMeasure(num_cols)
     section.addMeasure(num_cols)
 
     # update display
@@ -369,8 +369,6 @@ def remove_measure(section):
     if section.numMeasures > 1:
         section.numMeasures = section.numMeasures - 1
 
-        # for section in sections:
-        #     section.removeMeasure()
         section.removeMeasure()
 
         # update display
@@ -394,7 +392,8 @@ bpmLabel = Label(timeFrame, text="bpm: ")
 bpmLabel.pack(side=LEFT)
 bpmInput.pack(side=LEFT)
 
-measuresLabel = Label(timeFrame, text="Measures: ")
+# UI for Add/Remove Measures
+# measuresLabel = Label(timeFrame, text="Measures: ")
 # measuresDisplay = Entry(timeFrame, width=2, font=('Arial',16))
 
 # set default numMeasures to 1 if not initialized
@@ -404,13 +403,13 @@ measuresLabel = Label(timeFrame, text="Measures: ")
 # measuresDisplay.insert(END, initSection.numMeasures)
 # measuresDisplay.config(state=DISABLED)
 
-removeMeasureBtn = Button(timeFrame, text="-", width=1, command=remove_measure_all_sections)
-addMeasureBtn = Button(timeFrame, text="+", width=1, command=add_measure_all_sections)
+# removeMeasureBtn = Button(timeFrame, text="-", width=1, command=remove_measure_all_sections)
+# addMeasureBtn = Button(timeFrame, text="+", width=1, command=add_measure_all_sections)
 
-measuresLabel.pack(side=LEFT)
-removeMeasureBtn.pack(side=LEFT)
-# measuresDisplay.pack(side=LEFT)
-addMeasureBtn.pack(side=LEFT)
+# measuresLabel.pack(side=LEFT)
+# removeMeasureBtn.pack(side=LEFT)
+# # measuresDisplay.pack(side=LEFT)
+# addMeasureBtn.pack(side=LEFT)
 
 # add/remove sections
 def add_section():

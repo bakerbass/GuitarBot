@@ -328,6 +328,14 @@ def update_table(event):
     # numMeasures.set(1)
     initSection.numMeasures = 1
 
+    # update sections list
+    sections.clear()
+    sections.append(initSection)
+    sectionsDisplay.config(state="ENABLED")
+    sectionsDisplay.delete(0, END)
+    sectionsDisplay.insert(END, len(sections))
+    sectionsDisplay.config(state=DISABLED)
+
     # update measures display
     # measuresDisplay.config(state="ENABLED")
     # measuresDisplay.delete(0, END)

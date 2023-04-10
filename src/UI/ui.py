@@ -47,10 +47,10 @@ strumPatterns = {
 timeSelection = StringVar(window)
 numMeasures = StringVar(window)
 
-#### Table class ####
+#### Section class ####
 # defines the chart module with chords and strumming inputs
 # TODO: make measures select for each individual section
-class Table:
+class Section:
     def __init__(self, root):
         self.root = root
         self.barCount = 0
@@ -294,9 +294,9 @@ class Table:
 
         return (leftArm, rightArm)
     
-##### end of Table class ####
+##### end of Section class ####
 
-initSection = Table(sectionsFrame)
+initSection = Section(sectionsFrame)
 sections.append(initSection)
 
 def create_table(section, timeSelection, numMeasures):
@@ -320,6 +320,14 @@ def update_table(event):
 
     # reset number of measures back to 1
     numMeasures.set(1)
+
+    # update sections list
+    sections.clear()
+    sections.append(initSection)
+    sectionsDisplay.config(state="ENABLED")
+    sectionsDisplay.delete(0, END)
+    sectionsDisplay.insert(END, len(sections))
+    sectionsDisplay.config(state=DISABLED)
 
     # update measures display
     measuresDisplay.config(state="ENABLED")
@@ -398,7 +406,7 @@ addMeasureBtn.pack(side=LEFT)
 
 # add/remove sections
 def add_section():
-    newSection = Table(sectionsFrame)
+    newSection = Section(sectionsFrame)
     sections.append(newSection)
     # print(newSection.name)
     # print(newSection.sectionNum)

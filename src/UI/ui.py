@@ -240,7 +240,7 @@ class Section:
         # clear name input
         self.root.grid_slaves(row=4 + self.offset, column=self.lastCol-4)[0].delete(0, END)
         
-        print("table cleared")
+        # print("table cleared")
 
     def fillStrumPattern(self, event):
         # implementation choice: autofill entire table on selection? Or just set that selection for new bars?      

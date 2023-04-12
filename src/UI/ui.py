@@ -7,7 +7,7 @@ import csv
 import os.path
 
 # GuitarBot UI
-# TODO: scrollbar, load in csv
+# TODO: scrollbar, load in csv, bug with adding sections in 2/4
 sections = []
 sectionsDict = {}
 
@@ -45,11 +45,10 @@ strumPatterns = {
 }
 
 timeSelection = StringVar(window)
-numMeasures = StringVar(window)
 
 #### Section class ####
 # defines the chart module with chords and strumming inputs
-# TODO: make measures select for each individual section
+# TODO:
 class Section:
     def __init__(self, root):
         self.root = root
@@ -61,13 +60,13 @@ class Section:
         self.strumPattern = StringVar(root)
         self.numMeasures = 1
 
-    def buildTable(self, num_cols, timeSelection, numMeasures, start, barCount):        
+    def buildTable(self, num_cols, timeSelection, start, barCount):        
         # build chords/strum chart
         for i in range(0, 4):
             # print(i + self.offset)
             j = start
             while j <= num_cols:
-                if i == 0 and barCount <= int(numMeasures.get()):
+                if i == 0 and barCount <= self.numMeasures:
                     # MEASURE LABELS
                     # account for bar label placement shift
                     if (j != 0 and j == start):
@@ -111,11 +110,11 @@ class Section:
 
                         # add <BackSpace> event handler to first chord input in each measure
                         if j == 1 or j == start:
-                            self.cell.bind("<BackSpace>", backspace_pressed)
+                            self.cell.bind("<BackSpace>", self.__backspacePressed)
 
                         # add <Return> event handler to last chord input in each measure
                         if j != 0 and (j + 1) % len(beats.get(timeSelection.get())) == 0:
-                            self.cell.bind("<Return>", ret_pressed)
+                            self.cell.bind("<Return>", self.__returnPressed)
 
                         self.cell.grid(row=i + self.offset, column=j, sticky=W, columnspan=2)
 
@@ -173,19 +172,26 @@ class Section:
             # append pressed char
             self.name = name + c.char
 
+    def __returnPressed(self, event):
+        add_measure(self)
+
+    def __backspacePressed(self, event):
+        remove_measure(self)
+
     def addMeasure(self, num_cols):
         # delete previous clear button, name label/input (will get re-added during the buildTable() call)
         for e in self.root.grid_slaves(row=4 + self.offset):
             e.grid_forget()
 
-        self.buildTable(num_cols, timeSelection, numMeasures, self.lastCol + 1, self.barCount + 1)
+        self.buildTable(num_cols, timeSelection, self.lastCol + 1, self.barCount + 1)
         # print("measure added")
 
     def removeMeasure(self):
         # delete all components in last measure
         for i in range(int(timeSelection.get()[0]) * 2):
-            for e in self.root.grid_slaves(column=self.lastCol - i):
-                e.grid_forget()
+            for j in range(5):
+                for e in self.root.grid_slaves(column=self.lastCol - i, row=j + self.offset):
+                    e.grid_forget()
 
         # update last column
         self.lastCol = self.lastCol - int(timeSelection.get()[0]) * 2
@@ -211,12 +217,12 @@ class Section:
         nameInput.grid(row=4 + self.offset, column=self.lastCol - 4, columnspan=2, sticky=W)
         # print("measure removed")
 
-    def editTable(self, num_cols, timeSelection, numMeasures):
+    def editTable(self, num_cols, timeSelection):
         # delete prev rows
         for w in self.root.grid_slaves():
             w.grid_forget()
         
-        self.buildTable(num_cols, timeSelection, numMeasures, 0, 1)
+        self.buildTable(num_cols, timeSelection, 0, 1)
 
     def clearTable(self):
         count = 0
@@ -234,7 +240,7 @@ class Section:
         # clear name input
         self.root.grid_slaves(row=4 + self.offset, column=self.lastCol-4)[0].delete(0, END)
         
-        print("table cleared")
+        # print("table cleared")
 
     def fillStrumPattern(self, event):
         # implementation choice: autofill entire table on selection? Or just set that selection for new bars?      
@@ -299,27 +305,30 @@ class Section:
 initSection = Section(sectionsFrame)
 sections.append(initSection)
 
-def create_table(section, timeSelection, numMeasures):
+def create_table(section, timeSelection):
     # set default values if needed
     if len(timeSelection.get()) == 0:
         timeSelection.set("4/4")
-    if len(numMeasures.get()) == 0:
-        numMeasures.set("1")
 
-    num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
-    section.buildTable(num_cols, timeSelection, numMeasures, 0, 1)
+    num_cols = int(timeSelection.get()[0]) * section.numMeasures * 2
+    section.buildTable(num_cols, timeSelection, 0, 1)
     # print("table created")
 
 def update_table(event):
-    # print("got these values",timeSelection.get(), numMeasures.get())
     # set default values if needed
     if len(timeSelection.get()) == 0:
         timeSelection.set("4/4")
-    if len(numMeasures.get()) == 0:
-        numMeasures.set("4")
 
     # reset number of measures back to 1
-    numMeasures.set(1)
+    initSection.numMeasures = 1
+
+    # update sections list
+    sections.clear()
+    sections.append(initSection)
+    sectionsDisplay.config(state="ENABLED")
+    sectionsDisplay.delete(0, END)
+    sectionsDisplay.insert(END, len(sections))
+    sectionsDisplay.config(state=DISABLED)
 
     # update sections list
     sections.clear()
@@ -330,49 +339,56 @@ def update_table(event):
     sectionsDisplay.config(state=DISABLED)
 
     # update measures display
-    measuresDisplay.config(state="ENABLED")
-    measuresDisplay.delete(0, END)
-    measuresDisplay.insert(END, numMeasures.get())
-    measuresDisplay.config(state=DISABLED)
+    # measuresDisplay.config(state="ENABLED")
+    # measuresDisplay.delete(0, END)
+    # measuresDisplay.insert(END, initSection.numMeasures)
+    # measuresDisplay.config(state=DISABLED)
 
-    num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
-    initSection.editTable(num_cols, timeSelection, numMeasures)
+    num_cols = int(timeSelection.get()[0]) * initSection.numMeasures * 2
+    initSection.editTable(num_cols, timeSelection)
     print("table updated")
 
-def ret_pressed(event):
-    add_measure()
+# OLD EVENT HANDLERS
+# def ret_pressed(event, section):
+#     add_measure(section)
 
-def backspace_pressed(event):
-    remove_measure()
+# def backspace_pressed(event, section):
+#     remove_measure(section)
 
-def add_measure():
-    numMeasures.set(int(numMeasures.get()) + 1)
-    num_cols = int(timeSelection.get()[0]) * (int)(numMeasures.get()) * 2
+# def add_measure_all_sections():
+#     for section in sections:
+#         add_measure(section)
 
-    for section in sections:
-        section.addMeasure(num_cols)
+# def remove_measure_all_sections():
+#     for section in sections:
+#         remove_measure(section)
+
+def add_measure(section):
+    section.numMeasures = section.numMeasures + 1
+    num_cols = int(timeSelection.get()[0]) * section.numMeasures * 2
+
+    section.addMeasure(num_cols)
 
     # update display
-    measuresDisplay.config(state="ENABLED")
-    measuresDisplay.delete(0, END)
-    measuresDisplay.insert(END, numMeasures.get())
-    measuresDisplay.config(state=DISABLED)
+    # measuresDisplay.config(state="ENABLED")
+    # measuresDisplay.delete(0, END)
+    # measuresDisplay.insert(END, numMeasures.get())
+    # measuresDisplay.config(state=DISABLED)
 
-def remove_measure():
-    if int(numMeasures.get()) > 1:
-        numMeasures.set(int(numMeasures.get()) - 1)
+def remove_measure(section):
+    if section.numMeasures > 1:
+        section.numMeasures = section.numMeasures - 1
 
-        for section in sections:
-            section.removeMeasure()
+        section.removeMeasure()
 
         # update display
-        measuresDisplay.config(state="ENABLED")
-        measuresDisplay.delete(0, END)
-        measuresDisplay.insert(END, numMeasures.get())
-        measuresDisplay.config(state=DISABLED)
+        # measuresDisplay.config(state="ENABLED")
+        # measuresDisplay.delete(0, END)
+        # measuresDisplay.insert(END, numMeasures.get())
+        # measuresDisplay.config(state=DISABLED)
 
 # load default table
-create_table(initSection, timeSelection, numMeasures)
+create_table(initSection, timeSelection)
 
 # time signature / bpm / measure dropdowns
 timeMenu = OptionMenu(timeFrame, timeSelection, "4/4", *timeSigs, command=update_table)
@@ -386,23 +402,24 @@ bpmLabel = Label(timeFrame, text="bpm: ")
 bpmLabel.pack(side=LEFT)
 bpmInput.pack(side=LEFT)
 
-measuresLabel = Label(timeFrame, text="Measures: ")
-measuresDisplay = Entry(timeFrame, width=2, font=('Arial',16))
+# OLD UI for Add/Remove Measures
+# measuresLabel = Label(timeFrame, text="Measures: ")
+# measuresDisplay = Entry(timeFrame, width=2, font=('Arial',16))
 
 # set default numMeasures to 1 if not initialized
-if numMeasures.get() == "":
-    numMeasures.set("1")
+# if numMeasures.get() == "":
+#     numMeasures.set("1")
 
-measuresDisplay.insert(END, numMeasures.get())
-measuresDisplay.config(state=DISABLED)
+# measuresDisplay.insert(END, initSection.numMeasures)
+# measuresDisplay.config(state=DISABLED)
 
-removeMeasureBtn = Button(timeFrame, text="-", width=1, command=remove_measure)
-addMeasureBtn = Button(timeFrame, text="+", width=1, command=add_measure)
+# removeMeasureBtn = Button(timeFrame, text="-", width=1, command=remove_measure_all_sections)
+# addMeasureBtn = Button(timeFrame, text="+", width=1, command=add_measure_all_sections)
 
-measuresLabel.pack(side=LEFT)
-removeMeasureBtn.pack(side=LEFT)
-measuresDisplay.pack(side=LEFT)
-addMeasureBtn.pack(side=LEFT)
+# measuresLabel.pack(side=LEFT)
+# removeMeasureBtn.pack(side=LEFT)
+# # measuresDisplay.pack(side=LEFT)
+# addMeasureBtn.pack(side=LEFT)
 
 # add/remove sections
 def add_section():
@@ -410,7 +427,7 @@ def add_section():
     sections.append(newSection)
     # print(newSection.name)
     # print(newSection.sectionNum)
-    create_table(newSection, timeSelection, numMeasures)
+    create_table(newSection, timeSelection)
 
     # update display
     sectionsDisplay.config(state="ENABLED")
@@ -469,7 +486,6 @@ def collect_chord_strum_data():
 
     # commands for getting the below values:
     # time signature -> timeSelection.get()
-    # number of measures -> numMeasures.get()
     # bpm -> bpmInput.get()
     # duration of each strum = (60/bpm)/(numBeatsPerMeasure * 2)
 
@@ -507,7 +523,7 @@ def write_to_csv(name, input):
     # write individual section data
     for section in sections:
         writer.writerow(section.name)
-        writer.writerow(numMeasures.get())
+        writer.writerow(section.numMeasures)
         data = section.buildChordStrumData(timeSelection)
         writer.writerow(data[0]) # write left arm data
         writer.writerow(data[1]) # write right arm data

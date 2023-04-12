@@ -105,12 +105,19 @@ def UI():
         "Down/Up",
         "Downs",
         "Ups",
+        "WV",
+        "WC",
+        "WB"
     ]
 
     strumPatterns = {
         "Down/Up": ["D", "U"],
         "Downs": ["D", ""],
-        "Ups": ["", "U"]
+        "Ups": ["", "U"],
+        "WV": ["D", "", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U",
+               "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U",],
+        "WC": [],
+        "WB": []
     }
 
     timeSelection = StringVar(window)
@@ -209,7 +216,14 @@ def UI():
                         else:
                             self.cell.grid(row=i + self.offset, column=j)
 
-                        if self.strumPattern.get() != "Custom":
+                        if self.strumPattern.get()[0] == "W":
+                            # Wonderwall strum patterns
+                            # print(j)
+                            # print(self.strumPattern.get())
+                            # print(strumPatterns.get(self.strumPattern.get()))
+                            self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[(j - 1) % 32])
+                        elif self.strumPattern.get() != "Custom":
+                            # print("ran")
                             self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[(j + 1) % 2]) # autofill newly added cells with selected strum pattern
                         else:
                             self.cell.insert(END, "")
@@ -318,7 +332,10 @@ def UI():
             for e in reversed(self.root.grid_slaves(row=3 + self.offset)):
                 if count != 0:
                     e.delete(0, END)
-                    if self.strumPattern.get() != "Custom":
+                    if self.strumPattern.get()[0] == "W":
+                        # Wonderwall strum patterns
+                        e.insert(END, strumPatterns.get(self.strumPattern.get())[(count - 1) % 32])
+                    elif self.strumPattern.get() != "Custom":
                         e.insert(END, strumPatterns.get(self.strumPattern.get())[(count + 1) % 2]) 
                 count += 1
 
@@ -643,4 +660,7 @@ def UI():
 
     window.mainloop()
 
-    return right_arm, left_arm, mtime        
+    return right_arm, left_arm, mtime
+
+# for testing purposes
+UI()

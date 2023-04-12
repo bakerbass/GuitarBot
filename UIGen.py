@@ -114,10 +114,14 @@ def UI():
         "Down/Up": ["D", "U"],
         "Downs": ["D", ""],
         "Ups": ["", "U"],
+
+        # wonderwall strum patterns below (built for 4/4, 4 bars, double time) ->
         "WV": ["D", "", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U",
                "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U",],
-        "WC": [],
-        "WB": []
+        "WC": ["D", "", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U",
+               "D", "U", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U"],
+        "WB": ["D", "", "D", "", "D", "U", "D", "U", "", "U", "D", "U", "D", "", "D", "",
+               "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U",]
     }
 
     timeSelection = StringVar(window)
@@ -184,13 +188,11 @@ def UI():
 
                             self.cell = Entry(self.root, width=6, font=('Arial',16))
 
-                            # add <BackSpace> event handler to first chord input in each measure
-                            if j == 1 or j == start:
-                                self.cell.bind("<BackSpace>", self.__backspacePressed)
+                            # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
+                            self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
 
-                            # add <Return> event handler to last chord input in each measure
-                            if j != 0 and (j + 1) % len(beats.get(timeSelection.get())) == 0:
-                                self.cell.bind("<Return>", self.__returnPressed)
+                            # add <Return> event handler to every input box (adds new measure if pressed)
+                            self.cell.bind("<Return>", self.__returnPressed)
 
                             self.cell.grid(row=i + self.offset, column=j, sticky=W, columnspan=2)
 
@@ -218,12 +220,8 @@ def UI():
 
                         if self.strumPattern.get()[0] == "W":
                             # Wonderwall strum patterns
-                            # print(j)
-                            # print(self.strumPattern.get())
-                            # print(strumPatterns.get(self.strumPattern.get()))
                             self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[(j - 1) % 32])
                         elif self.strumPattern.get() != "Custom":
-                            # print("ran")
                             self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[(j + 1) % 2]) # autofill newly added cells with selected strum pattern
                         else:
                             self.cell.insert(END, "")
@@ -640,7 +638,7 @@ def UI():
     titleLabel.pack(side=LEFT)
     songTitle.pack(side=LEFT)
 
-    songInput = Entry(inputFrame, width=12, font=('Arial',14))
+    songInput = Entry(inputFrame, width=25, font=('Arial',14))
     inputLabel = Label(inputFrame, text="Input (v, c,...):", width=10)
     inputLabel.pack(side=LEFT)
     songInput.pack(side=LEFT)
@@ -657,6 +655,11 @@ def UI():
     load.pack(pady=1)
 
     btnFrame.pack()
+
+    # add keyboard shortcut Ctrl + S to send data to bot
+    def ctrlS_send(e):
+        collect_chord_strum_data()
+    window.bind('<Control-s>', lambda e: ctrlS_send(e)) 
 
     window.mainloop()
 

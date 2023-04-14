@@ -2,8 +2,8 @@
     {
         "name": "default",
         "timeSig": "4/4",
-        "bpm": "60",
-        "input": ""
+        "bpm": "70",
+        "input": "v"
     },
     {
         "name": "",
@@ -11,7 +11,7 @@
         "strumSelection": "Custom",
         "leftArm": [
             [
-                "a",
+                "",
                 "",
                 "",
                 ""

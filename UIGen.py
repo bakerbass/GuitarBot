@@ -123,9 +123,6 @@ def UI():
                "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U",]
     }
 
-    nameSelection = StringVar(window)
-    inputSelection = StringVar(window)
-    bpmSelection = StringVar(window)
     timeSelection = StringVar(window)
 
     #### Section class ####
@@ -636,9 +633,23 @@ def UI():
 
         # set general song data
         song_dict = json_data.pop(0)
+        # update UI components
+        songTitle.delete(0, END)
+        songTitle.insert(0, song_dict["name"])
+        songInput.delete(0, END)
+        songInput.insert(0, song_dict["input"])
+        bpmInput.delete(0, END)
+        bpmInput.insert(0, song_dict["bpm"])
         timeSelection.set(song_dict["timeSig"])
         # reset UI to intial section
         update_table(None)
+
+        init_section_dict = json_data.pop(0)
+        # populate initial section (already existing)
+
+        # create and populate any remaining sections
+        for section_dict in json_data:
+            print("todo")
 
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)

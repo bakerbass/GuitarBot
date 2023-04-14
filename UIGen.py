@@ -1,12 +1,18 @@
-
+import tkinter as tk
+import tkinter.ttk as ttk
+from tkinter import *
+from tkinter.ttk import *
+from tkinter.filedialog import askopenfilename
+import tkinter.messagebox
+import os.path
 import tkinter.messagebox
 import pandas as pd
 import numpy as np
-import csv
 import ast
 from queue import Queue
 import logging
 import UIParse
+import json
 
 print("PLEASE READ: NOT ALL CHORDS ARE REPRESENTED, BE WARY OF ERROR MESSAGE 'INDEXING OUT OF BOUNDS")
 BPM = 60
@@ -66,17 +72,10 @@ robot_timing = 5000
 # song length in sec
 song_length = 25
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
-import tkinter as tk
-import tkinter.ttk as ttk
-from tkinter import *
-from tkinter.ttk import *
-import tkinter.messagebox
-import csv
-import os.path
 
 def UI():    
     # GuitarBot UI
-    # TODO: scrollbar, load in csv, bug with adding sections in 2/4
+    # TODO: scrollbar, bug with adding sections in 2/4
     sections = []
     sectionsDict = {}
 
@@ -124,6 +123,9 @@ def UI():
                "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U",]
     }
 
+    nameSelection = StringVar(window)
+    inputSelection = StringVar(window)
+    bpmSelection = StringVar(window)
     timeSelection = StringVar(window)
 
     #### Section class ####
@@ -430,7 +432,7 @@ def UI():
 
         num_cols = int(timeSelection.get()[0]) * initSection.numMeasures * 2
         initSection.editTable(num_cols, timeSelection)
-        print("table updated")
+        # print("table updated")
 
     # OLD EVENT HANDLERS
     # def ret_pressed(event, section):
@@ -583,7 +585,7 @@ def UI():
         else:
             name = "default"
         
-        # write_to_csv(name, input)
+        write_to_json(name, input)
 
         print("left arm: ", left_arm)
         print("right arm: ", right_arm)
@@ -593,37 +595,50 @@ def UI():
         mtime = strumlen * 4
         tkinter.messagebox.showinfo("Alert", "Song sent to GuitarBot.")
 
-    def write_to_csv(name, input):
+    def write_to_json(name, input):
         # check to make sure user does not accidentally overwrite existing song
-        if name != "default" and os.path.isfile('src/csv/' + name + '.csv'):
+        if name != "default" and os.path.isfile('songs/' + name + '.json'):
             response = tkinter.messagebox.askquestion("Warning", "A song with the same name is already saved. Would you like to overwrite the " +
                                         "contents of the existing song? (If you select no, song will be saved as a new file.)")
             if response == 'no':
                 name = name + "1"
 
-        file = open('src/csv/' + name + '.csv', 'w')
-        writer = csv.writer(file)
+        # organize general song data
+        song_dict = {
+            "name": name,
+            "timeSig": timeSelection.get(),
+            "bpm": bpmInput.get(),
+            "input": input
+        }
 
-        # csv vs txt??
+        json_data = []
+        json_data.append(song_dict)
 
-        # write general song data
-        writer.writerow(name)
-        writer.writerow(timeSelection.get())
-        writer.writerow(bpmInput.get())
-        writer.writerow(input)
-
-        # write individual section data
+        # add individual section data to json_data
         for section in sections:
-            writer.writerow(section.name)
-            writer.writerow(section.numMeasures)
             data = section.buildChordStrumData(timeSelection)
-            writer.writerow(data[0]) # write left arm data
-            writer.writerow(data[1]) # write right arm data
+            section_dict = {}
+            section_dict["name"] = section.name
+            section_dict["numMeasures"] = section.numMeasures
+            section_dict["strumSelection"] = section.strumPattern.get()
+            section_dict["leftArm"] = data[0]
+            section_dict["rightArm"] = data[1]
+            json_data.append(section_dict)
 
-        file.close()
+        with open('songs/' + name + '.json', 'w') as file:
+            # write data to json
+            file.write(json.dumps(json_data, indent=4))
 
-    def load_from_csv():
-        print("load from csv")
+    def load_from_json():
+        path = askopenfilename()
+        with open(path, 'r') as file:
+            json_data = json.load(file)
+
+        # set general song data
+        song_dict = json_data.pop(0)
+        timeSelection.set(song_dict["timeSig"])
+        # reset UI to intial section
+        update_table(None)
 
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)
@@ -648,7 +663,7 @@ def UI():
     songFrame.pack(pady=(20,5))
 
     send = Button(btnFrame, text="Send", width=4, command=collect_chord_strum_data)
-    load = Button(btnFrame, text="Load CSV", width=8, command=load_from_csv)
+    load = Button(btnFrame, text="Load Song", width=8, command=load_from_json)
     label = Label(btnFrame, text="OR")
     send.pack(pady=1)
     label.pack()

@@ -1,0 +1,33 @@
+[
+    {
+        "name": "default",
+        "timeSig": "4/4",
+        "bpm": "60",
+        "input": ""
+    },
+    {
+        "name": "",
+        "numMeasures": 1,
+        "strumSelection": "Custom",
+        "leftArm": [
+            [
+                "a",
+                "",
+                "",
+                ""
+            ]
+        ],
+        "rightArm": [
+            [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]
+        ]
+    }
+]

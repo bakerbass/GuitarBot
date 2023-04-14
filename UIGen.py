@@ -430,14 +430,7 @@ def UI():
 
         # reset number of measures back to 1
         initSection.numMeasures = 1
-
-        # update sections list
-        sections.clear()
-        sections.append(initSection)
-        sectionsDisplay.config(state="ENABLED")
-        sectionsDisplay.delete(0, END)
-        sectionsDisplay.insert(END, len(sections))
-        sectionsDisplay.config(state=DISABLED)
+        initSection.strumPattern.set("")
 
         # update sections list
         sections.clear()
@@ -678,20 +671,21 @@ def UI():
         count = 0
         for section_dict in json_data:
             if count == 0:
-                newSection = initSection
+                section = initSection
             else:
-                newSection = add_section()
-            newSection.name = section_dict["name"]
-            newSection.nameInput.insert(0, newSection.name)
+                section = add_section()
+
+            section.name = section_dict["name"]
+            section.nameInput.insert(0, section.name)
 
             for i in range(1, int(section_dict["numMeasures"])):
-                add_measure(newSection)
+                add_measure(section)
 
-            newSection.strumPattern.set(section_dict["strumPattern"])
+            section.strumPattern.set(section_dict["strumPattern"])
             # flatten input arrays
             leftArm = [item for sublist in section_dict["leftArm"] for item in sublist]
             rightArm = [item for sublist in section_dict["rightArm"] for item in sublist]
-            newSection.insertChordStrumData(leftArm, rightArm)
+            section.insertChordStrumData(leftArm, rightArm)
             count += 1
 
     # create inputs for song title/structure to send to bot

@@ -134,6 +134,7 @@ def UI():
             self.barCount = 0
             self.lastCol = 0
             self.name = ""
+            self.nameInput = None
             self.sectionNum = len(sections)
             self.offset = self.sectionNum * 5
             self.strumPattern = StringVar(root)
@@ -211,6 +212,12 @@ def UI():
 
                         self.cell = Entry(self.root, width=2, font=('Arial',16))
 
+                        # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
+                        self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
+
+                        # add <Return> event handler to every input box (adds new measure if pressed)
+                        self.cell.bind("<Return>", self.__returnPressed)
+
                         # add spacing after last beat of measure
                         if j != 0 and j % len(beats.get(timeSelection.get())) == 0:
                             self.cell.grid(row=i + self.offset, column=j, padx=(0, 30))
@@ -241,6 +248,7 @@ def UI():
             self.cell = Label(self.root, width=5, text="Name:")
             self.cell.grid(row=4 + self.offset, column=j - 7, columnspan=2, sticky=E)
             nameInput = Entry(self.root, width=6, font=('Arial',14))
+            self.nameInput = nameInput
             nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
             nameInput.grid(row=4 + self.offset, column=j - 5, columnspan=2, sticky=W)
 
@@ -264,6 +272,7 @@ def UI():
                 e.grid_forget()
 
             self.buildTable(num_cols, timeSelection, self.lastCol + 1, self.barCount + 1)
+            self.nameInput.insert(0, self.name)
             # print("measure added")
 
         def removeMeasure(self):
@@ -382,6 +391,23 @@ def UI():
                 count += 1
 
             return (leftArm, rightArm)
+        
+        def insertChordStrumData(self, leftArm, rightArm):
+            # insert left arm data
+            i = 0
+            for e in reversed(self.root.grid_slaves(row=2 + self.offset)):
+                if i != 0:
+                    e.delete(0, END)
+                    e.insert(0, leftArm[i - 1])
+                i += 1
+
+            # insert right arm data
+            i = 0
+            for e in reversed(self.root.grid_slaves(row=3 + self.offset)):
+                if i != 0:
+                    e.delete(0, END)
+                    e.insert(0, rightArm[i - 1])
+                i += 1
         
     ##### end of Section class ####
 
@@ -518,6 +544,8 @@ def UI():
         sectionsDisplay.insert(END, len(sections))
         sectionsDisplay.config(state=DISABLED)
 
+        return newSection
+
     def remove_section():
         if (len(sections) > 1):
             removedSection = sections.pop()
@@ -617,7 +645,7 @@ def UI():
             section_dict = {}
             section_dict["name"] = section.name
             section_dict["numMeasures"] = section.numMeasures
-            section_dict["strumSelection"] = section.strumPattern.get()
+            section_dict["strumPattern"] = section.strumPattern.get()
             section_dict["leftArm"] = data[0]
             section_dict["rightArm"] = data[1]
             json_data.append(section_dict)
@@ -633,6 +661,7 @@ def UI():
 
         # set general song data
         song_dict = json_data.pop(0)
+
         # update UI components
         songTitle.delete(0, END)
         songTitle.insert(0, song_dict["name"])
@@ -641,15 +670,29 @@ def UI():
         bpmInput.delete(0, END)
         bpmInput.insert(0, song_dict["bpm"])
         timeSelection.set(song_dict["timeSig"])
-        # reset UI to intial section
+
+        # reset UI to initial state
         update_table(None)
 
-        init_section_dict = json_data.pop(0)
-        # populate initial section (already existing)
-
-        # create and populate any remaining sections
+        # create and populate sections with data
+        count = 0
         for section_dict in json_data:
-            print("todo")
+            if count == 0:
+                newSection = initSection
+            else:
+                newSection = add_section()
+            newSection.name = section_dict["name"]
+            newSection.nameInput.insert(0, newSection.name)
+
+            for i in range(1, int(section_dict["numMeasures"])):
+                add_measure(newSection)
+
+            newSection.strumPattern.set(section_dict["strumPattern"])
+            # flatten input arrays
+            leftArm = [item for sublist in section_dict["leftArm"] for item in sublist]
+            rightArm = [item for sublist in section_dict["rightArm"] for item in sublist]
+            newSection.insertChordStrumData(leftArm, rightArm)
+            count += 1
 
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)

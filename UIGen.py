@@ -41,7 +41,7 @@ rhythm = []
 onsets = [4, 8, 12, 16, 20, 24]
 
 firstc = []
-left_arm = []
+# left_arm = []
 
 repeat = 2
 is_play = False
@@ -573,7 +573,6 @@ def UI():
         global left_arm
         global right_arm
         global mtime
-        global initialStrum
 
         # build section dict
         for section in sections:
@@ -590,8 +589,11 @@ def UI():
         right_arm = []
         for section in parsed_input:
             if section in sectionsDict.keys():
-                left_arm += sectionsDict[section][0]
-                right_arm += sectionsDict[section][1]
+                for m in sectionsDict[section][0]:
+                    left_arm.append(m.copy())
+
+                for m in sectionsDict[section][1]:
+                    right_arm.append(m.copy())
 
         # commands for getting the below values:
         # time signature -> timeSelection.get()

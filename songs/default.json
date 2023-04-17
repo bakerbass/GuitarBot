@@ -1,48 +1,17 @@
 [
     {
         "name": "default",
-        "timeSig": "3/4",
-        "bpm": "70",
-        "input": "v, c, c"
-    },
-    {
-        "name": "c",
-        "numMeasures": 1,
-        "strumPattern": "Down/Up",
-        "leftArm": [
-            [
-                "",
-                "",
-                ""
-            ]
-        ],
-        "rightArm": [
-            [
-                "D",
-                "U",
-                "D",
-                "U",
-                "D",
-                "U"
-            ]
-        ]
+        "timeSig": "4/4",
+        "bpm": "60",
+        "input": ""
     },
     {
         "name": "",
-        "numMeasures": 3,
-        "strumPattern": "Ups",
+        "numMeasures": 1,
+        "strumPattern": "Custom",
         "leftArm": [
             [
                 "",
-                "",
-                ""
-            ],
-            [
-                "",
-                "",
-                ""
-            ],
-            [
                 "",
                 "",
                 ""
@@ -51,27 +20,13 @@
         "rightArm": [
             [
                 "",
-                "U",
                 "",
-                "U",
                 "",
-                "U"
-            ],
-            [
                 "",
-                "U",
                 "",
-                "U",
                 "",
-                "U"
-            ],
-            [
                 "",
-                "U",
-                "",
-                "U",
-                "",
-                "U"
+                ""
             ]
         ]
     }

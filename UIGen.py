@@ -127,7 +127,7 @@ def UI():
 
     #### Section class ####
     # defines the chart module with chords and strumming inputs
-    # TODO:
+    # TODO: fix tabbing over on last beat of measure
     class Section:
         def __init__(self, root):
             self.root = root

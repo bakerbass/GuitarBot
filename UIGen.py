@@ -719,7 +719,7 @@ def UI():
 
     send = Button(btnFrame, text="Send", width=4, command=collect_chord_strum_data)
     load = Button(btnFrame, text="Load", width=4, command=load_from_json)
-    send.pack(pady=1)
+    send.pack(pady=(1,0))
     load.pack()
 
     btnFrame.pack()

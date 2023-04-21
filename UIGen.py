@@ -607,6 +607,11 @@ def UI():
         
         write_to_json(name, input)
 
+        # write left_arm, right_arm arrays to json file
+        with open('output/output.json', 'w') as file:
+            # write left_arm, right_arm to json
+            file.write(json.dumps([left_arm, right_arm], indent=4))
+
         print("left arm: ", left_arm)
         print("right arm: ", right_arm)
         print("input: ", input)
@@ -713,11 +718,9 @@ def UI():
     songFrame.pack(pady=(20,5))
 
     send = Button(btnFrame, text="Send", width=4, command=collect_chord_strum_data)
-    load = Button(btnFrame, text="Load Song", width=8, command=load_from_json)
-    label = Label(btnFrame, text="OR")
+    load = Button(btnFrame, text="Load", width=4, command=load_from_json)
     send.pack(pady=1)
-    label.pack()
-    load.pack(pady=1)
+    load.pack()
 
     btnFrame.pack()
 

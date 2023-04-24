@@ -626,7 +626,7 @@ def UI():
             response = tkinter.messagebox.askquestion("Warning", "A song with the same name is already saved. Would you like to overwrite the " +
                                         "contents of the existing song? (If you select no, song will be saved as a new file.)")
             if response == 'no':
-                name = name + "1"
+                name = name + "(1)"
 
         # organize general song data
         song_dict = {

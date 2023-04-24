@@ -75,7 +75,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 def UI():    
     # GuitarBot UI
-    # TODO: scrollbar, bug with adding sections in 2/4
+    # TODO: scrollbar, bug with adding sections in 2/4?, seperate save functionality
     sections = []
     sectionsDict = {}
 
@@ -719,8 +719,8 @@ def UI():
 
     send = Button(btnFrame, text="Send", width=4, command=collect_chord_strum_data)
     load = Button(btnFrame, text="Load", width=4, command=load_from_json)
-    send.pack(pady=(1,0))
-    load.pack()
+    send.pack(pady=1)
+    load.pack(pady=1)
 
     btnFrame.pack()
 

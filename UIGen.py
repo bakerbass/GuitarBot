@@ -498,7 +498,7 @@ def UI():
     timeLabel.pack(side=LEFT)
     timeMenu.pack(side=LEFT)
 
-    bpmInput = Entry(timeFrame, width=2, font=('Arial',16))
+    bpmInput = Entry(timeFrame, width=3, font=('Arial',16))
     bpmInput.insert(END, "60") # set default bpm
     bpmLabel = Label(timeFrame, text="bpm: ")
     bpmLabel.pack(side=LEFT)

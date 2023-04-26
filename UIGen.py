@@ -127,7 +127,7 @@ def UI():
 
     #### Section class ####
     # defines the chart module with chords and strumming inputs
-    # TODO: fix tabbing over on last beat of measure
+    # TODO:
     class Section:
         def __init__(self, root):
             self.root = root
@@ -194,6 +194,10 @@ def UI():
                             # add <Return> event handler to every input box (adds new measure if pressed)
                             self.cell.bind("<Return>", self.__returnPressed)
 
+                            # add <Tab> event handler to last beat of measure (pan over to next measure)
+                            if j == num_cols - 1:
+                                self.cell.bind("<Tab>", lambda e: self.__tabPressedChord(e, j))
+
                             self.cell.grid(row=i + self.offset, column=j, sticky=W, columnspan=2)
 
                             self.cell.insert(END, "")
@@ -217,6 +221,10 @@ def UI():
 
                         # add <Return> event handler to every input box (adds new measure if pressed)
                         self.cell.bind("<Return>", self.__returnPressed)
+
+                        # add <Tab> event handler to last beat of measure (pan over to next measure)
+                        if j == num_cols:
+                            self.cell.bind("<Tab>", lambda e: self.__tabPressedStrum(e, j))
 
                         # add spacing after last beat of measure
                         if j != 0 and j % len(beats.get(timeSelection.get())) == 0:
@@ -266,6 +274,28 @@ def UI():
         def __backspacePressed(self, event):
             remove_measure(self)
 
+        def __tabPressedChord(self, event, col):
+            if col == self.lastCol + 1:
+                    # tab was pressed on last beat in phrase
+                    add_measure(self)
+            else:
+                # set focus on first beat of next measure
+                self.root.grid_slaves(row=2 + self.offset, column=col)[0].focus_set()
+
+            return 'break'
+        
+        def __tabPressedStrum(self, event, col):
+            print(col)
+            print(self.lastCol)
+            if col == self.lastCol + 1:
+                    # tab was pressed on last beat in phrase
+                    add_measure(self)
+            else:
+                # set focus on first beat of next measure
+                self.root.grid_slaves(row=3 + self.offset, column=col)[0].focus_set()
+
+            return 'break'
+            
         def addMeasure(self, num_cols):
             # delete previous clear button, name label/input (will get re-added during the buildTable() call)
             for e in self.root.grid_slaves(row=4 + self.offset):

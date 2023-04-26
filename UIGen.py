@@ -127,7 +127,7 @@ def UI():
 
     #### Section class ####
     # defines the chart module with chords and strumming inputs
-    # TODO:
+    # TODO: add arrow key handlers
     class Section:
         def __init__(self, root):
             self.root = root

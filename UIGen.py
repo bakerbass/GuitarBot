@@ -16,7 +16,7 @@ import json
 
 print("PLEASE READ: NOT ALL CHORDS ARE REPRESENTED, BE WARY OF ERROR MESSAGE 'INDEXING OUT OF BOUNDS")
 BPM = 60
-MAX_TIME = 1/3
+MAX_TIME = 1 / 3
 UDP_IP = "192.168.1.50"
 XARM_IP = '192.168.1.215'
 UDP_PORT = 1001
@@ -73,9 +73,10 @@ robot_timing = 5000
 song_length = 25
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
-def UI():    
+
+def UI():
     # GuitarBot UI
-    # TODO: scrollbar, bug with adding sections in 2/4?, seperate save functionality
+    # TODO: scrollbar, bug with adding sections in 2/4
     sections = []
     sectionsDict = {}
 
@@ -116,18 +117,18 @@ def UI():
 
         # wonderwall strum patterns below (built for 4/4, 4 bars, double time) ->
         "WV": ["D", "", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U",
-               "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U",],
+               "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U", ],
         "WC": ["D", "", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U",
                "D", "U", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U"],
         "WB": ["D", "", "D", "", "D", "U", "D", "U", "", "U", "D", "U", "D", "", "D", "",
-               "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U",]
+               "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U", ]
     }
 
     timeSelection = StringVar(window)
 
     #### Section class ####
     # defines the chart module with chords and strumming inputs
-    # TODO: add arrow key handlers
+    # TODO: fix tabbing over on last beat of measure
     class Section:
         def __init__(self, root):
             self.root = root
@@ -140,7 +141,7 @@ def UI():
             self.strumPattern = StringVar(root)
             self.numMeasures = 1
 
-        def buildTable(self, num_cols, timeSelection, start, barCount):        
+        def buildTable(self, num_cols, timeSelection, start, barCount):
             # build chords/strum chart
             for i in range(0, 4):
                 # print(i + self.offset)
@@ -154,7 +155,8 @@ def UI():
 
                         labelText = "Bar " + str(barCount)
                         self.cell = Label(self.root, width=4, text=labelText)
-                        self.cell.grid(row=i + self.offset, column=j + int(timeSelection.get()[0]), sticky=W, columnspan=int(timeSelection.get()[0]) * 2)
+                        self.cell.grid(row=i + self.offset, column=j + int(timeSelection.get()[0]), sticky=W,
+                                       columnspan=int(timeSelection.get()[0]) * 2)
                         j += int(timeSelection.get()[0]) * 2
                         barCount += 1
                         continue
@@ -168,53 +170,26 @@ def UI():
                             continue
 
                         self.cell = Entry(self.root, width=2, font=('Arial', 16, 'bold'))
-                    
+
                         # add space after last beat of measure
                         if j != 0 and j % len(beats.get(timeSelection.get())) == 0:
                             self.cell.grid(row=i + self.offset, column=j, padx=(0, 30))
                         else:
                             self.cell.grid(row=i + self.offset, column=j)
 
-                        self.cell.insert(END, beats.get(timeSelection.get())[(j - 1) % len(beats.get(timeSelection.get()))])
+                        self.cell.insert(END,
+                                         beats.get(timeSelection.get())[(j - 1) % len(beats.get(timeSelection.get()))])
                         self.cell.config(state=DISABLED)
                     elif i == 2:
-                            # CHORD INPUTS
-                            if j == 0:
-                                # add "Chords: " label at beginning of row
-                                self.cell = Label(self.root, width=6, text="Chords: ")
-                                self.cell.grid(row=i + self.offset, column=j)
-                                j += 1
-                                continue
-
-                            self.cell = Entry(self.root, width=6, font=('Arial',16))
-
-                            # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
-                            self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
-
-                            # add <Return> event handler to every input box (adds new measure if pressed)
-                            self.cell.bind("<Return>", self.__returnPressed)
-
-                            # add <Tab> event handler to last beat of measure (pan over to next measure)
-                            if j == num_cols - 1:
-                                self.cell.bind("<Tab>", lambda e: self.__tabPressedChord(e, j))
-
-                            self.cell.grid(row=i + self.offset, column=j, sticky=W, columnspan=2)
-
-                            self.cell.insert(END, "")
-                            j += 1
-                    elif i == 3:
-                        # STRUM INPUTS
+                        # CHORD INPUTS
                         if j == 0:
-                            # add "Strum Pattern: " dropdown at beginning of row
-                            if self.strumPattern.get() == "":
-                                self.strumPattern.set("Custom")
-                            
-                            self.cell = OptionMenu(self.root, self.strumPattern, self.strumPattern.get(), *strumOptions, command=self.fillStrumPattern)
+                            # add "Chords: " label at beginning of row
+                            self.cell = Label(self.root, width=6, text="Chords: ")
                             self.cell.grid(row=i + self.offset, column=j)
                             j += 1
                             continue
 
-                        self.cell = Entry(self.root, width=2, font=('Arial',16))
+                        self.cell = Entry(self.root, width=6, font=('Arial', 16))
 
                         # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
                         self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
@@ -222,9 +197,30 @@ def UI():
                         # add <Return> event handler to every input box (adds new measure if pressed)
                         self.cell.bind("<Return>", self.__returnPressed)
 
-                        # add <Tab> event handler to last beat of measure (pan over to next measure)
-                        if j == num_cols:
-                            self.cell.bind("<Tab>", lambda e: self.__tabPressedStrum(e, j))
+                        self.cell.grid(row=i + self.offset, column=j, sticky=W, columnspan=2)
+
+                        self.cell.insert(END, "")
+                        j += 1
+                    elif i == 3:
+                        # STRUM INPUTS
+                        if j == 0:
+                            # add "Strum Pattern: " dropdown at beginning of row
+                            if self.strumPattern.get() == "":
+                                self.strumPattern.set("Custom")
+
+                            self.cell = OptionMenu(self.root, self.strumPattern, self.strumPattern.get(), *strumOptions,
+                                                   command=self.fillStrumPattern)
+                            self.cell.grid(row=i + self.offset, column=j)
+                            j += 1
+                            continue
+
+                        self.cell = Entry(self.root, width=2, font=('Arial', 16))
+
+                        # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
+                        self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
+
+                        # add <Return> event handler to every input box (adds new measure if pressed)
+                        self.cell.bind("<Return>", self.__returnPressed)
 
                         # add spacing after last beat of measure
                         if j != 0 and j % len(beats.get(timeSelection.get())) == 0:
@@ -236,14 +232,15 @@ def UI():
                             # Wonderwall strum patterns
                             self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[(j - 1) % 32])
                         elif self.strumPattern.get() != "Custom":
-                            self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[(j + 1) % 2]) # autofill newly added cells with selected strum pattern
+                            self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[
+                                (j + 1) % 2])  # autofill newly added cells with selected strum pattern
                         else:
                             self.cell.insert(END, "")
                     j += 1
 
             # set default focus to first input of last measure
             self.root.grid_slaves(row=2 + self.offset, column=start + 1)[0].focus_set()
-            
+
             # update table fields barCount, lastCol
             self.barCount = barCount - 1
             self.lastCol = num_cols
@@ -255,7 +252,7 @@ def UI():
             # components for section name input
             self.cell = Label(self.root, width=5, text="Name:")
             self.cell.grid(row=4 + self.offset, column=j - 7, columnspan=2, sticky=E)
-            nameInput = Entry(self.root, width=6, font=('Arial',14))
+            nameInput = Entry(self.root, width=6, font=('Arial', 14))
             self.nameInput = nameInput
             nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
             nameInput.grid(row=4 + self.offset, column=j - 5, columnspan=2, sticky=W)
@@ -274,28 +271,6 @@ def UI():
         def __backspacePressed(self, event):
             remove_measure(self)
 
-        def __tabPressedChord(self, event, col):
-            if col == self.lastCol + 1:
-                    # tab was pressed on last beat in phrase
-                    add_measure(self)
-            else:
-                # set focus on first beat of next measure
-                self.root.grid_slaves(row=2 + self.offset, column=col)[0].focus_set()
-
-            return 'break'
-        
-        def __tabPressedStrum(self, event, col):
-            print(col)
-            print(self.lastCol)
-            if col == self.lastCol + 1:
-                    # tab was pressed on last beat in phrase
-                    add_measure(self)
-            else:
-                # set focus on first beat of next measure
-                self.root.grid_slaves(row=3 + self.offset, column=col)[0].focus_set()
-
-            return 'break'
-            
         def addMeasure(self, num_cols):
             # delete previous clear button, name label/input (will get re-added during the buildTable() call)
             for e in self.root.grid_slaves(row=4 + self.offset):
@@ -317,12 +292,14 @@ def UI():
             self.barCount -= 1
 
             # set default focus to first input of last measure
-            self.root.grid_slaves(row=2 + self.offset, column=self.lastCol - int(timeSelection.get()[0]) * 2 + 1)[0].focus_set()
+            self.root.grid_slaves(row=2 + self.offset, column=self.lastCol - int(timeSelection.get()[0]) * 2 + 1)[
+                0].focus_set()
 
             # put bar label back
             labelText = "Bar " + str(self.barCount)
             self.cell = Label(self.root, width=4, text=labelText)
-            self.cell.grid(row=0 + self.offset, column=self.lastCol - int(timeSelection.get()[0]), sticky=W, columnspan=int(timeSelection.get()[0]) * 2)
+            self.cell.grid(row=0 + self.offset, column=self.lastCol - int(timeSelection.get()[0]), sticky=W,
+                           columnspan=int(timeSelection.get()[0]) * 2)
 
             # put clear button back
             self.cell = Button(self.root, text="Clear", width=4, command=self.clearTable)
@@ -331,7 +308,7 @@ def UI():
             # put components for section name input back
             self.cell = Label(self.root, width=5, text="Name:")
             self.cell.grid(row=4 + self.offset, column=self.lastCol - 6, columnspan=2, sticky=E)
-            nameInput = Entry(self.root, width=6, font=('Arial',14))
+            nameInput = Entry(self.root, width=6, font=('Arial', 14))
             nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
             nameInput.grid(row=4 + self.offset, column=self.lastCol - 4, columnspan=2, sticky=W)
             # print("measure removed")
@@ -340,7 +317,7 @@ def UI():
             # delete prev rows
             for w in self.root.grid_slaves():
                 w.grid_forget()
-            
+
             self.buildTable(num_cols, timeSelection, 0, 1)
 
         def clearTable(self):
@@ -357,12 +334,12 @@ def UI():
                 count += 1
 
             # clear name input
-            self.root.grid_slaves(row=4 + self.offset, column=self.lastCol-4)[0].delete(0, END)
-            
+            self.root.grid_slaves(row=4 + self.offset, column=self.lastCol - 4)[0].delete(0, END)
+
             # print("table cleared")
 
         def fillStrumPattern(self, event):
-            # implementation choice: autofill entire table on selection? Or just set that selection for new bars?      
+            # implementation choice: autofill entire table on selection? Or just set that selection for new bars?
             count = 0
 
             for e in reversed(self.root.grid_slaves(row=3 + self.offset)):
@@ -372,7 +349,7 @@ def UI():
                         # Wonderwall strum patterns
                         e.insert(END, strumPatterns.get(self.strumPattern.get())[(count - 1) % 32])
                     elif self.strumPattern.get() != "Custom":
-                        e.insert(END, strumPatterns.get(self.strumPattern.get())[(count + 1) % 2]) 
+                        e.insert(END, strumPatterns.get(self.strumPattern.get())[(count + 1) % 2])
                 count += 1
 
         def buildChordStrumData(self, timeSelection):
@@ -380,7 +357,7 @@ def UI():
             rightArm = []
             numBeatsPerMeasure = (int)(timeSelection.get()[0])
             bpm = (int)(bpmInput.get())
-            
+
             # generate left arm data
             currMeasure = []
             count = 0
@@ -402,7 +379,7 @@ def UI():
             # generate right arm data
             currMeasure = []
             count = 0
-            duration = (60/bpm)/(numBeatsPerMeasure * 2) # calculate duration of each strum
+            duration = (60 / bpm) / (numBeatsPerMeasure * 2)  # calculate duration of each strum
             for e in reversed(self.root.grid_slaves(row=3 + self.offset)):
                 # code for appending duration to each strum stroke:
                 # if (e.get() != ""):
@@ -411,7 +388,7 @@ def UI():
                 #     currMeasure.append("")
 
                 if count != 0:
-                    currMeasure.append(e.get()) # delete this line if using above code
+                    currMeasure.append(e.get())  # delete this line if using above code
                     if count == numBeatsPerMeasure * 2:
                         rightArm.append(currMeasure)
                         currMeasure = []
@@ -421,7 +398,7 @@ def UI():
                 count += 1
 
             return (leftArm, rightArm)
-        
+
         def insertChordStrumData(self, leftArm, rightArm):
             # insert left arm data
             i = 0
@@ -438,7 +415,7 @@ def UI():
                     e.delete(0, END)
                     e.insert(0, rightArm[i - 1])
                 i += 1
-        
+
     ##### end of Section class ####
 
     initSection = Section(sectionsFrame)
@@ -528,8 +505,8 @@ def UI():
     timeLabel.pack(side=LEFT)
     timeMenu.pack(side=LEFT)
 
-    bpmInput = Entry(timeFrame, width=3, font=('Arial',16))
-    bpmInput.insert(END, "60") # set default bpm
+    bpmInput = Entry(timeFrame, width=3, font=('Arial', 16))
+    bpmInput.insert(END, "60")  # set default bpm
     bpmLabel = Label(timeFrame, text="bpm: ")
     bpmLabel.pack(side=LEFT)
     bpmInput.pack(side=LEFT)
@@ -586,7 +563,7 @@ def UI():
     sectionBtnsFrame = Frame(window)
 
     sectionsLabel = Label(sectionBtnsFrame, text="Sections: ")
-    sectionsDisplay = Entry(sectionBtnsFrame, width=2, font=('Arial',16))
+    sectionsDisplay = Entry(sectionBtnsFrame, width=2, font=('Arial', 16))
     sectionsDisplay.insert(END, len(sections))
     sectionsDisplay.config(state=DISABLED)
 
@@ -597,7 +574,7 @@ def UI():
     removeSectionBtn.pack(side=LEFT)
     sectionsDisplay.pack(side=LEFT)
     addSectionBtn.pack(side=LEFT)
-    sectionBtnsFrame.pack(pady=(10,5))
+    sectionBtnsFrame.pack(pady=(10, 5))
 
     def collect_chord_strum_data():
         global left_arm
@@ -607,9 +584,9 @@ def UI():
         # build section dict
         for section in sections:
             name = section.name
-            data = section.buildChordStrumData(timeSelection) # in form (left_arm, right_arm) for each section
+            data = section.buildChordStrumData(timeSelection)  # in form (left_arm, right_arm) for each section
             sectionsDict[name] = data
-            
+
         # parse song input
         input = songInput.get()
         parsed_input = input.replace(", ", ",").split(",")
@@ -634,7 +611,7 @@ def UI():
             name = songTitle.get()
         else:
             name = "default"
-        
+
         write_to_json(name, input)
 
         # write left_arm, right_arm arrays to json file
@@ -653,8 +630,9 @@ def UI():
     def write_to_json(name, input):
         # check to make sure user does not accidentally overwrite existing song
         if name != "default" and os.path.isfile('songs/' + name + '.json'):
-            response = tkinter.messagebox.askquestion("Warning", "A song with the same name is already saved. Would you like to overwrite the " +
-                                        "contents of the existing song? (If you select no, song will be saved as a new file.)")
+            response = tkinter.messagebox.askquestion("Warning",
+                                                      "A song with the same name is already saved. Would you like to overwrite the " +
+                                                      "contents of the existing song? (If you select no, song will be saved as a new file.)")
             if response == 'no':
                 name = name + "(1)"
 
@@ -686,6 +664,7 @@ def UI():
 
     def load_from_json():
         path = askopenfilename()
+        print(str(path))
         with open(path, 'r') as file:
             json_data = json.load(file)
 
@@ -733,19 +712,19 @@ def UI():
     inputFrame = Frame(songFrame)
     btnFrame = Frame(window)
 
-    songTitle = Entry(titleFrame, width=12, font=('Arial',14))
+    songTitle = Entry(titleFrame, width=12, font=('Arial', 14))
     titleLabel = Label(titleFrame, text="Song Title:", width=10)
     titleLabel.pack(side=LEFT)
     songTitle.pack(side=LEFT)
 
-    songInput = Entry(inputFrame, width=25, font=('Arial',14))
+    songInput = Entry(inputFrame, width=25, font=('Arial', 14))
     inputLabel = Label(inputFrame, text="Input (v, c,...):", width=10)
     inputLabel.pack(side=LEFT)
     songInput.pack(side=LEFT)
 
     titleFrame.pack()
     inputFrame.pack()
-    songFrame.pack(pady=(20,5))
+    songFrame.pack(pady=(20, 5))
 
     send = Button(btnFrame, text="Send", width=4, command=collect_chord_strum_data)
     load = Button(btnFrame, text="Load", width=4, command=load_from_json)
@@ -757,11 +736,13 @@ def UI():
     # add keyboard shortcut Ctrl + S to send data to bot
     def ctrlS_send(e):
         collect_chord_strum_data()
-    window.bind('<Control-s>', lambda e: ctrlS_send(e)) 
+
+    window.bind('<Control-s>', lambda e: ctrlS_send(e))
 
     window.mainloop()
 
     return right_arm, left_arm, mtime
+
 
 # for testing purposes
 UI()

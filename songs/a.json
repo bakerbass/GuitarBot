@@ -1,0 +1,33 @@
+[
+    {
+        "name": "a",
+        "timeSig": "4/4",
+        "bpm": "60",
+        "input": "a"
+    },
+    {
+        "name": "",
+        "numMeasures": 1,
+        "strumPattern": "Down/Up",
+        "leftArm": [
+            [
+                "A",
+                "A",
+                "A",
+                "A"
+            ]
+        ],
+        "rightArm": [
+            [
+                "D",
+                "U",
+                "D",
+                "U",
+                "D",
+                "U",
+                "D",
+                "U"
+            ]
+        ]
+    }
+]

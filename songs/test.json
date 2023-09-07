@@ -1,0 +1,33 @@
+[
+    {
+        "name": "test",
+        "timeSig": "4/4",
+        "bpm": "60",
+        "input": "v"
+    },
+    {
+        "name": "v",
+        "numMeasures": 1,
+        "strumPattern": "Down/Up",
+        "leftArm": [
+            [
+                "CM",
+                "",
+                "Gm",
+                ""
+            ]
+        ],
+        "rightArm": [
+            [
+                "D",
+                "U",
+                "D",
+                "U",
+                "D",
+                "U",
+                "D",
+                "U"
+            ]
+        ]
+    }
+]

@@ -76,7 +76,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 def UI():
     # GuitarBot UI
-    # TODO: scrollbar, bug with adding sections in 2/4
+    # This function opens the UI, and returns the user input to the caller when the user presses "Send".
     sections = []
     sectionsDict = {}
 
@@ -128,7 +128,11 @@ def UI():
 
     #### Section class ####
     # defines the chart module with chords and strumming inputs
-    # TODO: fix tabbing over on last beat of measure
+    #
+    # TODO: fix below issue:
+    # If you press tab on the last beat of a measure (assuming next measure exists), focus should move to the first beat of the next measure
+    # Right now, focus will move to the first strum input box of the current measure
+    # Same goes for strumming. If you press tab on the last strum input of a measure, should jump to the first strum input of the next measure
     class Section:
         def __init__(self, root):
             self.root = root
@@ -352,6 +356,8 @@ def UI():
                         e.insert(END, strumPatterns.get(self.strumPattern.get())[(count + 1) % 2])
                 count += 1
 
+        # This function builds the leftArm and rightArm data arrays
+        # Returns as a tuple: (leftArm, rightArm)
         def buildChordStrumData(self, timeSelection):
             leftArm = []
             rightArm = []
@@ -418,6 +424,7 @@ def UI():
 
     ##### end of Section class ####
 
+    # initialize new section on initial page load
     initSection = Section(sectionsFrame)
     sections.append(initSection)
 
@@ -447,59 +454,24 @@ def UI():
         sectionsDisplay.insert(END, len(sections))
         sectionsDisplay.config(state=DISABLED)
 
-        # update measures display
-        # measuresDisplay.config(state="ENABLED")
-        # measuresDisplay.delete(0, END)
-        # measuresDisplay.insert(END, initSection.numMeasures)
-        # measuresDisplay.config(state=DISABLED)
-
         num_cols = int(timeSelection.get()[0]) * initSection.numMeasures * 2
         initSection.editTable(num_cols, timeSelection)
         # print("table updated")
 
-    # OLD EVENT HANDLERS
-    # def ret_pressed(event, section):
-    #     add_measure(section)
-
-    # def backspace_pressed(event, section):
-    #     remove_measure(section)
-
-    # def add_measure_all_sections():
-    #     for section in sections:
-    #         add_measure(section)
-
-    # def remove_measure_all_sections():
-    #     for section in sections:
-    #         remove_measure(section)
-
     def add_measure(section):
         section.numMeasures = section.numMeasures + 1
         num_cols = int(timeSelection.get()[0]) * section.numMeasures * 2
-
         section.addMeasure(num_cols)
-
-        # update display
-        # measuresDisplay.config(state="ENABLED")
-        # measuresDisplay.delete(0, END)
-        # measuresDisplay.insert(END, numMeasures.get())
-        # measuresDisplay.config(state=DISABLED)
 
     def remove_measure(section):
         if section.numMeasures > 1:
             section.numMeasures = section.numMeasures - 1
-
             section.removeMeasure()
-
-            # update display
-            # measuresDisplay.config(state="ENABLED")
-            # measuresDisplay.delete(0, END)
-            # measuresDisplay.insert(END, numMeasures.get())
-            # measuresDisplay.config(state=DISABLED)
 
     # load default table
     create_table(initSection, timeSelection)
 
-    # time signature / bpm / measure dropdowns
+    # define time signature / bpm / measure dropdowns
     timeMenu = OptionMenu(timeFrame, timeSelection, "4/4", *timeSigs, command=update_table)
     timeLabel = Label(timeFrame, text="Time Signature: ")
     timeLabel.pack(side=LEFT)
@@ -511,26 +483,7 @@ def UI():
     bpmLabel.pack(side=LEFT)
     bpmInput.pack(side=LEFT)
 
-    # OLD UI for Add/Remove Measures
-    # measuresLabel = Label(timeFrame, text="Measures: ")
-    # measuresDisplay = Entry(timeFrame, width=2, font=('Arial',16))
-
-    # set default numMeasures to 1 if not initialized
-    # if numMeasures.get() == "":
-    #     numMeasures.set("1")
-
-    # measuresDisplay.insert(END, initSection.numMeasures)
-    # measuresDisplay.config(state=DISABLED)
-
-    # removeMeasureBtn = Button(timeFrame, text="-", width=1, command=remove_measure_all_sections)
-    # addMeasureBtn = Button(timeFrame, text="+", width=1, command=add_measure_all_sections)
-
-    # measuresLabel.pack(side=LEFT)
-    # removeMeasureBtn.pack(side=LEFT)
-    # # measuresDisplay.pack(side=LEFT)
-    # addMeasureBtn.pack(side=LEFT)
-
-    # add/remove sections
+    # add/remove section functions
     def add_section():
         newSection = Section(sectionsFrame)
         sections.append(newSection)
@@ -559,7 +512,7 @@ def UI():
             sectionsDisplay.insert(END, len(sections))
             sectionsDisplay.config(state=DISABLED)
 
-    # buttons for adding/removing sections
+    # create buttons for adding/removing sections
     sectionBtnsFrame = Frame(window)
 
     sectionsLabel = Label(sectionBtnsFrame, text="Sections: ")
@@ -576,6 +529,8 @@ def UI():
     addSectionBtn.pack(side=LEFT)
     sectionBtnsFrame.pack(pady=(10, 5))
 
+    # This function builds the complete left_arm and right_arm lists to send to the backend code.
+    # Also calls write_to_json() to save the song to a json file in /songs folder.
     def collect_chord_strum_data():
         global left_arm
         global right_arm
@@ -614,7 +569,7 @@ def UI():
 
         write_to_json(name, input)
 
-        # write left_arm, right_arm arrays to json file
+        # write left_arm, right_arm arrays to output/output.json file (this just keeps a record of the data which was last sent to the bot)
         with open('output/output.json', 'w') as file:
             # write left_arm, right_arm to json
             file.write(json.dumps([left_arm, right_arm], indent=4))
@@ -627,6 +582,8 @@ def UI():
         mtime = strumlen * 4
         tkinter.messagebox.showinfo("Alert", "Song sent to GuitarBot.")
 
+    # This function writes all relevant song/input data to a json file.
+    # If a json file with the same name already exists, will prompt the user asking whether they'd like to overwrite or not.
     def write_to_json(name, input):
         # check to make sure user does not accidentally overwrite existing song
         if name != "default" and os.path.isfile('songs/' + name + '.json'):
@@ -662,6 +619,7 @@ def UI():
             # write data to json
             file.write(json.dumps(json_data, indent=4))
 
+    # This function loads existing song data into the UI
     def load_from_json():
         path = askopenfilename()
         with open(path, 'r') as file:
@@ -705,7 +663,7 @@ def UI():
 
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)
-    # TODO: update UI to be more like a series of dropdowns
+    # TODO: update UI to be more like a drag & drop component for this
     songFrame = Frame(window)
     titleFrame = Frame(songFrame)
     inputFrame = Frame(songFrame)
@@ -732,10 +690,10 @@ def UI():
 
     btnFrame.pack()
 
-    # add keyboard shortcut Ctrl + S to send data to bot
     def ctrlS_send(e):
         collect_chord_strum_data()
 
+    # add keyboard shortcut Ctrl + S to send data to bot
     window.bind('<Control-s>', lambda e: ctrlS_send(e))
 
     window.mainloop()
@@ -743,5 +701,5 @@ def UI():
     return right_arm, left_arm, mtime
 
 
-# for testing purposes
+# uncomment this to test the UI locally
 # UI()

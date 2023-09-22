@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 from tkinter import *
 from tkinter.ttk import *
 from tkinter.filedialog import askopenfilename
+from tkinterhtml import HtmlFrame # fix this
 import tkinter.messagebox
 import os.path
 import tkinter.messagebox
@@ -125,6 +126,90 @@ def UI():
     }
 
     timeSelection = StringVar(window)
+
+    # function to show popup window for chord notations
+    def show_chord_notations_popup():
+        popup = tk.Toplevel(window)
+        popup.title("Chord Notations")
+
+        # define the content to display
+        popupHtmlContent = """
+        <html>
+        <body>
+        <h1>Chord Notations</h1>
+        <ul>
+            <li>In general, add #/b directly after the chord letter to indicate sharp or flat.</li>
+        </ul>
+
+        <p><strong>Major</strong></p>
+        <ul>
+            <li>C, C#, Cb</li>
+        </ul>
+
+        <p><strong>Minor</strong></p>
+        <ul>
+            <li>Cm, C#m, Cbm</li>
+        </ul>
+
+        <p><strong>Major 6th/7th/9th</strong></p>
+        <ul>
+            <li>Cmaj6, Cmaj7, Cmaj9</li>
+            <li>CM6, CM7, CM9</li>
+        </ul>
+
+        <p><strong>Minor 6th/7th/9th/11th</strong></p>
+        <ul>
+            <li>Cm6, Cm7, Cm9, Cm11</li>
+            <li>Cmin6, Cmin7, Cmin9, Cmin11</li>
+        </ul>
+
+        <p><strong>Dominant</strong></p>
+        <ul>
+            <li>C7, C9, C13</li>
+        </ul>
+
+        <p><strong>Diminished 7th</strong></p>
+        <ul>
+            <li>Cdim7</li>
+        </ul>
+
+        <p><strong>Diminished</strong></p>
+        <ul>
+            <li>Cdim</li>
+        </ul>
+
+        <p><strong>Half-diminished</strong></p>
+        <ul>
+            <li>Co</li>
+        </ul>
+
+        <p><strong>Augmented</strong></p>
+        <ul>
+            <li>C+</li>
+        </ul>
+
+        <p><strong>Suspended</strong></p>
+        <ul>
+            <li>Csus, Csus2, Csus4</li>
+        </ul>
+
+        <p><strong>Power Chord</strong></p>
+        <ul>
+            <li>C5</li>
+        </ul>
+
+        </body>
+        </html>
+        """
+
+        # Create an HtmlFrame to display the HTML content
+        htmlFrame = HtmlFrame(popup, horizontal_scrollbar="auto", vertical_scrollbar="auto")
+        htmlFrame.set_content(popupHtmlContent)
+        htmlFrame.pack(fill="both", expand=True)
+
+        # Close button
+        closeButton = tk.Button(popup, text="Close", command=popup.destroy)
+        closeButton.pack()
 
     #### Section class ####
     # defines the chart module with chords and strumming inputs
@@ -379,16 +464,10 @@ def UI():
             # generate right arm data
             currMeasure = []
             count = 0
-            duration = (60 / bpm) / (numBeatsPerMeasure * 2)  # calculate duration of each strum
+            # duration = (60 / bpm) / (numBeatsPerMeasure * 2)  # calculate duration of each strum
             for e in reversed(self.root.grid_slaves(row=3 + self.offset)):
-                # code for appending duration to each strum stroke:
-                # if (e.get() != ""):
-                #     currMeasure.append((e.get(), duration))
-                # else:
-                #     currMeasure.append("")
-
                 if count != 0:
-                    currMeasure.append(e.get())  # delete this line if using above code
+                    currMeasure.append(e.get())
                     if count == numBeatsPerMeasure * 2:
                         rightArm.append(currMeasure)
                         currMeasure = []
@@ -447,30 +526,9 @@ def UI():
         sectionsDisplay.insert(END, len(sections))
         sectionsDisplay.config(state=DISABLED)
 
-        # update measures display
-        # measuresDisplay.config(state="ENABLED")
-        # measuresDisplay.delete(0, END)
-        # measuresDisplay.insert(END, initSection.numMeasures)
-        # measuresDisplay.config(state=DISABLED)
-
         num_cols = int(timeSelection.get()[0]) * initSection.numMeasures * 2
         initSection.editTable(num_cols, timeSelection)
         # print("table updated")
-
-    # OLD EVENT HANDLERS
-    # def ret_pressed(event, section):
-    #     add_measure(section)
-
-    # def backspace_pressed(event, section):
-    #     remove_measure(section)
-
-    # def add_measure_all_sections():
-    #     for section in sections:
-    #         add_measure(section)
-
-    # def remove_measure_all_sections():
-    #     for section in sections:
-    #         remove_measure(section)
 
     def add_measure(section):
         section.numMeasures = section.numMeasures + 1
@@ -478,23 +536,11 @@ def UI():
 
         section.addMeasure(num_cols)
 
-        # update display
-        # measuresDisplay.config(state="ENABLED")
-        # measuresDisplay.delete(0, END)
-        # measuresDisplay.insert(END, numMeasures.get())
-        # measuresDisplay.config(state=DISABLED)
-
     def remove_measure(section):
         if section.numMeasures > 1:
             section.numMeasures = section.numMeasures - 1
 
             section.removeMeasure()
-
-            # update display
-            # measuresDisplay.config(state="ENABLED")
-            # measuresDisplay.delete(0, END)
-            # measuresDisplay.insert(END, numMeasures.get())
-            # measuresDisplay.config(state=DISABLED)
 
     # load default table
     create_table(initSection, timeSelection)
@@ -511,24 +557,9 @@ def UI():
     bpmLabel.pack(side=LEFT)
     bpmInput.pack(side=LEFT)
 
-    # OLD UI for Add/Remove Measures
-    # measuresLabel = Label(timeFrame, text="Measures: ")
-    # measuresDisplay = Entry(timeFrame, width=2, font=('Arial',16))
-
-    # set default numMeasures to 1 if not initialized
-    # if numMeasures.get() == "":
-    #     numMeasures.set("1")
-
-    # measuresDisplay.insert(END, initSection.numMeasures)
-    # measuresDisplay.config(state=DISABLED)
-
-    # removeMeasureBtn = Button(timeFrame, text="-", width=1, command=remove_measure_all_sections)
-    # addMeasureBtn = Button(timeFrame, text="+", width=1, command=add_measure_all_sections)
-
-    # measuresLabel.pack(side=LEFT)
-    # removeMeasureBtn.pack(side=LEFT)
-    # # measuresDisplay.pack(side=LEFT)
-    # addMeasureBtn.pack(side=LEFT)
+    # Chord Notations popup button
+    notationsPopupBtn = Button(timeFrame, text="Chord Notations", width=12, command=show_chord_notations_popup)
+    notationsPopupBtn.pack(pady=1)
 
     # add/remove sections
     def add_section():

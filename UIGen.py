@@ -3,7 +3,7 @@ import tkinter.ttk as ttk
 from tkinter import *
 from tkinter.ttk import *
 from tkinter.filedialog import askopenfilename
-from tkinterhtml import HtmlFrame # fix this
+from tkhtmlview import HTMLScrolledText, RenderHTML
 import tkinter.messagebox
 import os.path
 import tkinter.messagebox
@@ -131,83 +131,14 @@ def UI():
     def show_chord_notations_popup():
         popup = tk.Toplevel(window)
         popup.title("Chord Notations")
+        popup.geometry('800x500')
 
-        # define the content to display
-        popupHtmlContent = """
-        <html>
-        <body>
-        <h1>Chord Notations</h1>
-        <ul>
-            <li>In general, add #/b directly after the chord letter to indicate sharp or flat.</li>
-        </ul>
+        # Add chord notations list (HTML)
+        htmlContent = HTMLScrolledText(popup, html=RenderHTML('Chord Notations.html'))
+        htmlContent.pack(fill='both', expand=True)
+        # htmlContent.fit_height()
 
-        <p><strong>Major</strong></p>
-        <ul>
-            <li>C, C#, Cb</li>
-        </ul>
-
-        <p><strong>Minor</strong></p>
-        <ul>
-            <li>Cm, C#m, Cbm</li>
-        </ul>
-
-        <p><strong>Major 6th/7th/9th</strong></p>
-        <ul>
-            <li>Cmaj6, Cmaj7, Cmaj9</li>
-            <li>CM6, CM7, CM9</li>
-        </ul>
-
-        <p><strong>Minor 6th/7th/9th/11th</strong></p>
-        <ul>
-            <li>Cm6, Cm7, Cm9, Cm11</li>
-            <li>Cmin6, Cmin7, Cmin9, Cmin11</li>
-        </ul>
-
-        <p><strong>Dominant</strong></p>
-        <ul>
-            <li>C7, C9, C13</li>
-        </ul>
-
-        <p><strong>Diminished 7th</strong></p>
-        <ul>
-            <li>Cdim7</li>
-        </ul>
-
-        <p><strong>Diminished</strong></p>
-        <ul>
-            <li>Cdim</li>
-        </ul>
-
-        <p><strong>Half-diminished</strong></p>
-        <ul>
-            <li>Co</li>
-        </ul>
-
-        <p><strong>Augmented</strong></p>
-        <ul>
-            <li>C+</li>
-        </ul>
-
-        <p><strong>Suspended</strong></p>
-        <ul>
-            <li>Csus, Csus2, Csus4</li>
-        </ul>
-
-        <p><strong>Power Chord</strong></p>
-        <ul>
-            <li>C5</li>
-        </ul>
-
-        </body>
-        </html>
-        """
-
-        # Create an HtmlFrame to display the HTML content
-        htmlFrame = HtmlFrame(popup, horizontal_scrollbar="auto", vertical_scrollbar="auto")
-        htmlFrame.set_content(popupHtmlContent)
-        htmlFrame.pack(fill="both", expand=True)
-
-        # Close button
+        # Add close button
         closeButton = tk.Button(popup, text="Close", command=popup.destroy)
         closeButton.pack()
 

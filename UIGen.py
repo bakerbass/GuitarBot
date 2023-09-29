@@ -543,7 +543,7 @@ def UI():
         if (len(sections) > 1):
             removedSection = sections.pop()
             for i in range(5):
-                for e in removedSection.root.grid_slaves(row=removedSection.offset + 4 - i):
+                for e in removedSection.root.grid_slaves(row=removedSection.rowOffset + 4 - i):
                     e.grid_forget()
 
             # update display

@@ -15,6 +15,10 @@ import logging
 import UIParse
 import json
 
+# requires pip packages pydub, simpleaudio to be installed
+from pydub import AudioSegment
+from pydub.playback import play
+
 print("PLEASE READ: NOT ALL CHORDS ARE REPRESENTED, BE WARY OF ERROR MESSAGE 'INDEXING OUT OF BOUNDS")
 BPM = 60
 MAX_TIME = 1 / 3
@@ -697,6 +701,11 @@ def UI():
             section.insertChordStrumData(leftArm, rightArm)
             count += 1
 
+    def preview_full_song():
+        sound = AudioSegment.from_wav("./audio/CantinaBand3.wav")
+        print('playing sample sound')
+        play(sound)
+
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)
     # TODO: update UI to be more like a series of dropdowns
@@ -719,9 +728,11 @@ def UI():
     inputFrame.pack()
     songFrame.pack(pady=(20, 5))
 
-    send = Button(btnFrame, text="Send", width=4, command=collect_chord_strum_data)
-    load = Button(btnFrame, text="Load", width=4, command=load_from_json)
+    send = Button(btnFrame, text="Send", width=6, command=collect_chord_strum_data)
+    preview = Button(btnFrame, text="Preview", width=6, command=preview_full_song)
+    load = Button(btnFrame, text="Load", width=6, command=load_from_json)
     send.pack(pady=1)
+    preview.pack(pady=1)
     load.pack(pady=1)
 
     btnFrame.pack()

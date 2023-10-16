@@ -16,8 +16,12 @@ import UIParse
 import json
 
 # requires pip packages pydub, simpleaudio to be installed
+# requires ffmpeg (see pydub documentation for installation instructions) 
 from pydub import AudioSegment
 from pydub.playback import play
+from pydub.effects import speedup
+
+from UI.audio.AudioHelper import AudioHelper
 
 print("PLEASE READ: NOT ALL CHORDS ARE REPRESENTED, BE WARY OF ERROR MESSAGE 'INDEXING OUT OF BOUNDS")
 BPM = 60
@@ -138,7 +142,7 @@ def UI():
         popup.geometry('800x500')
 
         # Add chord notations list (HTML)
-        htmlContent = HTMLScrolledText(popup, html=RenderHTML('Chord Notations.html'))
+        htmlContent = HTMLScrolledText(popup, html=RenderHTML('./UI/components/chord_notation/ChordNotations.html'))
         htmlContent.pack(fill='both', expand=True)
         # htmlContent.fit_height()
 
@@ -547,7 +551,7 @@ def UI():
         if (len(sections) > 1):
             removedSection = sections.pop()
             for i in range(5):
-                for e in removedSection.root.grid_slaves(row=removedSection.offset + 4 - i):
+                for e in removedSection.root.grid_slaves(row=removedSection.rowOffset + 4 - i):
                     e.grid_forget()
 
             # update display
@@ -701,10 +705,9 @@ def UI():
             section.insertChordStrumData(leftArm, rightArm)
             count += 1
 
-    def preview_full_song():
-        sound = AudioSegment.from_wav("./audio/CantinaBand3.wav")
-        print('playing sample sound')
-        play(sound)
+
+    def preview_input():
+        AudioHelper.preview_input()
 
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)
@@ -729,7 +732,7 @@ def UI():
     songFrame.pack(pady=(20, 5))
 
     send = Button(btnFrame, text="Send", width=6, command=collect_chord_strum_data)
-    preview = Button(btnFrame, text="Preview", width=6, command=preview_full_song)
+    preview = Button(btnFrame, text="Preview", width=6, command=preview_input)
     load = Button(btnFrame, text="Load", width=6, command=load_from_json)
     send.pack(pady=1)
     preview.pack(pady=1)

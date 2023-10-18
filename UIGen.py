@@ -15,12 +15,6 @@ import logging
 import UIParse
 import json
 
-# requires pip packages pydub, simpleaudio to be installed
-# requires ffmpeg (see pydub documentation for installation instructions) 
-from pydub import AudioSegment
-from pydub.playback import play
-from pydub.effects import speedup
-
 from UI.audio.AudioHelper import AudioHelper
 
 print("PLEASE READ: NOT ALL CHORDS ARE REPRESENTED, BE WARY OF ERROR MESSAGE 'INDEXING OUT OF BOUNDS")
@@ -577,11 +571,7 @@ def UI():
     addSectionBtn.pack(side=LEFT)
     sectionBtnsFrame.pack(pady=(10, 5))
 
-    def collect_chord_strum_data():
-        global left_arm
-        global right_arm
-        global mtime
-
+    def build_arm_lists():
         # build section dict
         for section in sections:
             name = section.name
@@ -602,6 +592,15 @@ def UI():
 
                 for m in sectionsDict[section][1]:
                     right_arm.append(m.copy())
+
+        return (left_arm, right_arm)
+
+    def collect_chord_strum_data():
+        global left_arm
+        global right_arm
+        global mtime
+
+        left_arm, right_arm = build_arm_lists()
 
         # commands for getting the below values:
         # time signature -> timeSelection.get()
@@ -706,8 +705,9 @@ def UI():
             count += 1
 
 
-    def preview_input():
-        AudioHelper.preview_input()
+    def preview_song():
+        left_arm, right_arm = build_arm_lists()
+        AudioHelper.preview_song(left_arm, right_arm, int(bpmInput.get()), 2)
 
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)
@@ -732,7 +732,7 @@ def UI():
     songFrame.pack(pady=(20, 5))
 
     send = Button(btnFrame, text="Send", width=6, command=collect_chord_strum_data)
-    preview = Button(btnFrame, text="Preview", width=6, command=preview_input)
+    preview = Button(btnFrame, text="Preview", width=6, command=preview_song)
     load = Button(btnFrame, text="Load", width=6, command=load_from_json)
     send.pack(pady=1)
     preview.pack(pady=1)

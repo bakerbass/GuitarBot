@@ -4,6 +4,8 @@ from pydub import AudioSegment
 from pydub.playback import play
 from pydub.effects import speedup
 
+# m4a: "m4a"
+# wav: "wav"
 FORMAT = "m4a"
 
 class AudioHelper: 
@@ -13,7 +15,46 @@ class AudioHelper:
         print()
 
     @staticmethod
-    def preview_input():
-        sound = AudioSegment.from_file("UI/audio/chord_recordings/m4a/C_down.m4a", format=FORMAT)
-        print('playing sample sound')
-        play(sound)
+    def preview_song(left_arm, right_arm, bpm, subdivisions_per_beat):
+        print(left_arm)
+        print(right_arm)
+
+        song = AudioSegment.silent(100) # ms
+
+        i = 0
+        for bar in right_arm:
+            j = 0
+            for strum_input in bar:
+                last_chord = ''
+                if (strum_input.lower() == 'd'):
+                    # down-strum
+                    chord_input = left_arm[i][int(j / subdivisions_per_beat)]
+
+                    # TODO: handle invalid chord inputs
+                    if (chord_input == ''):
+                        chord_input = last_chord
+                    else:
+                        last_chord = chord_input
+
+                    new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_d." + FORMAT, format=FORMAT)
+                    song = song.append(new_segment)
+                elif (strum_input.lower() == 'u'):
+                    #up-strum
+                    chord_input = left_arm[i][int(j / subdivisions_per_beat)]
+
+                    # TODO: handle invalid chord inputs
+                    if (chord_input == ''):
+                        chord_input = last_chord
+                    else:
+                        last_chord = chord_input
+
+                    new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_u." + FORMAT, format=FORMAT)
+                    song = song.append(new_segment)
+                else:
+                    # silence
+                    song = song.append(AudioSegment.silent(duration=1000/subdivisions_per_beat))
+                j += 1
+            i += 1
+
+        speedup(song, bpm/60)
+        play(song)

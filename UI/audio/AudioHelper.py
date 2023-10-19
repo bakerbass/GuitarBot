@@ -3,6 +3,7 @@
 from pydub import AudioSegment
 from pydub.playback import play
 from pydub.effects import speedup
+from pydub import effects
 
 # m4a: "m4a"
 # wav: "wav"
@@ -19,13 +20,13 @@ class AudioHelper:
         print(left_arm)
         print(right_arm)
 
-        song = AudioSegment.silent(100) # ms
+        song = AudioSegment.silent(100) # must be at least 100 ms for built-in crossfade
 
         i = 0
         for bar in right_arm:
             j = 0
+            last_chord = ''
             for strum_input in bar:
-                last_chord = ''
                 if (strum_input.lower() == 'd'):
                     # down-strum
                     chord_input = left_arm[i][int(j / subdivisions_per_beat)]
@@ -37,10 +38,18 @@ class AudioHelper:
                         last_chord = chord_input
 
                     new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_d." + FORMAT, format=FORMAT)
+                    
+                    if (j + 1 < len(right_arm[i]) and right_arm[i][j + 1] == ''):
+                        # let chord ring for full beat
+                        new_segment = new_segment[:1000]
+                    else:
+                        new_segment = new_segment[:1000/subdivisions_per_beat]
+
                     song = song.append(new_segment)
                 elif (strum_input.lower() == 'u'):
                     #up-strum
                     chord_input = left_arm[i][int(j / subdivisions_per_beat)]
+                    print(chord_input)
 
                     # TODO: handle invalid chord inputs
                     if (chord_input == ''):
@@ -49,6 +58,13 @@ class AudioHelper:
                         last_chord = chord_input
 
                     new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_u." + FORMAT, format=FORMAT)
+                    
+                    if (j + 1 < len(right_arm[i]) and right_arm[i][j + 1] == ''):
+                        # let chord ring for full beat
+                        new_segment = new_segment[:1000]
+                    else:
+                        new_segment = new_segment[:1000/subdivisions_per_beat]
+
                     song = song.append(new_segment)
                 else:
                     # silence
@@ -56,5 +72,5 @@ class AudioHelper:
                 j += 1
             i += 1
 
-        speedup(song, bpm/60)
+        # speedup(song, bpm/60)
         play(song)

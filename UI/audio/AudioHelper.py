@@ -3,7 +3,6 @@
 from pydub import AudioSegment
 from pydub.playback import play
 from pydub.effects import speedup
-from pydub import effects
 
 # m4a: "m4a"
 # wav: "wav"
@@ -15,6 +14,8 @@ class AudioHelper:
         # convert all files in chord_recordings/m4a folder to .wav format and save as new copy to chord_recordings/wav folder
         print()
 
+    # TODO: implement speedup
+    # NOTE: implementation is synced to 60 bpm.
     @staticmethod
     def preview_song(left_arm, right_arm, bpm, subdivisions_per_beat):
         print(left_arm)

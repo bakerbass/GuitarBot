@@ -14,7 +14,6 @@ class AudioHelper:
         # convert all files in chord_recordings/m4a folder to .wav format and save as new copy to chord_recordings/wav folder
         print()
 
-    # TODO: implement speedup
     # NOTE: implementation is synced to 60 bpm.
     @staticmethod
     def preview_song(left_arm, right_arm, bpm, subdivisions_per_beat):
@@ -22,6 +21,7 @@ class AudioHelper:
         print(right_arm)
 
         song = AudioSegment.silent(100) # must be at least 100 ms for built-in crossfade
+        beat_duration = 60/bpm * 1000 # this accounts for tempo adjustment
 
         i = 0
         for bar in right_arm:
@@ -42,9 +42,9 @@ class AudioHelper:
                     
                     if (j + 1 < len(right_arm[i]) and right_arm[i][j + 1] == ''):
                         # let chord ring for full beat
-                        new_segment = new_segment[:1000]
+                        new_segment = new_segment[:beat_duration]
                     else:
-                        new_segment = new_segment[:1000/subdivisions_per_beat]
+                        new_segment = new_segment[:beat_duration/subdivisions_per_beat]
 
                     song = song.append(new_segment)
                 elif (strum_input.lower() == 'u'):
@@ -62,16 +62,18 @@ class AudioHelper:
                     
                     if (j + 1 < len(right_arm[i]) and right_arm[i][j + 1] == ''):
                         # let chord ring for full beat
-                        new_segment = new_segment[:1000]
+                        new_segment = new_segment[:beat_duration]
                     else:
-                        new_segment = new_segment[:1000/subdivisions_per_beat]
+                        new_segment = new_segment[:beat_duration/subdivisions_per_beat]
 
                     song = song.append(new_segment)
                 else:
                     # silence
-                    song = song.append(AudioSegment.silent(duration=1000/subdivisions_per_beat))
+                    song = song.append(AudioSegment.silent(duration=beat_duration/subdivisions_per_beat))
                 j += 1
             i += 1
 
-        # speedup(song, bpm/60)
+        # for this speedup implementation, set beat_duration = 1000
+        # if (bpm > 60):
+        #     song = speedup(song, bpm/60)
         play(song)

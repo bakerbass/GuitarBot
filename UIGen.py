@@ -602,17 +602,12 @@ def UI():
 
         left_arm, right_arm = build_arm_lists()
 
-        # commands for getting the below values:
-        # time signature -> timeSelection.get()
-        # bpm -> bpmInput.get()
-        # duration of each strum = (60/bpm)/(numBeatsPerMeasure * 2)
-
         if songTitle.get() != "":
             name = songTitle.get()
         else:
             name = "default"
 
-        write_to_json(name, input)
+        write_to_json(name, songInput.get())
 
         # write left_arm, right_arm arrays to json file
         with open('output/output.json', 'w') as file:
@@ -621,7 +616,7 @@ def UI():
 
         print("left arm: ", left_arm)
         print("right arm: ", right_arm)
-        print("input: ", input)
+        print("input: ", songInput.get())
         BeatsPerMinute = int(bpmInput.get())
         strumlen = 60 / BeatsPerMinute
         mtime = strumlen * 4

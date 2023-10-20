@@ -15,6 +15,8 @@ import logging
 import UIParse
 import json
 
+from UI.audio.AudioHelper import AudioHelper
+
 print("PLEASE READ: NOT ALL CHORDS ARE REPRESENTED, BE WARY OF ERROR MESSAGE 'INDEXING OUT OF BOUNDS")
 BPM = 60
 MAX_TIME = 1 / 3
@@ -134,7 +136,7 @@ def UI():
         popup.geometry('800x500')
 
         # Add chord notations list (HTML)
-        htmlContent = HTMLScrolledText(popup, html=RenderHTML('Chord Notations.html'))
+        htmlContent = HTMLScrolledText(popup, html=RenderHTML('./UI/components/chord_notation/ChordNotations.html'))
         htmlContent.pack(fill='both', expand=True)
         # htmlContent.fit_height()
 
@@ -569,11 +571,7 @@ def UI():
     addSectionBtn.pack(side=LEFT)
     sectionBtnsFrame.pack(pady=(10, 5))
 
-    def collect_chord_strum_data():
-        global left_arm
-        global right_arm
-        global mtime
-
+    def build_arm_lists():
         # build section dict
         for section in sections:
             name = section.name
@@ -595,17 +593,21 @@ def UI():
                 for m in sectionsDict[section][1]:
                     right_arm.append(m.copy())
 
-        # commands for getting the below values:
-        # time signature -> timeSelection.get()
-        # bpm -> bpmInput.get()
-        # duration of each strum = (60/bpm)/(numBeatsPerMeasure * 2)
+        return (left_arm, right_arm)
+
+    def collect_chord_strum_data():
+        global left_arm
+        global right_arm
+        global mtime
+
+        left_arm, right_arm = build_arm_lists()
 
         if songTitle.get() != "":
             name = songTitle.get()
         else:
             name = "default"
 
-        write_to_json(name, input)
+        write_to_json(name, songInput.get())
 
         # write left_arm, right_arm arrays to json file
         with open('output/output.json', 'w') as file:
@@ -614,7 +616,7 @@ def UI():
 
         print("left arm: ", left_arm)
         print("right arm: ", right_arm)
-        print("input: ", input)
+        print("input: ", songInput.get())
         BeatsPerMinute = int(bpmInput.get())
         strumlen = 60 / BeatsPerMinute
         mtime = strumlen * 4
@@ -697,6 +699,11 @@ def UI():
             section.insertChordStrumData(leftArm, rightArm)
             count += 1
 
+
+    def preview_song():
+        left_arm, right_arm = build_arm_lists()
+        AudioHelper.preview_song(left_arm, right_arm, int(bpmInput.get()), 2)
+
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)
     # TODO: update UI to be more like a series of dropdowns
@@ -719,9 +726,11 @@ def UI():
     inputFrame.pack()
     songFrame.pack(pady=(20, 5))
 
-    send = Button(btnFrame, text="Send", width=4, command=collect_chord_strum_data)
-    load = Button(btnFrame, text="Load", width=4, command=load_from_json)
+    send = Button(btnFrame, text="Send", width=6, command=collect_chord_strum_data)
+    preview = Button(btnFrame, text="Preview", width=6, command=preview_song)
+    load = Button(btnFrame, text="Load", width=6, command=load_from_json)
     send.pack(pady=1)
+    preview.pack(pady=1)
     load.pack(pady=1)
 
     btnFrame.pack()
@@ -738,4 +747,4 @@ def UI():
 
 
 # for testing purposes
-# UI()
+UI()

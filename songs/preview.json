@@ -1,0 +1,74 @@
+[
+    {
+        "name": "preview",
+        "timeSig": "4/4",
+        "bpm": "60",
+        "input": "v, c"
+    },
+    {
+        "name": "v",
+        "numMeasures": 2,
+        "strumPattern": "Custom",
+        "leftArm": [
+            [
+                "C",
+                "",
+                "Am",
+                ""
+            ],
+            [
+                "F",
+                "",
+                "G",
+                ""
+            ]
+        ],
+        "rightArm": [
+            [
+                "d",
+                "",
+                "d",
+                "u",
+                "d",
+                "",
+                "d",
+                "u"
+            ],
+            [
+                "d",
+                "",
+                "d",
+                "u",
+                "d",
+                "",
+                "d",
+                "u"
+            ]
+        ]
+    },
+    {
+        "name": "c",
+        "numMeasures": 1,
+        "strumPattern": "Custom",
+        "leftArm": [
+            [
+                "F",
+                "",
+                "C",
+                ""
+            ]
+        ],
+        "rightArm": [
+            [
+                "d",
+                "d",
+                "d",
+                "d",
+                "d",
+                "",
+                "",
+                ""
+            ]
+        ]
+    }
+]

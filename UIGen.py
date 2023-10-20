@@ -244,6 +244,12 @@ def UI():
                         # add <Return> event handler to every input box (adds new measure if pressed)
                         self.cell.bind("<Return>", self.__returnPressed)
 
+                        # jumps to next strum entry if <d, u, or space> pressed
+                        self.cell.bind("d", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
+                        self.cell.bind("u", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
+                        self.cell.bind("D", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
+                        self.cell.bind("U", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
+
                         # add spacing after last beat of measure
                         if j != 0 and j % len(beats.get(timeSelection.get())) == 0:
                             self.cell.grid(row=i + self.rowOffset, column=j, padx=(0, 30))
@@ -311,6 +317,12 @@ def UI():
 
         def __backspacePressed(self, event):
             remove_measure(self)
+
+        # TODO: fix
+        def __jump_to_next_strum_input(self, event, row, col):
+            # print('got here')
+            if (col < self.lastCol):
+                self.root.grid_slaves(row=row, column=col + 1)[0].focus_set()
 
         def addMeasure(self, num_cols):
             # delete previous clear button, name label/input (will get re-added during the buildTable() call)

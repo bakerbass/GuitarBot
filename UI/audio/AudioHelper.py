@@ -6,7 +6,7 @@ from pydub.effects import speedup
 
 # m4a: "m4a"
 # wav: "wav"
-FORMAT = "m4a"
+FORMAT = "wav"
 
 class AudioHelper: 
     @staticmethod
@@ -39,6 +39,7 @@ class AudioHelper:
                         last_chord = chord_input
 
                     new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_d." + FORMAT, format=FORMAT)
+                    new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this, >16-bit audio files will be insanely loud and distorted)
                     
                     if (j + 1 < len(right_arm[i]) and right_arm[i][j + 1] == ''):
                         # let chord ring for full beat
@@ -59,6 +60,7 @@ class AudioHelper:
                         last_chord = chord_input
 
                     new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_u." + FORMAT, format=FORMAT)
+                    new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this,  >16-bit audio files will be insanely loud and distorted)
                     
                     if (j + 1 < len(right_arm[i]) and right_arm[i][j + 1] == ''):
                         # let chord ring for full beat

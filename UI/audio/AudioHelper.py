@@ -54,7 +54,6 @@ class AudioHelper:
                 elif (strum_input.lower() == 'u'):
                     #up-strum
                     chord_input = left_arm[i][int(j / subdivisions_per_beat)]
-                    print(chord_input)
 
                     # TODO: handle invalid chord inputs
                     if (chord_input == ''):
@@ -98,9 +97,14 @@ def count_empty_strums(bar, start_index):
     return empty_strums
 
 def flat_to_sharp(chord_input):
-    chord_input = chord_input[0] + '#' + '' if len(chord_input) < 3 else chord_input[2:]
-    chord_letter = chr(ord(chord_input[0]) - 1) # change chord letter to previous in scale
+    chord_letter = chr(ord(chord_input[0]) - 1) # previous note in scale
 
+    if chord_input[0] == 'F' or chord_input[0] == 'C':
+        # omit sharp
+        chord_input = chord_letter + '' if len(chord_input) < 3 else chord_input[2:]
+    else:
+        chord_input = chord_letter + '#' + '' if len(chord_input) < 3 else chord_input[2:]
+    
     # check for wraparound edge case
     if chord_letter == '@':
         chord_input = 'G' + chord_input[1:]

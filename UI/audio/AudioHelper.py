@@ -3,6 +3,7 @@
 from pydub import AudioSegment
 from pydub.playback import play
 from pydub.effects import speedup
+from pydub.effects import normalize
 
 # m4a: "m4a"
 # wav: "wav"
@@ -37,15 +38,17 @@ class AudioHelper:
                         chord_input = last_chord
                     else:
                         last_chord = chord_input
+                    
+                    if len(chord_input) >= 2 and chord_input[1] == 'b':
+                        chord_input = flat_to_sharp(chord_input)
 
                     new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_d." + FORMAT, format=FORMAT)
                     new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this, >16-bit audio files will be insanely loud and distorted)
-                    
-                    if (j + 1 < len(right_arm[i]) and right_arm[i][j + 1] == ''):
-                        # let chord ring for full beat
-                        new_segment = new_segment[:beat_duration]
-                    else:
-                        new_segment = new_segment[:beat_duration/subdivisions_per_beat]
+                    new_segment = normalize(new_segment) # normalize amplitude
+
+                    subdivision_duration = beat_duration/subdivisions_per_beat
+                    empty_strums = count_empty_strums(right_arm[i], j + 1)
+                    new_segment = new_segment[:subdivision_duration * (empty_strums + 1)]
 
                     song = song.append(new_segment)
                 elif (strum_input.lower() == 'u'):
@@ -59,14 +62,16 @@ class AudioHelper:
                     else:
                         last_chord = chord_input
 
+                    if len(chord_input) >= 2 and chord_input[1] == 'b':
+                        chord_input = flat_to_sharp(chord_input)
+
                     new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_u." + FORMAT, format=FORMAT)
                     new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this,  >16-bit audio files will be insanely loud and distorted)
+                    new_segment = normalize(new_segment) # normalize amplitude
                     
-                    if (j + 1 < len(right_arm[i]) and right_arm[i][j + 1] == ''):
-                        # let chord ring for full beat
-                        new_segment = new_segment[:beat_duration]
-                    else:
-                        new_segment = new_segment[:beat_duration/subdivisions_per_beat]
+                    subdivision_duration = beat_duration/subdivisions_per_beat
+                    empty_strums = count_empty_strums(right_arm[i], j + 1)
+                    new_segment = new_segment[:subdivision_duration * (empty_strums + 1)]
 
                     song = song.append(new_segment)
                 else:
@@ -79,3 +84,25 @@ class AudioHelper:
         # if (bpm > 60):
         #     song = speedup(song, bpm/60)
         play(song)
+
+### helper methods below ###
+
+def count_empty_strums(bar, start_index):
+    empty_strums = 0
+    for k in range(start_index, start_index + len(bar)):
+        if (k < len(bar)) and bar[k] == '':
+            empty_strums += 1
+        else:
+            break
+
+    return empty_strums
+
+def flat_to_sharp(chord_input):
+    chord_input = chord_input[0] + '#' + '' if len(chord_input) < 3 else chord_input[2:]
+    chord_letter = chr(ord(chord_input[0]) - 1) # change chord letter to previous in scale
+
+    # check for wraparound edge case
+    if chord_letter == '@':
+        chord_input = 'G' + chord_input[1:]
+
+    return chord_input

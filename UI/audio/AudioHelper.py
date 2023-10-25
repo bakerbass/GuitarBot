@@ -101,9 +101,9 @@ def flat_to_sharp(chord_input):
 
     if chord_input[0] == 'F' or chord_input[0] == 'C':
         # omit sharp
-        chord_input = chord_letter + '' if len(chord_input) < 3 else chord_input[2:]
+        chord_input = chord_letter + ('' if len(chord_input) < 3 else chord_input[2:])
     else:
-        chord_input = chord_letter + '#' + '' if len(chord_input) < 3 else chord_input[2:]
+        chord_input = chord_letter + '#' + ('' if len(chord_input) < 3 else chord_input[2:])
     
     # check for wraparound edge case
     if chord_letter == '@':

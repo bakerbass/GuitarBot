@@ -15,20 +15,22 @@ class AudioHelper:
         # convert all files in chord_recordings/m4a folder to .wav format and save as new copy to chord_recordings/wav folder
         print()
 
-    # NOTE: implementation is synced to 60 bpm.
     @staticmethod
     def preview_song(left_arm, right_arm, bpm, subdivisions_per_beat):
         print(left_arm)
         print(right_arm)
 
         song = AudioSegment.silent(100) # must be at least 100 ms for built-in crossfade
-        beat_duration = 60/bpm * 1000 # this accounts for tempo adjustment
+        beat_duration = 60/bpm * 1000 # this accounts for tempo adjustment (default is 60 bpm)
+        subdivision_duration = beat_duration/subdivisions_per_beat
 
         i = 0
         for bar in right_arm:
             j = 0
             last_chord = ''
-            for strum_input in bar:
+            while j < len(bar):
+                strum_input = bar[j]
+
                 if (strum_input.lower() == 'd'):
                     # down-strum
                     chord_input = left_arm[i][int(j / subdivisions_per_beat)]
@@ -46,9 +48,11 @@ class AudioHelper:
                     new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this, >16-bit audio files will be insanely loud and distorted)
                     new_segment = normalize(new_segment) # normalize amplitude
 
-                    subdivision_duration = beat_duration/subdivisions_per_beat
                     empty_strums = count_empty_strums(right_arm[i], j + 1)
+                    # print(empty_strums)
                     new_segment = new_segment[:subdivision_duration * (empty_strums + 1)]
+                    j += empty_strums # skip over empty strum inputs that were just counted
+                    # print(len(new_segment))
 
                     song = song.append(new_segment)
                 elif (strum_input.lower() == 'u'):
@@ -68,14 +72,17 @@ class AudioHelper:
                     new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this,  >16-bit audio files will be insanely loud and distorted)
                     new_segment = normalize(new_segment) # normalize amplitude
                     
-                    subdivision_duration = beat_duration/subdivisions_per_beat
                     empty_strums = count_empty_strums(right_arm[i], j + 1)
+                    # print(empty_strums)
                     new_segment = new_segment[:subdivision_duration * (empty_strums + 1)]
+                    j += empty_strums # skip over empty strum inputs that were just counted
+                    # print(len(new_segment))
 
                     song = song.append(new_segment)
                 else:
                     # silence
-                    song = song.append(AudioSegment.silent(duration=beat_duration/subdivisions_per_beat))
+                    song = song.append(AudioSegment.silent(duration=subdivision_duration))
+                    # print('silence duration:' + subdivision_duration)
                 j += 1
             i += 1
 

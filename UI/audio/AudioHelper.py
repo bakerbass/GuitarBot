@@ -17,8 +17,8 @@ class AudioHelper:
 
     @staticmethod
     def preview_song(left_arm, right_arm, bpm, subdivisions_per_beat):
-        print(left_arm)
-        print(right_arm)
+        # print(left_arm)
+        # print(right_arm)
 
         song = AudioSegment.silent(100) # must be at least 100 ms for built-in crossfade
         beat_duration = 60/bpm * 1000 # this accounts for tempo adjustment (default is 60 bpm)
@@ -30,54 +30,11 @@ class AudioHelper:
             last_chord = ''
             while j < len(bar):
                 strum_input = bar[j]
+                strum_type = strum_input.lower()
 
-                if (strum_input.lower() == 'd'):
-                    # down-strum
-                    chord_input = left_arm[i][int(j / subdivisions_per_beat)]
-
-                    # TODO: handle invalid chord inputs
-                    if (chord_input == ''):
-                        chord_input = last_chord
-                    else:
-                        last_chord = chord_input
-                    
-                    if len(chord_input) >= 2 and chord_input[1] == 'b':
-                        chord_input = flat_to_sharp(chord_input)
-
-                    new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_d." + FORMAT, format=FORMAT)
-                    new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this, >16-bit audio files will be insanely loud and distorted)
-                    new_segment = normalize(new_segment) # normalize amplitude
-
-                    empty_strums = count_empty_strums(right_arm[i], j + 1)
-                    # print(empty_strums)
-                    new_segment = new_segment[:subdivision_duration * (empty_strums + 1)]
+                if strum_type == 'd' or strum_type == 'u':
+                    new_segment, last_chord, empty_strums = get_next_chord(i, j, left_arm, right_arm, subdivision_duration, subdivisions_per_beat, strum_type, last_chord)
                     j += empty_strums # skip over empty strum inputs that were just counted
-                    # print(len(new_segment))
-
-                    song = song.append(new_segment)
-                elif (strum_input.lower() == 'u'):
-                    #up-strum
-                    chord_input = left_arm[i][int(j / subdivisions_per_beat)]
-
-                    # TODO: handle invalid chord inputs
-                    if (chord_input == ''):
-                        chord_input = last_chord
-                    else:
-                        last_chord = chord_input
-
-                    if len(chord_input) >= 2 and chord_input[1] == 'b':
-                        chord_input = flat_to_sharp(chord_input)
-
-                    new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_u." + FORMAT, format=FORMAT)
-                    new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this,  >16-bit audio files will be insanely loud and distorted)
-                    new_segment = normalize(new_segment) # normalize amplitude
-                    
-                    empty_strums = count_empty_strums(right_arm[i], j + 1)
-                    # print(empty_strums)
-                    new_segment = new_segment[:subdivision_duration * (empty_strums + 1)]
-                    j += empty_strums # skip over empty strum inputs that were just counted
-                    # print(len(new_segment))
-
                     song = song.append(new_segment)
                 else:
                     # silence
@@ -117,3 +74,27 @@ def flat_to_sharp(chord_input):
         chord_input = 'G' + chord_input[1:]
 
     return chord_input
+
+def get_next_chord(i, j, left_arm, right_arm, subdivision_duration, subdivisions_per_beat, strum_type, last_chord):
+    chord_input = left_arm[i][int(j / subdivisions_per_beat)]
+
+    # TODO: handle invalid chord inputs
+    if (chord_input == ''):
+        chord_input = last_chord
+    else:
+        last_chord = chord_input
+    
+    if len(chord_input) >= 2 and chord_input[1] == 'b':
+        chord_input = flat_to_sharp(chord_input)
+
+    new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_" + strum_type + "." + FORMAT, format=FORMAT)
+    new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this, >16-bit audio files will be insanely loud and distorted)
+    new_segment = normalize(new_segment) # normalize amplitude
+
+    empty_strums = count_empty_strums(right_arm[i], j + 1)
+    # print(empty_strums)
+    new_segment = new_segment[:subdivision_duration * (empty_strums + 1)]
+    # j += empty_strums # skip over empty strum inputs that were just counted
+    # print(len(new_segment))
+
+    return new_segment, last_chord, empty_strums

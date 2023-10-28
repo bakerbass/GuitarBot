@@ -9,6 +9,16 @@ from pydub.effects import normalize
 # wav: "wav"
 FORMAT = "wav"
 
+flat_sharp = { # flat -> sharp
+    "Ab": "G#",
+    "Bb": "A#",
+    "Cb": "B",
+    "Db": "C#",
+    "Eb": "D#",
+    "Fb": "E",
+    "Gb": "F#",
+    }
+
 class AudioHelper: 
     @staticmethod
     def convert_m4a_to_wav():

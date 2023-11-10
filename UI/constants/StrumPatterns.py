@@ -14,7 +14,7 @@ strum_options = [
 ]
 
 strum_patterns = {
-        'Custom': [], # will save state as user inputs their own strums
+        'Custom': [], # should save state as user inputs their own strums
 
         # universal patterns (2/4, 3/4, 4/4):
         'Down/Up': ['d', 'u'],

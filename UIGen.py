@@ -82,7 +82,8 @@ from UI.constants.TimeSignatures import time_signatures, beat_labels
 
 def UI():
     # GuitarBot UI
-    # TODO: scrollbar, bug with adding sections in 2/4
+    # TODO: save state for custom strum patterns
+    # TODO: bug with adding sections and disappearing labels in 2/4
     sections = []
     sectionsDict = {}
 
@@ -368,12 +369,13 @@ def UI():
 
         def fillStrumPattern(self, event):
             count = 0
+            pattern = strum_patterns.get(self.strumPattern.get())
 
             for e in reversed(self.root.grid_slaves(row=3 + self.rowOffset)):
                 if count != 0:
                     e.delete(0, END)
-                    pattern = strum_patterns.get(self.strumPattern.get())
-                    e.insert(END, pattern[(count - 1) % len(pattern)])
+                    if len(pattern) != 0: # check for "Custom" option
+                        e.insert(END, pattern[(count - 1) % len(pattern)])
                 count += 1
 
         def buildChordStrumData(self, timeSelection):

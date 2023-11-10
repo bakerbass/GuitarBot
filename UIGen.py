@@ -244,11 +244,12 @@ def UI():
                         # add <Return> event handler to every input box (adds new measure if pressed)
                         self.cell.bind("<Return>", self.__returnPressed)
 
-                        # jumps to next strum entry if <d, u, or space> pressed
-                        self.cell.bind("d", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
-                        self.cell.bind("u", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
-                        self.cell.bind("D", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
-                        self.cell.bind("U", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
+                        # TODO: fix auto-tabbing with strums
+                        # # jumps to next strum entry if <d, u, or space> pressed
+                        # self.cell.bind("d", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
+                        # self.cell.bind("u", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
+                        # self.cell.bind("D", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
+                        # self.cell.bind("U", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
 
                         # add spacing after last beat of measure
                         if j != 0 and j % len(beats.get(timeSelection.get())) == 0:

@@ -15,7 +15,7 @@ import logging
 import UIParse
 import json
 
-from UI.audio.AudioHelper import AudioHelper
+from UI.preview.AudioHelper import AudioHelper
 from UI.constants.StrumPatterns import strum_patterns, strum_options
 from UI.constants.TimeSignatures import time_signatures, beat_labels
 

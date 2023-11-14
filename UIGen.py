@@ -16,70 +16,74 @@ import UIParse
 import json
 
 from UI.audio.AudioHelper import AudioHelper
+from UI.constants.StrumPatterns import strum_patterns, strum_options
+from UI.constants.TimeSignatures import time_signatures, beat_labels
 
-print("PLEASE READ: NOT ALL CHORDS ARE REPRESENTED, BE WARY OF ERROR MESSAGE 'INDEXING OUT OF BOUNDS")
-BPM = 60
-MAX_TIME = 1 / 3
-UDP_IP = "192.168.1.50"
-XARM_IP = '192.168.1.215'
-UDP_PORT = 1001
-pre_count = 1
-STRUM_LEN = 60 / BPM
-measure_time = STRUM_LEN * 4
-OFFSET = 20.5
-STRUM_PT = [372.7, 357.7, 347.7, 337.7, 327.7, 317.7, 292.7]
-PICK_PT = [371.6 - OFFSET, 362.4 - OFFSET, 351.4 - OFFSET, 340.8 - OFFSET, 331.3 - OFFSET, 321.4 - OFFSET]
-INIT_POSE = [684.3, 246.8, 367.7, -90, 0, 0]
-SYNC_RATE = 250
-move_time = 0.1
-ipickeracc = 200
-ipickvel = 50
-pgain = 8000
-right_information = []
-Measure_Timings = STRUM_LEN * 4
-fretnum = []
-fretplay = []
-Rhythm = ""
-rhythm = []
-onsets = [4, 8, 12, 16, 20, 24]
+# TODO: check with Marcus about removing the commented code below
+#
+# print("PLEASE READ: NOT ALL CHORDS ARE REPRESENTED, BE WARY OF ERROR MESSAGE 'INDEXING OUT OF BOUNDS")
+# BPM = 60
+# MAX_TIME = 1 / 3
+# UDP_IP = "192.168.1.50"
+# XARM_IP = '192.168.1.215'
+# UDP_PORT = 1001
+# pre_count = 1
+# STRUM_LEN = 60 / BPM
+# measure_time = STRUM_LEN * 4
+# OFFSET = 20.5
+# STRUM_PT = [372.7, 357.7, 347.7, 337.7, 327.7, 317.7, 292.7]
+# PICK_PT = [371.6 - OFFSET, 362.4 - OFFSET, 351.4 - OFFSET, 340.8 - OFFSET, 331.3 - OFFSET, 321.4 - OFFSET]
+# INIT_POSE = [684.3, 246.8, 367.7, -90, 0, 0]
+# SYNC_RATE = 250
+# move_time = 0.1
+# ipickeracc = 200
+# ipickvel = 50
+# pgain = 8000
+# right_information = []
+# Measure_Timings = STRUM_LEN * 4
+# fretnum = []
+# fretplay = []
+# Rhythm = ""
+# rhythm = []
+# onsets = [4, 8, 12, 16, 20, 24]
 
-firstc = []
-# left_arm = []
+# firstc = []
+# # left_arm = []
 
-repeat = 2
-is_play = False
+# repeat = 2
+# is_play = False
 
-left_queue = Queue()
-pick_queue = Queue()
-robot_queue = Queue()
-# left hand cmd trigger in sec
-left_hand_timing = onsets * 1000
-HEADER = '/guitar'
-chords_dir = "Chords - Chords.csv"
+# left_queue = Queue()
+# pick_queue = Queue()
+# robot_queue = Queue()
+# # left hand cmd trigger in sec
+# left_hand_timing = onsets * 1000
+# HEADER = '/guitar'
+# chords_dir = "Chords - Chords.csv"
 
-# left_hand_timing[6] -= 150
-# left_hand_timing[12] -= 150
-# left_hand_timing[18] -= 150
-for i in range(7):
-    left_hand_timing = np.insert(left_hand_timing, 3 + i * 3 + i, left_hand_timing[2 + i * 3 + i] + 750)
+# # left_hand_timing[6] -= 150
+# # left_hand_timing[12] -= 150
+# # left_hand_timing[18] -= 150
+# for i in range(7):
+#     left_hand_timing = np.insert(left_hand_timing, 3 + i * 3 + i, left_hand_timing[2 + i * 3 + i] + 750)
 
-left_hand_timing = np.append(1000, left_hand_timing)
-left_hand_timing[-1] += 5000
-for i in range(len(left_hand_timing)):
-    left_hand_timing[i] = np.ceil(left_hand_timing[i])
+# left_hand_timing = np.append(1000, left_hand_timing)
+# left_hand_timing[-1] += 5000
+# for i in range(len(left_hand_timing)):
+#     left_hand_timing[i] = np.ceil(left_hand_timing[i])
 
-print(left_hand_timing)
-# right hand pick cmd trigger in sec
-pick_timing = np.array([0, 1]) * 1000
-robot_timing = 5000
-# song length in sec
-song_length = 25
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
-
+# print(left_hand_timing)
+# # right hand pick cmd trigger in sec
+# pick_timing = np.array([0, 1]) * 1000
+# robot_timing = 5000
+# # song length in sec
+# song_length = 25
+# logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 def UI():
     # GuitarBot UI
-    # TODO: scrollbar, bug with adding sections in 2/4
+    # TODO: save state for custom strum patterns
+    # TODO: bug with adding sections and disappearing labels in 2/4
     sections = []
     sectionsDict = {}
 
@@ -90,42 +94,6 @@ def UI():
     timeFrame.pack()
     sectionsFrame = Frame(window)
     sectionsFrame.pack()
-
-    timeSigs = [
-        "2/4",
-        "3/4",
-        "4/4"
-    ]
-
-    beats = {
-        "2/4": ["1", "+", "2", "+"],
-        "3/4": ["1", "+", "2", "+", "3", "+"],
-        "4/4": ["1", "+", "2", "+", "3", "+", "4", "+"]
-    }
-
-    strumOptions = [
-        "Custom",
-        "Down/Up",
-        "Downs",
-        "Ups",
-        "WV",
-        "WC",
-        "WB"
-    ]
-
-    strumPatterns = {
-        "Down/Up": ["D", "U"],
-        "Downs": ["D", ""],
-        "Ups": ["", "U"],
-
-        # wonderwall strum patterns below (built for 4/4, 4 bars, double time) ->
-        "WV": ["D", "", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U",
-               "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U", ],
-        "WC": ["D", "", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U",
-               "D", "U", "D", "", "D", "", "", "U", "D", "U", "D", "", "D", "", "", "U"],
-        "WB": ["D", "", "D", "", "D", "U", "D", "U", "", "U", "D", "U", "D", "", "D", "",
-               "D", "U", "D", "", "D", "", "D", "U", "", "U", "D", "U", "D", "U", "D", "U", ]
-    }
 
     timeSelection = StringVar(window)
 
@@ -146,7 +114,6 @@ def UI():
 
     #### Section class ####
     # defines the chart module with chords and strumming inputs
-    # TODO: fix tabbing over on last beat of measure
     class Section:
         def __init__(self, root):
             self.root = root
@@ -193,13 +160,13 @@ def UI():
                         self.cell = Entry(self.root, width=2, font=('Arial', 16, 'bold'))
 
                         # add space after last beat of measure
-                        if j != 0 and j % len(beats.get(timeSelection.get())) == 0:
+                        if j != 0 and j % len(beat_labels.get(timeSelection.get())) == 0:
                             self.cell.grid(row=i + self.rowOffset, column=j, padx=(0, 30))
                         else:
                             self.cell.grid(row=i + self.rowOffset, column=j)
 
                         self.cell.insert(END,
-                                         beats.get(timeSelection.get())[(j - 1) % len(beats.get(timeSelection.get()))])
+                                         beat_labels.get(timeSelection.get())[(j - 1) % len(beat_labels.get(timeSelection.get()))])
                         self.cell.config(state=DISABLED)
                     elif i == 2:
                         # CHORD INPUTS
@@ -230,7 +197,7 @@ def UI():
                             if self.strumPattern.get() == "":
                                 self.strumPattern.set("Custom")
 
-                            self.cell = OptionMenu(self.root, self.strumPattern, self.strumPattern.get(), *strumOptions,
+                            self.cell = OptionMenu(self.root, self.strumPattern, self.strumPattern.get(), *strum_options,
                                                    command=self.fillStrumPattern)
                             self.cell.grid(row=i + self.rowOffset, column=j)
                             j += 1
@@ -252,16 +219,16 @@ def UI():
                         # self.cell.bind("U", lambda e: self.__jump_to_next_strum_input(e, i + self.rowOffset, j))
 
                         # add spacing after last beat of measure
-                        if j != 0 and j % len(beats.get(timeSelection.get())) == 0:
+                        if j != 0 and j % len(beat_labels.get(timeSelection.get())) == 0:
                             self.cell.grid(row=i + self.rowOffset, column=j, padx=(0, 30))
                         else:
                             self.cell.grid(row=i + self.rowOffset, column=j)
 
                         if self.strumPattern.get()[0] == "W":
                             # Wonderwall strum patterns
-                            self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[(j - 1) % 32])
+                            self.cell.insert(END, strum_patterns.get(self.strumPattern.get())[(j - 1) % 32])
                         elif self.strumPattern.get() != "Custom":
-                            self.cell.insert(END, strumPatterns.get(self.strumPattern.get())[
+                            self.cell.insert(END, strum_patterns.get(self.strumPattern.get())[
                                 (j + 1) % 2])  # autofill newly added cells with selected strum pattern
                         else:
                             self.cell.insert(END, "")
@@ -401,17 +368,14 @@ def UI():
             # print("table cleared")
 
         def fillStrumPattern(self, event):
-            # implementation choice: autofill entire table on selection? Or just set that selection for new bars?
             count = 0
+            pattern = strum_patterns.get(self.strumPattern.get())
 
             for e in reversed(self.root.grid_slaves(row=3 + self.rowOffset)):
                 if count != 0:
                     e.delete(0, END)
-                    if self.strumPattern.get()[0] == "W":
-                        # Wonderwall strum patterns
-                        e.insert(END, strumPatterns.get(self.strumPattern.get())[(count - 1) % 32])
-                    elif self.strumPattern.get() != "Custom":
-                        e.insert(END, strumPatterns.get(self.strumPattern.get())[(count + 1) % 2])
+                    if len(pattern) != 0: # check for "Custom" option
+                        e.insert(END, pattern[(count - 1) % len(pattern)])
                 count += 1
 
         def buildChordStrumData(self, timeSelection):
@@ -523,7 +487,7 @@ def UI():
     create_table(initSection, timeSelection)
 
     # time signature / bpm / measure dropdowns
-    timeMenu = OptionMenu(timeFrame, timeSelection, "4/4", *timeSigs, command=update_table)
+    timeMenu = OptionMenu(timeFrame, timeSelection, "4/4", *time_signatures, command=update_table)
     timeLabel = Label(timeFrame, text="Time Signature: ")
     timeLabel.pack(side=LEFT)
     timeMenu.pack(side=LEFT)

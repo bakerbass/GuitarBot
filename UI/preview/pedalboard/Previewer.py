@@ -12,20 +12,54 @@ class Previewer:
         
         # set plugin mode to chords (acoustic)
         self.plugin.program = '02 [Chord] POPCORN TIME'
-        print('parameters: /n' + self.plugin.parameters.keys())
+        print('parameters: ')
+        print(self.plugin.parameters.keys())
         # print(self.plugin.parameters.get('program'))
         
     def show_plugin_editor(self):
         self.plugin.show_editor()
 
+    # Monster Guitar Plug-In Specifications:
+    # NOTE: Turn sustain pedal all the way up
+    #
+    # To control PITCH: C2-B2
+    #
+    # To control CHORD (adjust for strum range): 
+    #   5th (power) = C3
+    #   Minor = C#3
+    #   Sus2 = D3
+    #   Min6 = D#3
+    #   Major = E3
+    #   Sus4 = F3
+    #   Dim = F#3
+    #   Dom7 = G3
+    #   Aug = G#3
+    #   Maj6 = A3
+    #   Min7 = A#3
+    #   Maj7 = B3
+    #   
+    # To control STRUM: 
+    #   Normal = C3-B3 range
+    #   Short (muted) = C4 - B4 range
+    #   Long = C5-B5 range
+    #   
+    # midi int encodings: https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
+    # mido message specifications: https://mido.readthedocs.io/en/stable/message_types.html 
+    #
+    # NOTE: Send two midi notes at a time to play chord/strum together
+    #
     def play_chord(self):
         sample_rate = 44100
         num_channels = 2
         with AudioFile("UI/preview/pedalboard/output-audio.wav", "w", sample_rate, num_channels) as f:
             f.write(self.plugin(
-                [Message("note_on", note=80), Message("note_off", note=80, time=4)],
+                # Pitch = C (36), Strum = Normal, Major (52)
+                [Message("note_on", note=52, velocity=80, channel=0), 
+                 Message("note_off", note=52, time=4, channel=0), # duration 4 seconds
+                 Message("note_on", note=36, velocity=80, channel=1), 
+                 Message("note_off", note=36, time=4, channel=1)], # duration 4 seconds
                 sample_rate=sample_rate,
-                duration=2,
+                duration=4,
                 num_channels=num_channels
             ))
 

@@ -4,14 +4,19 @@ from mido import Message
 from pydub import AudioSegment
 from pydub.playback import play
 
+VST3_PATH = '/Library/Audio/Plug-Ins/VST3/'
+AU_PATH = '/Library/Audio/Plug-Ins/Components/'
+# PLUGIN_FILE_NAME = 'AGML2.component'
+PLUGIN_FILE_NAME = 'DSK Dynamic Guitars.component'
+
 class Previewer:
     def __init__(self):
-        self.plugin = load_plugin('/Library/Audio/Plug-Ins/VST3/MONSTER Guitar v2.2022.09.vst3')
+        self.plugin = load_plugin(path_to_plugin_file=AU_PATH + PLUGIN_FILE_NAME)
         assert self.plugin.is_instrument # will throw error if is_instrument == false
-        print('Monster Guitar plugin loaded', flush=True)
+        print(PLUGIN_FILE_NAME + ' plugin loaded', flush=True)
         
-        # set plugin mode to chords (acoustic)
-        self.plugin.program = '02 [Chord] POPCORN TIME'
+        # # set plugin mode to chords (acoustic)
+        # self.plugin.program = '02 [Chord] POPCORN TIME'
         print('parameters: ')
         print(self.plugin.parameters.keys())
         # print(self.plugin.parameters.get('program'))
@@ -54,13 +59,17 @@ class Previewer:
         with AudioFile("UI/preview/pedalboard/output-audio.wav", "w", sample_rate, num_channels) as f:
             f.write(self.plugin(
                 # Pitch = C (36), Strum = Normal, Major (52)
-                [Message("note_on", note=52, velocity=80, channel=0), 
-                 Message("note_off", note=52, time=4, channel=0), # duration 4 seconds
-                 Message("note_on", note=36, velocity=80, channel=1), 
-                 Message("note_off", note=36, time=4, channel=1)], # duration 4 seconds
+                # [Message("note_on", note=52, velocity=80, channel=0), 
+                #  Message("note_off", note=52, time=4, channel=0), # duration 4 seconds
+                #  Message("note_on", note=36, velocity=80, channel=1), 
+                #  Message("note_off", note=36, time=4, channel=1)], # duration 4 seconds
+                # sample_rate=sample_rate,
+                # duration=4,
+                # num_channels=num_channels
+                [Message("note_on", note=60), Message("note_on", note=80),
+                Message("note_off", note=60, time=2), Message("note_off", note=80, time=2)],
+                duration=2, # seconds
                 sample_rate=sample_rate,
-                duration=4,
-                num_channels=num_channels
             ))
 
         # playback audio

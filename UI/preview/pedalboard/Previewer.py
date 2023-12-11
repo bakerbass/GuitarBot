@@ -4,55 +4,22 @@ from mido import Message
 from pydub import AudioSegment
 from pydub.playback import play
 
-VST3_PATH = '/Library/Audio/Plug-Ins/VST3/'
-AU_PATH = '/Library/Audio/Plug-Ins/Components/'
-# PLUGIN_FILE_NAME = 'AGML2.component'
-PLUGIN_FILE_NAME = 'DSK Dynamic Guitars.component'
+PLUGIN_PATH = '/Library/Audio/Plug-Ins/VST3/'
+PLUGIN_FILE_NAME = 'AGM.VST3'
 
 class Previewer:
     def __init__(self):
-        self.plugin = load_plugin(path_to_plugin_file=AU_PATH + PLUGIN_FILE_NAME)
+        self.plugin = load_plugin(path_to_plugin_file=PLUGIN_PATH + PLUGIN_FILE_NAME, parameter_values={'play_mode': 1,
+                                                                                                        's_strum_toggle': True})
         assert self.plugin.is_instrument # will throw error if is_instrument == false
         print(PLUGIN_FILE_NAME + ' plugin loaded', flush=True)
         
-        # # set plugin mode to chords (acoustic)
-        # self.plugin.program = '02 [Chord] POPCORN TIME'
         print('parameters: ')
         print(self.plugin.parameters.keys())
-        # print(self.plugin.parameters.get('program'))
         
     def show_plugin_editor(self):
         self.plugin.show_editor()
 
-    # Monster Guitar Plug-In Specifications:
-    # NOTE: Turn sustain pedal all the way up
-    #
-    # To control PITCH: C2-B2
-    #
-    # To control CHORD (adjust for strum range): 
-    #   5th (power) = C3
-    #   Minor = C#3
-    #   Sus2 = D3
-    #   Min6 = D#3
-    #   Major = E3
-    #   Sus4 = F3
-    #   Dim = F#3
-    #   Dom7 = G3
-    #   Aug = G#3
-    #   Maj6 = A3
-    #   Min7 = A#3
-    #   Maj7 = B3
-    #   
-    # To control STRUM: 
-    #   Normal = C3-B3 range
-    #   Short (muted) = C4 - B4 range
-    #   Long = C5-B5 range
-    #   
-    # midi int encodings: https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
-    # mido message specifications: https://mido.readthedocs.io/en/stable/message_types.html 
-    #
-    # NOTE: Send two midi notes at a time to play chord/strum together
-    #
     def play_chord(self):
         sample_rate = 44100
         num_channels = 2

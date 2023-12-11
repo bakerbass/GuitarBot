@@ -6,7 +6,7 @@ import rtmidi
 PORT_NAME = 'GarageBand Virtual Out'
 midi_channel = 0
 
-def play_midi_from_plugin(midi_chords: list):
+def play_midi_with_plugin(midi_chords: list):
     # open virtual midi port
     midiout = rtmidi.MidiOut()
     midiout.open_virtual_port(PORT_NAME)

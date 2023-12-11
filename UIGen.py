@@ -15,9 +15,14 @@ import logging
 import UIParse
 import json
 
-from UI.preview.AudioHelper import AudioHelper
+# constants
 from UI.constants.StrumPatterns import strum_patterns, strum_options
 from UI.constants.TimeSignatures import time_signatures, beat_labels
+
+# preview stuff
+from UI.preview.AudioHelper import AudioHelper
+from UI.preview.pedalboard.ChordToMIDI import arms_to_MIDI
+from UI.preview.pedalboard.PluginIntegration import play_midi_with_plugin
 
 # TODO: check with Marcus about removing the commented code below
 #
@@ -679,7 +684,13 @@ def UI():
 
     def preview_song():
         left_arm, right_arm = build_arm_lists()
-        AudioHelper.preview_song(left_arm, right_arm, int(bpmInput.get()), 2)
+
+        # old preview
+        #AudioHelper.preview_song(left_arm, right_arm, int(bpmInput.get()), 2)
+
+        # preview with plugin
+        midi_chords = arms_to_MIDI(left_arm, right_arm, int(bpmInput.get()))
+        play_midi_with_plugin(midi_chords)
 
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)

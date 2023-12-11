@@ -21,7 +21,7 @@ def get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx):
         subdiv_idx = 0
         measure_idx += 1
 
-    MIDI_note_ons, MIDI_note_offs = chord_tab_to_MIDI(curr_chord_name, curr_chord_subdiv_count, right_arm[measure_idx][subdiv_idx].lower() == "d")
+    MIDI_note_ons, MIDI_note_offs = chord_name_to_MIDI(curr_chord_name, curr_chord_subdiv_count, right_arm[measure_idx][subdiv_idx].lower() == "d")
     MIDI_tuple = (MIDI_note_ons, MIDI_note_offs, tempo/120 * curr_chord_subdiv_count) # assumes eight notes the subdiv
     curr_chord_name = next_chord_name
 
@@ -39,7 +39,7 @@ def arms_to_MIDI(left_arm, right_arm, tempo):
     # Assumes a chord will be specified in the first slot...
     while measure_idx < len(left_arm):
         measure_idx, subdiv_idx, MIDI_tuple = get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx)
-        MIDI_song.add(MIDI_tuple)
+        MIDI_song.append(MIDI_tuple)
 
     return MIDI_song
 
@@ -47,10 +47,10 @@ def arms_to_MIDI(left_arm, right_arm, tempo):
 ###        chord: name of chord
 ### subdivisions: number of eigth notes chord rings
 ### is_downstrum: true if downstrum, false if upstrum
-def chord_tab_to_MIDI(chord, subdivisions, is_downstrum):
+def chord_name_to_MIDI(chord_name, subdivisions, is_downstrum):
     MIDI_note_ons, MIDI_note_offs = [], []
     open_note = 40 # E2 in standard tuning
-    chord_tab = chords[chord] # list of ints in tab notation where 6th string, low bass, comes first
+    chord_tab = chords[chord_name] # list of ints in tab notation where 6th string, low bass, comes first
 
     string_idx = 6
     # TODO: velocity, or loudness, should vary by note to correspond with upstrum/downstrum?

@@ -5,7 +5,7 @@ curr_chord_name = ""
 
 # Given a position, seeks to the next strum
 def get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx):
-    next_chord_name = "" # will hold next chord if change made in meantime
+    next_chord_name = curr_chord_name # holds next chord if change made in meantime
 
     subdiv_idx += 1
     curr_chord_subdiv_count = 1

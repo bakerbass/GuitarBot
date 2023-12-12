@@ -685,11 +685,9 @@ def UI():
     def preview_song():
         left_arm, right_arm = build_arm_lists()
 
-        # old preview
-        #AudioHelper.preview_song(left_arm, right_arm, int(bpmInput.get()), 2)
-
         # preview with plugin
-        midi_chords = arms_to_MIDI(left_arm, right_arm, int(bpmInput.get()))
+        # NOTE: plugin must be open and running separately through compatible DAW (GarageBand as of rn)
+        midi_chords = arms_to_MIDI(left_arm, right_arm, int(bpmInput.get()), 2)
         play_midi_with_plugin(midi_chords)
 
     # create inputs for song title/structure to send to bot

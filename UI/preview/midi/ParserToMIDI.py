@@ -90,7 +90,7 @@ def chord_name_to_MIDI(chord_name, is_downstrum):
 
     # map sharps to flats
     if len(chord_name) >= 2 and chord_name[1] == '#':
-        chord_name = sharp_to_flat[chord_name]
+        chord_name = sharp_to_flat[chord_name[:2]] + ('' if len(chord_name) < 3 else chord_name[2:])
 
     chord_tab = chords[chord_name] # list of ints in tab notation where 6th string, low bass, comes first
 

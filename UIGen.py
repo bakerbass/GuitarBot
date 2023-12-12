@@ -15,9 +15,14 @@ import logging
 import UIParse
 import json
 
-from UI.audio.AudioHelper import AudioHelper
+# constants
 from UI.constants.StrumPatterns import strum_patterns, strum_options
 from UI.constants.TimeSignatures import time_signatures, beat_labels
+
+# preview stuff
+# from UI.preview.audio.AudioHelper import AudioHelper
+from UI.preview.midi.ParserToMIDI import arms_to_MIDI
+from UI.preview.midi.PluginIntegration import play_midi_with_plugin
 
 # TODO: check with Marcus about removing the commented code below
 #
@@ -677,9 +682,17 @@ def UI():
             count += 1
 
 
+    #TODO: run on separate thread?
     def preview_song():
         left_arm, right_arm = build_arm_lists()
-        AudioHelper.preview_song(left_arm, right_arm, int(bpmInput.get()), 2)
+
+        # old preview feature using chord audio recordings
+        # preview_song(left_arm, right_arm, int(bpmInput.get()), 2)
+
+        # preview with plugin (improved from chord recordings)
+        # NOTE: plugin must be open and running separately through compatible DAW (GarageBand as of rn)
+        midi_chords = arms_to_MIDI(left_arm, right_arm, int(bpmInput.get()), 2)
+        play_midi_with_plugin(midi_chords)
 
     # create inputs for song title/structure to send to bot
     # song components should be comma delimited (Ex: Verse, Chorus, Bridge)

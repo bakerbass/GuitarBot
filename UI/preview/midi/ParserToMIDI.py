@@ -62,7 +62,7 @@ def chord_name_to_MIDI(chord_name, subdivisions, is_downstrum):
     # should emphasize 1 and 3 beats in 4/4?
     for fret_number_of_note in chord_tab:
         string_idx -= 1
-        if fret_number_of_note == 'X':
+        if fret_number_of_note.lower() == 'x':
             continue
         MIDI_note_ons.append(Message("note_on", note=open_note+fret_number_of_note, velocity=80, channel=0).bytes())
         MIDI_note_offs.append(Message("note_off", note=open_note+fret_number_of_note, channel=0).bytes()) # removed duration, doesn't work w/ VST?
@@ -71,8 +71,8 @@ def chord_name_to_MIDI(chord_name, subdivisions, is_downstrum):
         else:
             open_note += MAJOR_THIRD
 
-    if is_downstrum:
-        MIDI_note_ons.reverse() # not sure this will actually help, but worth a shot?
+    if not is_downstrum: # upstrum
+        MIDI_note_ons.reverse() # reverse order of notes (high e comes first)
         MIDI_note_offs.reverse()
 
     return MIDI_note_ons, MIDI_note_offs

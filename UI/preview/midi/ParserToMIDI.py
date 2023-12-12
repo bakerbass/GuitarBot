@@ -57,8 +57,8 @@ def chord_name_to_MIDI(chord_name, subdivisions, is_downstrum):
     # TODO: velocity, or loudness, should vary by note to correspond with upstrum/downstrum?
     # should emphasize 1 and 3 beats in 4/4?
     for fret_number_of_note in chord_tab:
-        MIDI_note_ons.append(Message("note_on", note=open_note+fret_number_of_note, velocity=80, channel=0))
-        MIDI_note_offs.append(Message("note_off", note=open_note+fret_number_of_note, channel=0)) # removed duration, doesn't work w/ VST???
+        MIDI_note_ons.append(Message("note_on", note=open_note+fret_number_of_note, velocity=80, channel=0).bytes())
+        MIDI_note_offs.append(Message("note_off", note=open_note+fret_number_of_note, channel=0).bytes()) # removed duration, doesn't work w/ VST???
         if string_idx != 3:
             open_note += PERFECT_FOURTH
         else:

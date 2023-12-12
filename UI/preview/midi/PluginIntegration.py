@@ -26,12 +26,12 @@ def play_midi_with_plugin(midi_chords: list):
             duration = chord[2]
 
             for msg in note_ons:
-                midiout.send_message(msg) # make sure this is in bytes
+                midiout.send_message(msg) # msg is in bytes
 
             time.sleep(duration)
             
             for msg in note_offs:
-                midiout.send_message(msg) # make sure this is in bytes
+                midiout.send_message(msg) # msg is in bytes
 
         # send note_off's for settings messages
         midiout.send_message(Message(type='note_off', note=85, channel=MIDI_CHANNEL, velocity=1).bytes())

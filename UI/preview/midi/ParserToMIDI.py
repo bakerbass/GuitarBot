@@ -2,10 +2,10 @@ from mido import Message
 from UI.constants.ChordsDict import chords
 
 MAJOR_THIRD, PERFECT_FOURTH = 4, 5
-curr_chord_name = ""
+#curr_chord_name = ""
 
 # Given a position, seeks to the next strum
-def get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx):
+def get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx, curr_chord_name):
     next_chord_name = curr_chord_name # holds next chord if change made in meantime
 
     subdiv_idx += 1
@@ -39,7 +39,7 @@ def arms_to_MIDI(left_arm, right_arm, tempo):
 
     # Assumes a chord will be specified in the first slot...
     while measure_idx < len(left_arm):
-        measure_idx, subdiv_idx, MIDI_tuple = get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx)
+        measure_idx, subdiv_idx, MIDI_tuple, curr_chord_name = get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx, curr_chord_name)
         MIDI_song.append(MIDI_tuple)
 
     return MIDI_song

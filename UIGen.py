@@ -20,7 +20,7 @@ from UI.constants.StrumPatterns import strum_patterns, strum_options
 from UI.constants.TimeSignatures import time_signatures, beat_labels
 
 # preview stuff
-from UI.preview.audio.AudioHelper import AudioHelper
+# from UI.preview.audio.AudioHelper import AudioHelper
 from UI.preview.midi.ParserToMIDI import arms_to_MIDI
 from UI.preview.midi.PluginIntegration import play_midi_with_plugin
 

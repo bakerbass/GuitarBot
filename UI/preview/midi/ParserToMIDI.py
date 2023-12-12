@@ -1,5 +1,5 @@
 from mido import Message
-from UI.constants.ChordsDict import chords
+from UI.constants.ChordsDict import chords, sharp_to_flat
 
 MAJOR_THIRD, PERFECT_FOURTH = 4, 5
 
@@ -56,7 +56,7 @@ def arms_to_MIDI(left_arm, right_arm, bpm, subdiv_per_beat):
     else:
         # find first chord and set measure_idx, subdiv_idx accordingly
         break_outer = False
-        
+
         while measure_idx < len(right_arm):
             while subdiv_idx < len(right_arm[measure_idx]):
                 chord_idx = int(subdiv_idx / subdiv_per_beat) # account for the fact that there's only 1 chord input per beat
@@ -87,6 +87,11 @@ def arms_to_MIDI(left_arm, right_arm, bpm, subdiv_per_beat):
 def chord_name_to_MIDI(chord_name, is_downstrum):
     MIDI_note_ons, MIDI_note_offs = [], []
     open_note = 40 # E2 in standard tuning
+
+    # map sharps to flats
+    if len(chord_name) >= 2 and chord_name[1] == '#':
+        chord_name = sharp_to_flat[chord_name]
+
     chord_tab = chords[chord_name] # list of ints in tab notation where 6th string, low bass, comes first
 
     string_idx = 7

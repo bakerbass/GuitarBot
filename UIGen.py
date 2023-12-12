@@ -682,6 +682,7 @@ def UI():
             count += 1
 
 
+    #TODO: run on separate thread?
     def preview_song():
         left_arm, right_arm = build_arm_lists()
 

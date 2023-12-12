@@ -30,7 +30,6 @@ def get_next_chord_strum(left_arm, right_arm, bpm, subdiv_per_beat, measure_idx,
 
         if (break_outer):
             break
-
         subdiv_idx = 0
         measure_idx += 1
 
@@ -49,9 +48,31 @@ def arms_to_MIDI(left_arm, right_arm, bpm, subdiv_per_beat):
     MIDI_song = [] # list of tuples of form (note_ons, note_offs, duration in seconds for chord)
 
     measure_idx, subdiv_idx = 0, 0
+    curr_chord_name = ''
 
-    # Assumes a chord will be specified in the first slot...
-    curr_chord_name = left_arm[0][0]
+    # If the first beat contains a chord, begin from there
+    if (left_arm[0][0] != ''):
+        curr_chord_name = left_arm[0][0]
+    else:
+        # find first chord and set measure_idx, subdiv_idx accordingly
+        break_outer = False
+        
+        while measure_idx < len(right_arm):
+            while subdiv_idx < len(right_arm[measure_idx]):
+                chord_idx = int(subdiv_idx / subdiv_per_beat) # account for the fact that there's only 1 chord input per beat
+            
+                # find first chord/strum input
+                if left_arm[measure_idx][chord_idx] != '' and right_arm[measure_idx][subdiv_idx] != '':
+                    curr_chord_name = left_arm[measure_idx][chord_idx]
+                    break_outer = True
+                    break
+                else:
+                    subdiv_idx += 1
+
+            if break_outer:
+                break
+            subdiv_idx = 0
+            measure_idx += 1
     
     while measure_idx < len(left_arm):
         measure_idx, subdiv_idx, MIDI_tuple, curr_chord_name = get_next_chord_strum(left_arm, right_arm, bpm, subdiv_per_beat, measure_idx, subdiv_idx, curr_chord_name)
@@ -75,7 +96,7 @@ def chord_name_to_MIDI(chord_name, is_downstrum):
         string_idx -= 1
         if fret_number_of_note == 'X' or fret_number_of_note == 'x': 
             continue
-        MIDI_note_ons.append(Message("note_on", note=open_note+fret_number_of_note, velocity=80, channel=0).bytes())
+        MIDI_note_ons.append(Message("note_on", note=open_note+fret_number_of_note, velocity=80, channel=0).bytes()) # default velocity is 64
         MIDI_note_offs.append(Message("note_off", note=open_note+fret_number_of_note, channel=0).bytes()) # removed duration, doesn't work w/ VST?
         if string_idx != 3:
             open_note += PERFECT_FOURTH

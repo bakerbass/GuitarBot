@@ -6,6 +6,9 @@ import rtmidi
 PORT_NAME = 'GarageBand Virtual Out'
 MIDI_CHANNEL = 0
 
+#TODO: this opens a new virtual midi port connection each time the function is called. Would it be more optimized to open the port when
+# the UI first opens, and close it only when the entire window closes?
+
 def play_midi_with_plugin(midi_chords: list):
     # open virtual midi port
     midiout = rtmidi.MidiOut()
@@ -17,6 +20,10 @@ def play_midi_with_plugin(midi_chords: list):
         # send messages to adjust settings
         midiout.send_message(Message(type='note_on', note=85, channel=MIDI_CHANNEL, velocity=1).bytes()) # strum mode off
         midiout.send_message(Message(type='note_on', note=92, channel=MIDI_CHANNEL, velocity=1).bytes()) # open string first mode off
+
+        # send note_off's for settings messages
+        midiout.send_message(Message(type='note_off', note=85, channel=MIDI_CHANNEL, velocity=1).bytes())
+        midiout.send_message(Message(type='note_off', note=92, channel=MIDI_CHANNEL, velocity=1).bytes())
 
         # loop through midi messages and send to plugin
         # midi_chords is of format: [(note_on messages, note_off messages, duration), chord2, chord3, etc...]
@@ -32,7 +39,3 @@ def play_midi_with_plugin(midi_chords: list):
             
             for msg in note_offs:
                 midiout.send_message(msg) # msg is in bytes
-
-        # send note_off's for settings messages
-        midiout.send_message(Message(type='note_off', note=85, channel=MIDI_CHANNEL, velocity=1).bytes())
-        midiout.send_message(Message(type='note_off', note=92, channel=MIDI_CHANNEL, velocity=1).bytes())

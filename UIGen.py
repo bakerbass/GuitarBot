@@ -685,7 +685,10 @@ def UI():
     def preview_song():
         left_arm, right_arm = build_arm_lists()
 
-        # preview with plugin
+        # old preview feature using chord audio recordings
+        # preview_song(left_arm, right_arm, int(bpmInput.get()), 2)
+
+        # preview with plugin (improved from chord recordings)
         # NOTE: plugin must be open and running separately through compatible DAW (GarageBand as of rn)
         midi_chords = arms_to_MIDI(left_arm, right_arm, int(bpmInput.get()), 2)
         play_midi_with_plugin(midi_chords)

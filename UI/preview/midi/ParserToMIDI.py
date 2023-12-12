@@ -2,18 +2,19 @@ from mido import Message
 from UI.constants.ChordsDict import chords
 
 MAJOR_THIRD, PERFECT_FOURTH = 4, 5
-#curr_chord_name = ""
+curr_chord_name = ""
 
 # Given a position, seeks to the next strum
 def get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx, curr_chord_name):
     next_chord_name = curr_chord_name # holds next chord if change made in meantime
 
+    is_downstrum = right_arm[measure_idx][subdiv_idx].lower() == "d"
     subdiv_idx += 1
     curr_chord_subdiv_count = 1
     
     while measure_idx < len(right_arm):
         while subdiv_idx < len(right_arm[measure_idx]):
-            if left_arm[measure_idx][subdiv_idx] != "":
+            if subdiv_idx < len(left_arm[measure_idx]) and left_arm[measure_idx][subdiv_idx] != "":
                 next_chord_name = left_arm[measure_idx][subdiv_idx]
             if right_arm[measure_idx][subdiv_idx] != "":
                 break # strum performed
@@ -22,7 +23,7 @@ def get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx, cu
         subdiv_idx = 0
         measure_idx += 1
 
-    MIDI_note_ons, MIDI_note_offs = chord_name_to_MIDI(curr_chord_name, curr_chord_subdiv_count, right_arm[measure_idx][subdiv_idx].lower() == "d")
+    MIDI_note_ons, MIDI_note_offs = chord_name_to_MIDI(curr_chord_name, curr_chord_subdiv_count, is_downstrum)
     MIDI_tuple = (MIDI_note_ons, MIDI_note_offs, tempo/120 * curr_chord_subdiv_count) # assumes eight notes the subdiv
     curr_chord_name = next_chord_name
 
@@ -32,14 +33,16 @@ def get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx, cu
 # left_arm: same ideas as one in UIGen.py
 # right_arm: created in UIGen.py
 def arms_to_MIDI(left_arm, right_arm, tempo):
+    global curr_chord_name
     MIDI_song = [] # list of tuples of form (note_ons, note_offs, duration in seconds for chord)
 
-    curr_chord_name = ""
     measure_idx, subdiv_idx = 0, 0
 
     # Assumes a chord will be specified in the first slot...
+    curr_chord_name = left_arm[0][0]
+    
     while measure_idx < len(left_arm):
-        measure_idx, subdiv_idx, MIDI_tuple, curr_chord_name = get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx, curr_chord_name)
+        measure_idx, subdiv_idx, MIDI_tuple = get_next_chord_strum(left_arm, right_arm, tempo, measure_idx, subdiv_idx, curr_chord_name)
         MIDI_song.append(MIDI_tuple)
 
     return MIDI_song
@@ -48,22 +51,29 @@ def arms_to_MIDI(left_arm, right_arm, tempo):
 ###        chord: name of chord
 ### subdivisions: number of eigth notes chord rings
 ### is_downstrum: true if downstrum, false if upstrum
+# TODO: remove extraneous subdivisions param from calling code 
 def chord_name_to_MIDI(chord_name, subdivisions, is_downstrum):
     MIDI_note_ons, MIDI_note_offs = [], []
     open_note = 40 # E2 in standard tuning
     chord_tab = chords[chord_name] # list of ints in tab notation where 6th string, low bass, comes first
 
-    string_idx = 6
+    string_idx = 7
     # TODO: velocity, or loudness, should vary by note to correspond with upstrum/downstrum?
     # should emphasize 1 and 3 beats in 4/4?
     for fret_number_of_note in chord_tab:
+        string_idx -= 1
+        if fret_number_of_note == 'X':
+            continue
         MIDI_note_ons.append(Message("note_on", note=open_note+fret_number_of_note, velocity=80, channel=0).bytes())
-        MIDI_note_offs.append(Message("note_off", note=open_note+fret_number_of_note, channel=0).bytes()) # removed duration, doesn't work w/ VST???
+        MIDI_note_offs.append(Message("note_off", note=open_note+fret_number_of_note, channel=0).bytes()) # removed duration, doesn't work w/ VST?
         if string_idx != 3:
             open_note += PERFECT_FOURTH
         else:
             open_note += MAJOR_THIRD
-        string_idx -= 1
+
+    if is_downstrum:
+        MIDI_note_ons.reverse() # not sure this will actually help, but worth a shot?
+        MIDI_note_offs.reverse()
 
     return MIDI_note_ons, MIDI_note_offs
 

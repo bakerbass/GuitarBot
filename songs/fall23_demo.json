@@ -1,0 +1,58 @@
+[
+    {
+        "name": "fall23_demo",
+        "timeSig": "4/4",
+        "bpm": "90",
+        "input": "v,v,v,end"
+    },
+    {
+        "name": "v",
+        "numMeasures": 1,
+        "strumPattern": "Boom Chicka",
+        "leftArm": [
+            [
+                "C",
+                "F",
+                "",
+                ""
+            ]
+        ],
+        "rightArm": [
+            [
+                "d",
+                "u",
+                "d",
+                "",
+                "",
+                "u",
+                "",
+                "u"
+            ]
+        ]
+    },
+    {
+        "name": "end",
+        "numMeasures": 1,
+        "strumPattern": "Custom",
+        "leftArm": [
+            [
+                "F",
+                "C",
+                "",
+                ""
+            ]
+        ],
+        "rightArm": [
+            [
+                "d",
+                "u",
+                "d",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]
+        ]
+    }
+]

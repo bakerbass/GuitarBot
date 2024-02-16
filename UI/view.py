@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from components.RootFrame import RootFrame
+from frames.RootFrame import RootFrame
 
 class View(ctk.CTk):
     def __init__(self):

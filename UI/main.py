@@ -1,6 +1,6 @@
-from controller import Controller
-from model import Model
-from view import View
+from Controller import Controller
+from Model import Model
+from View import View
 
 # run this script to start the UI
 def main():

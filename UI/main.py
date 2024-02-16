@@ -5,7 +5,7 @@ from View import View
 # run this script to start the UI
 def main():
     view = View()
-    model = Model(view)
+    model = Model()
     controller = Controller(view, model)
     controller.start()
 

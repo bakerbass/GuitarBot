@@ -1,10 +1,10 @@
-from controller import Controller
-from model import Model
-from view import View
+from Controller import Controller
+from Model import Model
+from View import View
 
 def main():
-    view = View()
     model = Model()
+    view = View()
     controller = Controller(view, model)
     controller.start()
 

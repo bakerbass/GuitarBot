@@ -1,30 +1,13 @@
-import tkinter as tk
-import tkinter.ttk as ttk
-from tkinter import *
-from tkinter.ttk import *
+from Controller import Controller
+from Model import Model
+from View import View
 
-# GuitarBot UI
-sections = []
-sectionsDict = {}
+# run this script to start the UI
+def main():
+    view = View()
+    model = Model()
+    controller = Controller(view, model)
+    controller.start()
 
-rootWindow = tk.Tk(className=' GuitarBot')
-rootWindow.geometry("1300x600")
-
-mainFrame = Frame(rootWindow)
-scrollbar = Scrollbar(mainFrame, orient="vertical")
-scrollbar.pack(side="right", fill=Y)
-
-#Add Entry Widgets
-Label(mainFrame, text= "Username").pack()
-username= Entry(mainFrame, width= 20)
-username.pack()
-Label(mainFrame, text= "password").pack()
-password= Entry(mainFrame, show="*", width= 15)
-password.pack()
-Label(mainFrame, text= "Email Id").pack()
-email= Entry(mainFrame, width= 15)
-email.pack()
-
-
-mainFrame.pack()
-rootWindow.mainloop()
+if __name__ == "__main__":
+    main()

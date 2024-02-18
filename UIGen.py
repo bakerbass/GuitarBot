@@ -16,8 +16,8 @@ import UIParse
 import json
 
 # constants
-from UI.constants.StrumPatterns import strum_patterns, strum_options
-from UI.constants.TimeSignatures import time_signatures, beat_labels
+from UI.constants.strum_patterns import strum_patterns, strum_options
+from UI.constants.time_signatures import time_signatures, beat_labels
 
 # preview stuff
 # from UI.preview.audio.AudioHelper import AudioHelper
@@ -109,7 +109,7 @@ def UI():
         popup.geometry('800x500')
 
         # Add chord notations list (HTML)
-        htmlContent = HTMLScrolledText(popup, html=RenderHTML('./UI/components/chord_notation/ChordNotations.html'))
+        htmlContent = HTMLScrolledText(popup, html=RenderHTML('./UI/chords/ChordNotations.html'))
         htmlContent.pack(fill='both', expand=True)
         # htmlContent.fit_height()
 
@@ -592,7 +592,7 @@ def UI():
         write_to_json(name, songInput.get())
 
         # write left_arm, right_arm arrays to json file
-        with open('output/output.json', 'w') as file:
+        with open('./UI/last_output.json', 'w') as file:
             # write left_arm, right_arm to json
             file.write(json.dumps([left_arm, right_arm], indent=4))
 
@@ -606,7 +606,7 @@ def UI():
 
     def write_to_json(name, input):
         # check to make sure user does not accidentally overwrite existing song
-        if name != "default" and os.path.isfile('songs/' + name + '.json'):
+        if name != "default" and os.path.isfile('./UI/songs/' + name + '.json'):
             response = tkinter.messagebox.askquestion("Warning",
                                                       "A song with the same name is already saved. Would you like to overwrite the " +
                                                       "contents of the existing song? (If you select no, song will be saved as a new file.)")
@@ -635,7 +635,7 @@ def UI():
             section_dict["rightArm"] = data[1]
             json_data.append(section_dict)
 
-        with open('songs/' + name + '.json', 'w') as file:
+        with open('./UI/songs/' + name + '.json', 'w') as file:
             # write data to json
             file.write(json.dumps(json_data, indent=4))
 

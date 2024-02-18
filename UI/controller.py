@@ -1,5 +1,5 @@
-from Model import Model
-from View import View
+from model import Model
+from view import View
 
 class Controller:
     def __init__(self, view: View, model: Model):

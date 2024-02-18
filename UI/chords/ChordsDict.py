@@ -9,7 +9,7 @@ sharp_to_flat = {
 }
 
 # TODO: fill in missing chords
-chords = {
+chords_dict = {
     # A
     'A': ['X', 0, 2, 2, 2, 0],
     'Am': ['X', 0, 2, 2, 1, 0],

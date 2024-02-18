@@ -97,7 +97,7 @@ def get_next_chord(i, j, left_arm, right_arm, subdivision_duration, subdivisions
     if len(chord_input) >= 2 and chord_input[1] == 'b':
         chord_input = flat_to_sharp(chord_input)
 
-    new_segment = AudioSegment.from_file("UI/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_" + strum_type + "." + FORMAT, format=FORMAT)
+    new_segment = AudioSegment.from_file("UI/preview/old_preview_methods/audio/chord_recordings/" + FORMAT + "/" + chord_input + "_" + strum_type + "." + FORMAT, format=FORMAT)
     new_segment = new_segment.set_sample_width(2) # IMPORTANT (without this, >16-bit audio files will be insanely loud and distorted)
     new_segment = normalize(new_segment) # normalize amplitude
 

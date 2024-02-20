@@ -1,10 +1,15 @@
-from Controller import Controller
+import tkinter as tk
+
 from Model import Model
 from View import View
+from Controller import Controller
 
 def main():
     model = Model()
-    view = View()
+
+    app = tk.Tk(className=' GuitarBot')
+    view = View(app)
+
     controller = Controller(view, model)
     controller.start()
 

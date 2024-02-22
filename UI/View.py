@@ -13,11 +13,8 @@ class View(tk.Frame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        master.label = tk.Label(master=self, text='The quick brown fox jumped over the lazy dog')
-        master.label.grid(row=0, column=0, padx=20)
-
-        master.root_frame = RootFrame(master=self, width=screen_width, height=screen_height)
-        master.root_frame.grid(row=0, column=0, sticky="nsew")
+        self.root_frame = RootFrame(master=self, width=screen_width, height=screen_height)
+        self.root_frame.grid(row=0, column=0, sticky="nsew")
     
     def start_mainloop(self):
         self.mainloop()

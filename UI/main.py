@@ -9,6 +9,7 @@ def main():
 
     app = tk.Tk(className=' GuitarBot')
     view = View(app)
+    view.pack()
 
     controller = Controller(view, model)
     controller.start()

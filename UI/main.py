@@ -5,12 +5,8 @@ from View import View
 from Controller import Controller
 
 def main():
+    view = View()
     model = Model()
-
-    app = tk.Tk(className=' GuitarBot')
-    view = View(app)
-    view.pack()
-
     controller = Controller(view, model)
     controller.start()
 

@@ -1,20 +1,34 @@
 import tkinter as tk
-from frames.RootFrame import RootFrame
+from frames.ControlsFrame import ControlsFrame
+from frames.SongFrame import SongFrame
+from frames.SongBuilderFrame import SongBuilderFrame
 
-class View(tk.Frame):
-    def __init__(self, master, *args, **kwargs):
-        tk.Frame.__init__(self, master, *args, **kwargs)
+class View(tk.Tk):
+    def __init__(self):
+        super().__init__()
 
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
+        SCREEN_WIDTH = self.winfo_screenwidth()
+        SCREEN_HEIGHT = self.winfo_screenheight()
 
-        master.geometry(f'{screen_width}x{screen_height}')
+        # set up window
+        self.title('GuitarBot')
+        self.geometry(f'{SCREEN_WIDTH}x{SCREEN_HEIGHT}')
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        self.root_frame = RootFrame(master=self, width=screen_width, height=screen_height)
-        self.root_frame.grid(row=0, column=0, sticky="nsew")
+        # add main frames/components
+        controls_frame = ControlsFrame(master=self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT * 0.20)
+        controls_frame.grid(row=0, column=0)
+
+        song_frame = SongFrame(master=self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT * 0.5)
+        song_frame.grid(row=1, column=0)
+
+        new_section_btn = tk.Button(self, text="New Section")
+        new_section_btn.grid(row=2, column=0, pady=SCREEN_WIDTH*0.005)
+
+        song_builder_frame = SongBuilderFrame(master=self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT * 0.25)
+        song_builder_frame.grid(row=3, column=0)
     
     def start_mainloop(self):
         self.mainloop()

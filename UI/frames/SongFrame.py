@@ -8,15 +8,18 @@ class SongFrame(ctk.CTkScrollableFrame):
         super().__init__(master, orientation='vertical', width=width, height=height)
         
         self.sections = []
+        self.width = width
+        self.height = height
 
-        # # Add widgets to the frame
-        # for i in range(50):
-        #     ctk.CTkLabel(self, text=f"Label {i}").grid(row=i, column=0)
-
+        # add first section
+        self.add_section()
+        
+        self.add_section()
+        self.add_section()
         self.add_section()
 
             
     def add_section(self):
-        #self.first_section = SectionFrame(master=self, width=int(self.winfo_screenwidth() * 0.8), height=int(self.winfo_screenwidth() * 0.8))
-        self.first_section = SectionFrame(master=self, timeSignature="4/4")
-        self.first_section.pack(side=BOTTOM)
+        new_section = SectionFrame(master=self, width=self.width, height=self.height * 0.33, timeSignature="4/4")
+        self.sections.append(new_section)
+        new_section.pack(side=BOTTOM)

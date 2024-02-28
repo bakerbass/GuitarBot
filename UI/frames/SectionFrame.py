@@ -6,8 +6,8 @@ from constants.strum_patterns import *
 from constants.time_signatures import *
 
 class SectionFrame(ctk.CTkScrollableFrame):
-    def __init__(self, master, timeSignature):
-        super().__init__(master=master, orientation='horizontal')
+    def __init__(self, master, width, height, timeSignature):
+        super().__init__(master=master, width=width, height=height, orientation='horizontal')
 
         self.lastColumn = 0
         self.name = ""

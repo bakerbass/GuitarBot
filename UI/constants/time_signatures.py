@@ -1,4 +1,4 @@
-time_signatures = [
+time_signature_options = [
     "2/4",
     "3/4",
     "4/4"

@@ -1,0 +1,2 @@
+MIN_BPM = 30
+MAX_BPM = 120

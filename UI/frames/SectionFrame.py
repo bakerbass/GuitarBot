@@ -1,27 +1,30 @@
 import tkinter as tk
+import tkinter.ttk as ttk
 import customtkinter as ctk
-from frames.BarFrame import BarFrame
-from components.Section import Section
 from constants.strum_patterns import *
 from constants.time_signatures import *
+from frames.SectionLabelsFrame import SectionLabelsFrame
 
 class SectionFrame(ctk.CTkScrollableFrame):
-    def __init__(self, master, width, height, timeSignature):
+    def __init__(self, master, width, height, time_signature):
         super().__init__(master=master, width=width, height=height, orientation='horizontal')
 
+        self.width = width
+        self.height = height
+
         self.lastColumn = 0
-        self.name = ""
+        self.name = tk.StringVar(self)
         self.nameInput = None
-        self.strumPatternSelection = tk.StringVar(self)
+        self.strumPatternSelection = tk.StringVar(self, "Downs")
         self.numMeasures = 1
-        self.beatsPerMeasure = int(timeSignature[0])
-        self.subdivisionsPerMeasure = int(16 / int(timeSignature[2]) * self.beatsPerMeasure)
-        self.beatLabels = beat_labels[timeSignature]
+        self.beatsPerMeasure = int(time_signature[0])
+        print(self.beatsPerMeasure)
+        self.subdivisionsPerMeasure = int(16 / int(time_signature[2]) * self.beatsPerMeasure)
+        self.beatLabels = beat_labels[time_signature]
 
         self.chordRowTabOrder = []
         self.strumRowTabOrder = []
 
-        self.strumPatternSelection.set("Downs")
         self.addMeasure()
 
     def update(self, startColumn):
@@ -32,28 +35,27 @@ class SectionFrame(ctk.CTkScrollableFrame):
             while j <= self.subdivisionsPerMeasure * self.numMeasures:
                 currMeasure = 0
                 if i == 0 and currMeasure <= self.numMeasures:
-                    # MEASURE tk.LabelS
-                    # account for bar tk.Label placement shift
+                    # MEASURE LABELS
+                    # account for bar placement shift
                     if (j != 0 and j == startColumn):
                         j -= 1
 
-                    tk.LabelText = "Bar " + str(currMeasure)
-                    self.cell = tk.Label(self, width=4, text=tk.LabelText)
+                    self.cell = tk.Label(self, width=4, text="Bar " + str(currMeasure))
                     self.cell.grid(row=i, column=j + self.beatsPerMeasure, sticky='w',
                                     columnspan=self.subdivisionsPerMeasure)
                     j += self.subdivisionsPerMeasure
                     currMeasure += 1
                     continue
                 elif i == 1:
-                    # BEAT tk.LabelS
+                    # BEAT LABELS
                     if j == 0:
-                        # add empty tk.Label at beginning of row (placeholder to align w/ below rows)
+                        # add empty label at beginning of row (placeholder to align w/ below rows)
                         self.cell = tk.Label(self, width=6, text="")
                         self.cell.grid(row=i, column=j)
                         j += 1
                         continue
 
-                    self.cell = tk.Entry(self, width=2, font=('Arial', 16, 'bold'))
+                    self.cell = ttk.Entry(self, width=2, font=('Arial', 16, 'bold'))
 
                     # add space after last beat of measure
                     if j != 0 and j % self.beatsPerMeasure == 0:
@@ -73,7 +75,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
                         j += 1
                         continue
 
-                    self.cell = tk.Entry(self, width=6, font=('Arial', 16))
+                    self.cell = ttk.Entry(self, width=6, font=('Arial', 16))
 
                     # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
                     self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
@@ -93,13 +95,13 @@ class SectionFrame(ctk.CTkScrollableFrame):
                         if self.strumPatternSelection.get() == "":
                             self.strumPatternSelection.set("Custom")
 
-                        self.cell = tk.OptionMenu(self, self.strumPatternSelection, self.strumPatternSelection.get(), *strum_options,
+                        self.cell = ttk.OptionMenu(self, self.strumPatternSelection, self.strumPatternSelection.get(), *strum_options,
                                                 command=self.fillStrumPattern)
                         self.cell.grid(row=i, column=j)
                         j += 1
                         continue
 
-                    self.cell = tk.Entry(self, width=2, font=('Arial', 16))
+                    self.cell = ttk.Entry(self, width=2, font=('Arial', 16))
 
                     # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
                     self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
@@ -138,7 +140,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
         # components for section name input
         self.cell = tk.Label(self, width=5, text="Name:")
         self.cell.grid(row=4, column=j - 7, columnspan=2, sticky='e')
-        nameInput = tk.Entry(self, width=6, font=('Arial', 14))
+        nameInput = ttk.Entry(self, width=6, font=('Arial', 14))
         self.nameInput = nameInput
         nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
         nameInput.grid(row=4, column=j - 5, columnspan=2, sticky='w')
@@ -213,20 +215,19 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.grid_slaves(row=2, column=self.lastColumn - self.subdivisionsPerMeasure + 1)[
             0].focus_set()
 
-        # put bar tk.Label back
-        tk.LabelText = "Bar " + str(self.numMeasures)
-        self.cell = tk.Label(self, width=4, text=tk.LabelText)
+        # put bar labels back
+        self.cell = tk.Label(self, width=4, text="Bar " + str(self.numMeasures))
         self.cell.grid(row=0, column=self.lastColumn - self.beatsPerMeasure, sticky='w',
                         columnspan=self.subdivisionsPerMeasure)
 
-        # put clear tk.Button back
-        self.cell = tk.Button(self, text="Clear", width=4, command=self.clearTable)
+        # put clear button back
+        self.cell = ttk.Button(self, text="Clear", width=4, command=self.clearTable)
         self.cell.grid(row=4, column=self.lastColumn - 2, columnspan=2, sticky='w')
 
         # put components for section name input back
         self.cell = tk.Label(self, width=5, text="Name:")
         self.cell.grid(row=4, column=self.lastColumn - 6, columnspan=2, sticky='e')
-        nameInput = tk.Entry(self, width=6, font=('Arial', 14))
+        nameInput = ttk.Entry(self, width=6, font=('Arial', 14))
         nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
         nameInput.grid(row=4, column=self.lastColumn - 4, columnspan=2, sticky='w')
         # print("measure removed")
@@ -326,7 +327,3 @@ class SectionFrame(ctk.CTkScrollableFrame):
                 e.delete(0, tk.END)
                 e.insert(0, rightArm[i - 1])
             i += 1
-
-# def add_bar(self):
-#     self.bar = BarFrame(master=self)
-#     self.bar.grid(row=0, column=1, padx=20)

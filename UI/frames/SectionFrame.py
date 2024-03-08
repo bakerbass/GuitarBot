@@ -14,7 +14,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         self.lastColumn = 0
         self.name = tk.StringVar(self)
-        self.nameInput = None
         self.strumPatternSelection = tk.StringVar(self, "Custom")
         self.numMeasures = 0
         self.beatsPerMeasure = int(time_signature[0])
@@ -58,7 +57,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     self.cell = ttk.Entry(self, width=2, font=('Arial', 16, 'bold'))
 
                     # add space after last beat of measure
-                    if j != 0 and j % self.beatsPerMeasure == 0:
+                    if j != 0 and j % self.subdivisionsPerMeasure == 0:
                         self.cell.grid(row=i, column=j, padx=(0, 30))
                     else:
                         self.cell.grid(row=i, column=j)

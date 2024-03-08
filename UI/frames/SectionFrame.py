@@ -15,17 +15,17 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.lastColumn = 0
         self.name = tk.StringVar(self)
         self.nameInput = None
-        self.strumPatternSelection = tk.StringVar(self, "Downs")
-        self.numMeasures = 1
+        self.strumPatternSelection = tk.StringVar(self, "Custom")
+        self.numMeasures = 0
         self.beatsPerMeasure = int(time_signature[0])
-        print(self.beatsPerMeasure)
-        self.subdivisionsPerMeasure = int(16 / int(time_signature[2]) * self.beatsPerMeasure)
+        self.subdivisionsPerMeasure = self.beatsPerMeasure * 2
         self.beatLabels = beat_labels[time_signature]
 
         self.chordRowTabOrder = []
         self.strumRowTabOrder = []
 
         self.addMeasure()
+        print(self.lastColumn)
 
     def update(self, startColumn):
         # build chords/strum chart
@@ -69,7 +69,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
                 elif i == 2:
                     # CHORD INPUTS
                     if j == 0:
-                        # add "Chords: " tk.Label at beginning of row
+                        # add "Chords: " label at beginning of row
                         self.cell = tk.Label(self, width=6, text="Chords: ")
                         self.cell.grid(row=i, column=j)
                         j += 1
@@ -133,17 +133,9 @@ class SectionFrame(ctk.CTkScrollableFrame):
         # update lastColumn
         self.lastColumn = self.subdivisionsPerMeasure * self.numMeasures
 
-        # place clear tk.Button
-        self.cell = tk.Button(self, text="Clear", width=4, command=self.clearTable)
-        self.cell.grid(row=4, column=j - 3, columnspan=2, sticky='w')
-
         # components for section name input
-        self.cell = tk.Label(self, width=5, text="Name:")
-        self.cell.grid(row=4, column=j - 7, columnspan=2, sticky='e')
-        nameInput = ttk.Entry(self, width=6, font=('Arial', 14))
-        self.nameInput = nameInput
-        nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
-        nameInput.grid(row=4, column=j - 5, columnspan=2, sticky='w')
+        # NOTE: may be useful later
+        #nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
 
         # set tabbing order
         self.__setTabOrder()
@@ -160,16 +152,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
         for cell in self.strumRowTabOrder:
             cell.lift()
 
-        self.nameInput.lift()
-
-    def __updateName(event, c, self, name):
-        if c.keysym == "BackSpace":
-            # slice off last char
-            self.name = self.name[:len(self.name) - 1]
-        else:
-            # append pressed char
-            self.name = name + c.char
-
     # event handler for add measure (Enter)
     def __returnPressed(self, event):
         self.addMeasure(self)
@@ -177,12 +159,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
     def addMeasure(self):
         self.numMeasures = self.numMeasures + 1
 
-        # delete previous clear tk.Button, name tk.Label/input (will get re-added during the buildTable() call)
-        for e in self.grid_slaves(row=4):
-            e.grid_forget()
-
         self.update(self.lastColumn + 1)
-        self.nameInput.insert(0, self.name)
         # print("measure added")
 
     # event handler for remove measure (Shift+BackSpace)
@@ -220,16 +197,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.cell.grid(row=0, column=self.lastColumn - self.beatsPerMeasure, sticky='w',
                         columnspan=self.subdivisionsPerMeasure)
 
-        # put clear button back
-        self.cell = ttk.Button(self, text="Clear", width=4, command=self.clearTable)
-        self.cell.grid(row=4, column=self.lastColumn - 2, columnspan=2, sticky='w')
-
-        # put components for section name input back
-        self.cell = tk.Label(self, width=5, text="Name:")
-        self.cell.grid(row=4, column=self.lastColumn - 6, columnspan=2, sticky='e')
-        nameInput = ttk.Entry(self, width=6, font=('Arial', 14))
-        nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
-        nameInput.grid(row=4, column=self.lastColumn - 4, columnspan=2, sticky='w')
         # print("measure removed")
 
     def editTable(self, num_cols, timeSignature):
@@ -251,9 +218,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
             if count != 0:
                 e.delete(0, tk.END)
             count += 1
-
-        # clear name input
-        self.grid_slaves(row=4, column=self.lastColumn - 4)[0].delete(0, tk.END)
 
         # print("table cleared")
 

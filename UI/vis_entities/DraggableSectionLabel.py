@@ -1,5 +1,5 @@
 import tkinter as tkinter
-# import tkinter.dnd as Tkdnd
+# import tkinter.dnd as Tkdnd # I copied the source code instead of importing this the sane way?
 
 __all__ = ["dnd_start", "DndHandler"]
 
@@ -13,8 +13,6 @@ def dnd_start(source, event):
     else:
         return None
 
-
-# The class that does the work
 
 class DndHandler:
 
@@ -104,20 +102,21 @@ class DndHandler:
 
 class DraggableSectionLabel:
 
-    def __init__(self, name):
+    def __init__(self, name, mid_height_y):
         self.name = name
+        self.mid_height_y = mid_height_y
         self.canvas = self.label = self.id = None
 
     def attach(self, canvas, x, y):
         if canvas is self.canvas:
-            self.canvas.coords(self.id, x, y)
+            self.canvas.coords(self.id, x, self.mid_height_y)
             return
         if self.canvas is not None:
             self.detach()
         if canvas is None:
             return
         label = tkinter.Label(canvas, text=self.name,
-                              borderwidth=2, relief="raised", bg='navy blue', width=6)
+                              borderwidth=2, relief="raised", bg='navy blue', width=6, cursor='hand')
         id = canvas.create_window(x, y, window=label, anchor="nw")
         self.canvas = canvas
         self.label = label
@@ -132,7 +131,7 @@ class DraggableSectionLabel:
         label = self.label
         self.canvas = self.label = self.id = None
         canvas.delete(id)
-        # label.destroy()
+        label.destroy()
 
     def press(self, event):
         if dnd_start(self, event):

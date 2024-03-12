@@ -3,6 +3,7 @@ import customtkinter as ctk
 from frames.SongControlsFrame import SongControlsFrame
 from frames.SongFrame import SongFrame
 from frames.SongBuilderFrame import SongBuilderFrame
+from tkhtmlview import HTMLScrolledText, RenderHTML
 
 class View(tk.Tk):
     def __init__(self):
@@ -33,3 +34,21 @@ class View(tk.Tk):
     
     def start_mainloop(self):
         self.mainloop()
+
+
+
+class ChordNotationsPopup(tk.Toplevel):
+    def __init__(self, master):
+        super().__init__()
+
+        self.title("Chords Notations")
+        self.geometry('800x500')
+
+        # Add chord notations list (HTML)
+        html_content = HTMLScrolledText(self, html=RenderHTML('./UI/chords/ChordNotations.html'))
+        html_content.pack(fill='both', expand=True)
+        # htmlContent.fit_height()
+
+        # Add close button
+        self.close_btn = tk.Button(self, text="Close")
+        self.close_btn.pack()

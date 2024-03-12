@@ -1,6 +1,5 @@
 from Model import Model
-from View import View
-import time
+from View import View, ChordNotationsPopup
 
 class Controller:
     def __init__(self, view: View, model: Model):
@@ -20,6 +19,9 @@ class Controller:
         self.song_controls_frame.bpm_spinbox.bind('<<Increment>>', lambda e: self._update_model_bpm_handler(e, 'Increment'))
         self.song_controls_frame.bpm_spinbox.bind('<<Decrement>>', lambda e: self._update_model_bpm_handler(e, 'Decrement'))
 
+        # Chord notations btn
+        self.song_controls_frame.chord_notation_btn.config(command=self._show_chord_notations_popup)
+
     def start(self):
         self.view.start_mainloop()
 
@@ -33,3 +35,9 @@ class Controller:
             self.model.bpm = int(self.song_controls_frame.bpm_spinbox.get()) - 1
         elif type == 'KeyRelease':
             self.model.bpm = int(self.song_controls_frame.bpm_spinbox.get())
+
+    def _show_chord_notations_popup(self):
+        popup = ChordNotationsPopup(self.view)
+
+        # when "Close" button is clicked, popup will be destroyed
+        popup.close_btn.config(command=popup.destroy)

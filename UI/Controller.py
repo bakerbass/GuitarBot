@@ -14,6 +14,9 @@ class Controller:
         self._create_event_bindings()
 
     def _create_event_bindings(self):
+        # Song title entry
+        self.song_controls_frame.song_title.trace_add(('write', 'unset'), self._update_song_title_handler)
+
         # BPM spinbox
         self.song_controls_frame.bpm_spinbox.bind('<KeyRelease>', lambda e: self._update_bpm_handler(e, 'KeyRelease'))
         self.song_controls_frame.bpm_spinbox.bind('<<Increment>>', lambda e: self._update_bpm_handler(e, 'Increment'))
@@ -32,6 +35,9 @@ class Controller:
         self.view.start_mainloop()
 
     # Event handlers below
+        
+    def _update_song_title_handler(self, event, *args):
+        self.model.song_title = self.song_controls_frame.song_title.get()
 
     def _update_bpm_handler(self, event, type):
         # This event handler will run before increment/decrement buttons update the actual Entry, so we need to manually increment/decrement to account for that

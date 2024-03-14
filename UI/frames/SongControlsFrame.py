@@ -9,7 +9,7 @@ class SongControlsFrame(tk.Frame):
         super().__init__(master, width=width, height=height)
         self.width = width
         self.height = height
-        self.title = tk.StringVar(self, 'Song Title')
+        self.song_title = tk.StringVar(self, 'Song Title')
         self.time_signature = tk.StringVar(self)
         self.bpm = tk.IntVar(self, DEFAULT_BPM)
         self.chord_mode = tk.StringVar(self)
@@ -37,8 +37,8 @@ class SongControlsFrame(tk.Frame):
         self.chord_notation_btn.grid(row=1, column=0, sticky='W')
 
         # Song Title
-        self.song_title_lbl = tk.Label(self, textvariable=self.title, font=('TkDefaultFont', 16, 'bold'))
-        self.song_title_lbl.grid(row=0, column=4)
+        self.song_title_lbl = ttk.Entry(self, textvariable=self.song_title, width=20, justify='center', font=('TkDefaultFont', 16, 'bold'))
+        self.song_title_lbl.grid(row=0, column=3, columnspan=3)
 
         # Save, Load, Send btns
         self.save_btn = tk.Button(self, text="Save")

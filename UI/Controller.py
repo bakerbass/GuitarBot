@@ -15,7 +15,7 @@ class Controller:
 
     def _create_event_bindings(self):
         # Song title entry
-        self.song_controls_frame.song_title.trace_add(('write', 'unset'), self._update_song_title_handler)
+        self.song_controls_frame.song_title.trace_add(('write'), self._update_song_title_handler)
 
         # BPM spinbox
         self.song_controls_frame.bpm_spinbox.bind('<KeyRelease>', lambda e: self._update_bpm_handler(e, 'KeyRelease'))

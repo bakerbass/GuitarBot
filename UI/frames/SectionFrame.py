@@ -3,11 +3,11 @@ import tkinter.ttk as ttk
 import customtkinter as ctk
 from constants.strum_patterns import *
 from constants.time_signatures import *
-from frames.SectionLabelsFrame import SectionLabelsFrame
 
 class SectionFrame(ctk.CTkScrollableFrame):
-    def __init__(self, master, width, height, time_signature):
+    def __init__(self, master, id, width, height, time_signature):
         super().__init__(master=master, width=width, height=height, orientation='horizontal')
+        self.id = id
 
         self.width = width
         self.height = height

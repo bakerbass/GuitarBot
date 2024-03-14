@@ -13,7 +13,11 @@ class Controller:
 
         self._create_event_bindings()
 
+    def start(self):
+        self.view.start_mainloop()
+
     def _create_event_bindings(self):
+        ### SONG CONTROLS
         # Song title entry
         self.song_controls_frame.song_title.trace_add(('write'), self._update_song_title_handler)
 
@@ -31,11 +35,13 @@ class Controller:
         # Chord notations btn
         self.song_controls_frame.chord_notation_btn.config(command=self._show_chord_notations_popup)
 
-    def start(self):
-        self.view.start_mainloop()
+        ### SECTIONS/SECTION LABELS
+        for section in self.song_frame.sections:
+            section_frame, section_labels = section
+            section_labels.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame)) # use configure for CTk btn
 
     # Event handlers below
-        
+    ### SONG CONTROLS
     def _update_song_title_handler(self, event, *args):
         self.model.song_title = self.song_controls_frame.song_title.get()
 
@@ -59,3 +65,9 @@ class Controller:
 
         # when "Close" button is clicked, popup will be destroyed
         popup.close_btn.config(command=popup.destroy)
+
+    ### SECTIONS/SECTION LABELS
+    def _clear_section_handler(self, section_frame):
+        # TODO: this is only interacting with view right now. Should update model as well
+        print('clear ', section_frame.name)
+        section_frame.clearTable()

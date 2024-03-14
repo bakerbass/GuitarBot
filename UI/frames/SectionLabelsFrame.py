@@ -1,9 +1,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+import customtkinter as ctk
 from constants.strum_patterns import strum_options
-
-# TODO: fix icons, currently showing up as white boxes
-global trash_icon, eraser_icon # necessary so that tkinter doesn't garbage collect the images after the init method
+from PIL import Image, ImageTk
 
 class SectionLabelsFrame(tk.Frame):
     def __init__(self, master, width, height):
@@ -27,12 +26,14 @@ class SectionLabelsFrame(tk.Frame):
         name_entry.grid(row=0, column=0, columnspan=2)
 
         # trash, eraser icon buttons
-        trash_icon = tk.PhotoImage(file='UI/icons/trash-16px.png')
-        trash_btn = tk.Button(self, image=trash_icon, borderwidth=0)
+        img = Image.open('UI/icons/trash-16px.png')
+        self.trash_icon = ImageTk.PhotoImage(img)
+        trash_btn = ctk.CTkButton(self, image=self.trash_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
         trash_btn.grid(row=1, column=0)
 
-        eraser_icon = tk.PhotoImage(file='UI/icons/eraser-16px.png')
-        eraser_btn = tk.Button(self, image=eraser_icon, borderwidth=0)
+        img = Image.open('UI/icons/eraser-16px.png')
+        self.eraser_icon = ImageTk.PhotoImage(img)
+        eraser_btn = ctk.CTkButton(self, image=self.eraser_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
         eraser_btn.grid(row=1, column=1)
 
         # chords label

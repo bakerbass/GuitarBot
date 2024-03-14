@@ -1,5 +1,5 @@
 from mido import Message
-from UI.chords.ChordsDict import chords_dict, sharp_to_flat
+from UI.chords.chord_dict import chord_dict, sharp_to_flat
 
 MAJOR_THIRD, PERFECT_FOURTH = 4, 5
 
@@ -92,7 +92,7 @@ def chord_name_to_MIDI(chord_name, is_downstrum):
     if len(chord_name) >= 2 and chord_name[1] == '#':
         chord_name = sharp_to_flat[chord_name[:2]] + ('' if len(chord_name) < 3 else chord_name[2:])
 
-    chord_tab = chords_dict[chord_name] # list of ints in tab notation where 6th string, low bass, comes first
+    chord_tab = chord_dict[chord_name] # list of ints in tab notation where 6th string, low bass, comes first
 
     string_idx = 7
     # TODO: velocity, or loudness, should vary by note to correspond with upstrum/downstrum?

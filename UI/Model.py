@@ -1,4 +1,3 @@
-import tkinter as tk
 from constants.bot_specs import DEFAULT_BPM, MIN_BPM, MAX_BPM
 from constants.time_signatures import DEFAULT_TIME_SIG
 from constants.chord_modes import DEFAULT_CHORD_MODE
@@ -11,6 +10,8 @@ class Model:
 
         # TODO: add logic to limit bpm to MIN_BPM, MAX_BPM range and update view accordingly
         self.bpm = DEFAULT_BPM
-        
+
         self.time_signature = DEFAULT_TIME_SIG
         self.chord_mode = DEFAULT_CHORD_MODE
+
+        self.sections = [] # entries are tuples of form (Section, SectionLabels)

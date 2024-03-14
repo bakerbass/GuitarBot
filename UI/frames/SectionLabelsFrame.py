@@ -2,6 +2,9 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from constants.strum_patterns import strum_options
 
+# TODO: fix icons, currently showing up as white boxes
+global trash_icon, eraser_icon # necessary so that tkinter doesn't garbage collect the images after the init method
+
 class SectionLabelsFrame(tk.Frame):
     def __init__(self, master, width, height):
         super().__init__(master=master, width=width, height=height)
@@ -23,8 +26,14 @@ class SectionLabelsFrame(tk.Frame):
         name_entry = ttk.Entry(self, textvariable=self.name, justify='center', width=6)
         name_entry.grid(row=0, column=0, columnspan=2)
 
-        # clear, delete icons
-        # TODO
+        # trash, eraser icon buttons
+        trash_icon = tk.PhotoImage(file='UI/icons/trash-16px.png')
+        trash_btn = tk.Button(self, image=trash_icon, borderwidth=0)
+        trash_btn.grid(row=1, column=0)
+
+        eraser_icon = tk.PhotoImage(file='UI/icons/eraser-16px.png')
+        eraser_btn = tk.Button(self, image=eraser_icon, borderwidth=0)
+        eraser_btn.grid(row=1, column=1)
 
         # chords label
         chords_lbl = tk.Label(self, text='Chords:')

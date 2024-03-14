@@ -41,11 +41,11 @@ class ChordNotationsPopup(tk.Toplevel):
     def __init__(self, master):
         super().__init__()
 
-        self.title("Chords Notations")
+        self.title("Chord Notations")
         self.geometry('800x500')
 
         # Add chord notations list (HTML)
-        html_content = HTMLScrolledText(self, html=RenderHTML('./UI/chords/ChordNotations.html'))
+        html_content = HTMLScrolledText(self, html=RenderHTML('./UI/chords/chord_notations.html'))
         html_content.pack(fill='both', expand=True)
         # htmlContent.fit_height()
 

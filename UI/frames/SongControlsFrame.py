@@ -37,7 +37,7 @@ class SongControlsFrame(tk.Frame):
         self.chord_notation_btn.grid(row=1, column=0, sticky='W')
 
         # Song Title
-        self.song_title_lbl = ttk.Entry(self, textvariable=self.song_title, width=20, justify='center', font=('TkDefaultFont', 16, 'bold'))
+        self.song_title_lbl = ttk.Entry(self, textvariable=self.song_title, width=17, justify='center', font=('TkDefaultFont', 16, 'bold'))
         self.song_title_lbl.grid(row=0, column=3, columnspan=3)
 
         # Save, Load, Send btns

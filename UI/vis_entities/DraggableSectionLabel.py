@@ -121,7 +121,11 @@ class DraggableSectionLabel:
         self.canvas = canvas
         self.label = label
         self.id = id
-        label.bind("<ButtonPress>", self.press)
+        label.bind("<ButtonPress-1>", self.press) # was ButtonPress
+        label.bind("<ButtonRelease-2>", self.destroy)
+
+    def destroy(self, event):
+        self.detach()
 
     def detach(self):
         canvas = self.canvas

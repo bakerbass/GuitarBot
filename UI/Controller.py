@@ -35,6 +35,15 @@ class Controller:
         # Chord notations btn
         self.song_controls_frame.chord_notation_btn.config(command=self._show_chord_notations_popup)
 
+        # Save btn
+        self.song_controls_frame.save_btn.config(command=self._save_song_handler)
+
+        # Load btn
+        self.song_controls_frame.load_btn.config(command=self._load_song_handler)
+
+        # Send btn
+        self.song_controls_frame.send_btn.config(command=self._send_song_handler)
+
         ### SECTIONS/SECTION LABELS
         for section in self.song_frame.sections:
             section_frame, section_labels = section
@@ -65,6 +74,18 @@ class Controller:
 
         # when "Close" button is clicked, popup will be destroyed
         popup.close_btn.config(command=popup.destroy)
+
+    # Save btn
+    def _save_song_handler(self):
+        pass
+
+    # Load btn
+    def _load_song_handler(self):
+        pass
+
+    # Send btn
+    def _send_song_handler(self):
+        pass
 
     ### SECTIONS/SECTION LABELS
     def _clear_section_handler(self, section_frame):

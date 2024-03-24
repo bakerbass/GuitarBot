@@ -18,13 +18,16 @@ class Model:
         self.sections = [] # list of Section classes
 
     def _initialize_test_sections():
-        #TODO
+        #TODO (Jack)
         pass
 
     def build_arm_lists():
+        # TODO (Jack)
         # Called by Controller, updates left_arm, right_arm lists for each Section
         pass
 
     def send_arm_lists():
+        # TODO (David)
         # call parse.py, pass in left_arm, right_arm lists of each Section in self.sections
+        # modify parse.py to accept new chord notations
         pass

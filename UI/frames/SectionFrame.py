@@ -12,6 +12,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.width = width
         self.height = height
 
+        self.time_signature = time_signature
         self.last_column = 0
         self.strum_pattern_sel = tk.StringVar(self, "Custom")
         self.num_measures = 0
@@ -197,14 +198,14 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         # print("measure removed")
 
-    def editTable(self, num_cols, timeSignature):
-        # delete prev rows
-        for w in self.grid_slaves():
-            w.grid_forget()
+    # def editTable(self, num_cols):
+    #     # delete prev rows
+    #     for w in self.grid_slaves():
+    #         w.grid_forget()
 
-        self.update(num_cols, timeSignature, 0, 1)
+    #     self.update(num_cols, self.time_signature, 0, 1)
 
-    def clearTable(self):
+    def clear_table(self):
         count = 0
         for e in reversed(self.grid_slaves(row=2)):
             if count != 0:
@@ -233,10 +234,10 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     e.insert(tk.END, strum_patterns.get(self.strum_pattern_sel.get())[(count + 1) % 2])
             count += 1
 
-    def build_arm_lists(self, timeSignature):
+    def build_arm_lists(self):
         left_arm = []
         right_arm = []
-        numBeatsPerMeasure = (int)(timeSignature.get()[0])
+        numBeatsPerMeasure = (int)(self.time_signature[0])
 
         # generate left arm data
         currMeasure = []

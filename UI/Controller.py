@@ -53,8 +53,10 @@ class Controller:
 
         # Clear, delete icon event handlers for each section
         for section in self.song_frame.sections:
-            section_frame, section_labels = section
-            section_labels.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame)) # use configure for CTk btn
+            section_frame, labels_frame = section
+
+            labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame)) # use configure for CTk btn
+            labels_frame.trash_btn.configure(command=lambda: self._remove_section_handler(section_frame, labels_frame)) # use configure for CTk btn
 
         # New section btn
         self.new_section_btn.configure(command=self._new_section_handler) # use configure for CTk btn
@@ -106,15 +108,28 @@ class Controller:
     #endregion SongControls
 
     #region Sections
+        
     def _clear_section_handler(self, section_frame):
-        # TODO: this is only interacting with view right now. Should update model as well
-        print('clear ', section_frame.name)
-        section_frame.clearTable()
+        print('clear section')
+        # clear section data in View
+        section_frame.clear_table()
+        
+        # update Model accordingly
+        self.model.clear_section_data(section_frame.id)
 
+    def _remove_section_handler(self, section_frame, labels_frame):
+        print('remove section')
+        # remove section from View
+        #TODO
+
+        # update Model accordingly
+        self.model.remove_section(section_frame.id)
+        print(self.model.sections)
 
     # New section btn
     def _new_section_handler(self):
         self._add_section()
+
     #endregion Sections
         
     #endregion EventHandlers
@@ -128,7 +143,8 @@ class Controller:
         for section_tuple in self.view.song_frame.sections:
             section_frame, labels_frame = section_tuple
 
-            # get section data from view
+            # get section data from View
+            id = section_frame.id
             name = labels_frame.name.get()
             left_arm, right_arm = section_frame.build_arm_lists()
 

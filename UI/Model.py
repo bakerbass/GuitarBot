@@ -23,7 +23,6 @@ class Model:
     def add_section(self, id, name):
         new_section = Section(id, name) # left_arm, right_arm will be initialized to empty lists
         self.sections[id] = new_section
-        print(self.sections)
 
     # Called by Controller, updates the data for a particular section (indexed by id)
     # Data includes name and left_arm, right_arm lists
@@ -33,12 +32,13 @@ class Model:
         section.left_arm = left_arm
         section.right_arm = right_arm
 
-    # Called by Controller, clears all data for a particular section (indexed by id)
+    # Called by Controller, clears all left_arm and right_arm data for a particular section (indexed by id)
     def clear_section_data(self, id):
-        section = self.sections[id]
-        section.name = ''
-        section.left_arm = []
-        section.right_arm = []
+        self.sections[id].clear()
+
+    # Called by Controller, removes a particular section (indexed by id)
+    def remove_section(self, id):
+        self.sections.pop(id)
 
     def send_arm_lists(self):
         # TODO (David)

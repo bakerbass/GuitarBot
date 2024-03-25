@@ -23,13 +23,13 @@ class View(tk.Tk):
         self.song_controls_frame = SongControlsFrame(master=self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT * 0.20)
         self.song_controls_frame.grid(row=0, column=0)
 
-        self.song_frame = SongFrame(master=self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT * 0.5)
+        self.song_frame = SongFrame(master=self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT * 0.625)
         self.song_frame.grid(row=1, column=0)
 
         self.new_section_btn = ctk.CTkButton(self, text="New Section", width=SCREEN_WIDTH * 0.08, height=SCREEN_HEIGHT * 0.02)
         self.new_section_btn.grid(row=2, column=0, pady=SCREEN_WIDTH*0.005)
 
-        self.song_builder_frame = SongBuilderFrame(master=self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT * 0.25)
+        self.song_builder_frame = SongBuilderFrame(master=self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT * 0.125)
         self.song_builder_frame.grid(row=3, column=0)
     
     def start_mainloop(self):

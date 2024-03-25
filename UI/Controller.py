@@ -102,7 +102,8 @@ class Controller:
 
     # Send btn
     def _send_song_handler(self):
-        self._update_model_sections()
+        #TODO: uncomment once UI is fully functional
+        #self._update_model_sections()
         self.model.send_arm_lists()
 
     #endregion SongControls

@@ -45,9 +45,9 @@ class Model:
         # call parse.py, pass in left_arm, right_arm lists of each Section in self.sections
         # modify parse.py to accept new chord notations
 
-        for section in self.sections:
-            left_arm, right_arm = section
-            parseleft_M(left_arm, 8) # i was unsure what measure time was, i hardcoded to assumption it's number of beat subdivisions in a measure for 4/4
-            parseright_M(right_arm, 8)
+        for section in self.sections.values():
+            print(section.left_arm, section.right_arm)
+            parseleft_M(section.left_arm, 8) # i was unsure what measure time was, i hardcoded to assumption it's number of beat subdivisions in a measure for 4/4
+            parseright_M(section.right_arm, 8)
 
             # incomplete!!!

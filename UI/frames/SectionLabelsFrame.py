@@ -45,3 +45,7 @@ class SectionLabelsFrame(tk.Frame):
         self.strum_options_dd = ttk.OptionMenu(self, self.strum_pattern, 'Strum Pattern', *strum_options)
         self.strum_options_dd.grid(row=1, column=2, columnspan=2)
 
+    def clear(self):
+        # set strum_options_dd back to default value
+        self.strum_pattern.set('Strum Pattern')
+

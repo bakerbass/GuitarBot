@@ -55,7 +55,7 @@ class Controller:
         for section in self.song_frame.sections:
             section_frame, labels_frame = section
 
-            labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame)) # use configure for CTk btn
+            labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame, labels_frame)) # use configure for CTk btn
             labels_frame.trash_btn.configure(command=lambda: self._remove_section_handler(section_frame, labels_frame)) # use configure for CTk btn
 
         # New section btn
@@ -110,10 +110,11 @@ class Controller:
 
     #region Sections
         
-    def _clear_section_handler(self, section_frame):
+    def _clear_section_handler(self, section_frame, labels_frame):
         print('clear section')
         # clear section data in View
         section_frame.clear_table()
+        labels_frame.clear() # set strum options dropdown back to default value
         
         # update Model accordingly
         self.model.clear_section_data(section_frame.id)

@@ -13,13 +13,16 @@ class Controller:
         self.new_section_btn = view.new_section_btn
 
         self._create_event_bindings()
+
+        # manually add the first section to the UI
         self._add_section()
 
     def start(self):
         self.view.start_mainloop()        
 
+    #region EventBindings
     def _create_event_bindings(self):
-        ### SONG CONTROLS
+        #region SongControls
         # Song title entry
         self.song_controls_frame.song_title.trace_add(('write'), self._update_song_title_handler)
 
@@ -45,18 +48,25 @@ class Controller:
 
         # Send btn
         self.song_controls_frame.send_btn.config(command=self._send_song_handler)
+        #endregion SongControls
 
-        ### SECTIONS/SECTION LABELS
+        #region Sections
+
         # Clear, delete icon event handlers for each section
         for section in self.song_frame.sections:
             section_frame, section_labels = section
             section_labels.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame)) # use configure for CTk btn
 
-        # NEW SECTION BUTTON
+        # New section btn
         self.new_section_btn.configure(command=self._new_section_handler) # use configure for CTk btn
+        
+        #endregion Sections
 
-    # Event handlers below
-    ### SONG CONTROLS
+    #endregion EventBindings
+        
+    #region EventHandlers
+    
+    #region SongControls
     def _update_song_title_handler(self, event, *args):
         self.model.song_title = self.song_controls_frame.song_title.get()
 
@@ -94,20 +104,24 @@ class Controller:
         self._update_model_sections()
         self.model.send_arm_lists()
 
+    #endregion SongControls
 
-    ### SECTIONS/SECTION LABELS
+    #region Sections
     def _clear_section_handler(self, section_frame):
         # TODO: this is only interacting with view right now. Should update model as well
         print('clear ', section_frame.name)
         section_frame.clearTable()
 
 
-    ### NEW SECTION BUTTON
+    # New section btn
     def _new_section_handler(self):
         self._add_section()
-
+    #endregion Sections
+        
+    #endregion EventHandlers
     
-    ### HELPERS
+    #region Helpers
+        
     # Helper method for saving, loading, sending
     # Saves all the current section data in the View to the Model
     def _update_model_sections(self):
@@ -130,3 +144,5 @@ class Controller:
         # now update this in the model accordingly
         new_section = Section(id, name) # left_arm, right_arm will be initialized to empty lists
         self.model.sections[id] = new_section
+
+    #endregion Helpers

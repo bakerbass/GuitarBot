@@ -1,7 +1,6 @@
 from constants.bot_specs import DEFAULT_BPM, MIN_BPM, MAX_BPM
 from constants.time_signatures import DEFAULT_TIME_SIG
 from constants.chord_modes import DEFAULT_CHORD_MODE
-from models.Section import Section
 from parse import parseleft_M, parseright_M
 
 # model stores all of the UI's data
@@ -16,7 +15,7 @@ class Model:
         self.time_signature = DEFAULT_TIME_SIG
         self.chord_mode = DEFAULT_CHORD_MODE
 
-        self.sections = {} # Key-value pairs of form {id, Section} 
+        self.sections = {} # Key-value pairs of form {id, Section}
         # David: I assumed a section was a tuple formatted [left_arm, right_arm]
 
     def _initialize_test_sections():

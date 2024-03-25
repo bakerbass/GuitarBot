@@ -1,4 +1,5 @@
 import tkinter as tkinter
+import math
 # import tkinter.dnd as Tkdnd # I copied the source code instead of importing this the sane way?
 
 __all__ = ["dnd_start", "DndHandler"]
@@ -102,7 +103,8 @@ class DndHandler:
 
 class DraggableSectionLabel:
     existing_draggables_list = []
-    insert_x_pos = 30
+    LEFTMOST_X_POS = 30
+    insert_x_pos = LEFTMOST_X_POS
     separation = 80
 
     def __init__(self, name, mid_height_y):
@@ -113,12 +115,13 @@ class DraggableSectionLabel:
         self.canvas = self.label = self.id = None
 
     def attach_at_end(self, canvas):
-        self.attach(canvas, self.insert_x_pos)
+        self.attach(canvas, self.insert_x_pos, True)
         DraggableSectionLabel.insert_x_pos += DraggableSectionLabel.separation
     
-    def attach(self, canvas, x):
+    def attach(self, canvas, x, initial_add):
         if canvas is self.canvas:
-            self.canvas.coords(self.id, x, self.mid_height_y)
+            new_x = self.shift_others_to_accomodate_drop(x)
+            self.canvas.coords(self.id, new_x, self.mid_height_y)
             return
         if self.canvas is not None:
             self.detach()
@@ -133,11 +136,26 @@ class DraggableSectionLabel:
         label.bind("<ButtonPress-1>", self.press) # was ButtonPress
         label.bind("<ButtonRelease-2>", self.destroy)
 
-    def shift_left(self):
+    # Determmines new x-coordinate and shifts other boxes
+    def shift_others_to_accomodate_drop(self, x):
+        new_x = math.floor((x - DraggableSectionLabel.LEFTMOST_X_POS) / DraggableSectionLabel.separation) * DraggableSectionLabel.separation # reorients about leftmost x=0
+
+        if (new_x < 0):
+            new_x = 0
+        else:
+            new_x = min(new_x, DraggableSectionLabel.separation * (len(DraggableSectionLabel.existing_draggables_list) - 1))
+
+        # map new_x to an index in list
+        new_idx = new_x    
+
+        new_x += DraggableSectionLabel.LEFTMOST_X_POS
+        return new_x
+
+    def shift_box_left(self):
         old_x = self.canvas.coords(self.id)[0]
         self.canvas.coords(self.id, old_x - DraggableSectionLabel.separation, self.mid_height_y)
 
-    def shift_right(self):
+    def shift_box_right(self):
         old_x = self.canvas.coords(self.id)[0]
         self.canvas.coords(self.id, old_x + DraggableSectionLabel.separation, self.mid_height_y)
 
@@ -155,7 +173,7 @@ class DraggableSectionLabel:
             i += 1
 
         while i < len(DraggableSectionLabel.existing_draggables_list):
-            DraggableSectionLabel.existing_draggables_list[i].shift_left()
+            DraggableSectionLabel.existing_draggables_list[i].shift_box_left()
             i += 1
 
     def detach(self):

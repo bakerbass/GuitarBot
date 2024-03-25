@@ -16,17 +16,20 @@ class Model:
         self.time_signature = DEFAULT_TIME_SIG
         self.chord_mode = DEFAULT_CHORD_MODE
 
-        self.sections = [] # list of Section classes
+        self.sections = {} # pairs of form {id, Section} 
         # David: I assumed a section was a tuple formatted [left_arm, right_arm]
 
     def _initialize_test_sections():
         #TODO (Jack)
         pass
 
-    def build_arm_lists():
-        # TODO (Jack)
-        # Called by Controller, updates left_arm, right_arm lists for each Section
-        pass
+    def update_section_data(self, id, name, left_arm, right_arm):
+        # Called by Controller, updates the data for a particular section (indexed by id)
+        # Data includes name, left_arm, right_arm lists
+        section = self.sections[id]
+        section.name = name
+        section.left_arm = left_arm
+        section.right_arm = right_arm
 
     def send_arm_lists(self):
         # TODO (David)

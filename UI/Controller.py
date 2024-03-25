@@ -77,18 +77,36 @@ class Controller:
 
     # Save btn
     def _save_song_handler(self):
-        pass
+        self._update_arm_lists()
 
     # Load btn
     def _load_song_handler(self):
-        pass
+        self._update_arm_lists()
 
     # Send btn
     def _send_song_handler(self):
-        pass
+        self._update_arm_lists()
+        self.model.send_arm_lists()
+
 
     ### SECTIONS/SECTION LABELS
     def _clear_section_handler(self, section_frame):
         # TODO: this is only interacting with view right now. Should update model as well
         print('clear ', section_frame.name)
         section_frame.clearTable()
+
+    
+    ### HELPERS
+    # Helper method for saving, loading, sending
+    # Saves all the current section data in the View to the Model
+    def _update_model_sections_data(self):
+        # iterate over each section
+        for section_tuple in self.view.song_frame.sections:
+            section_frame, section_labels = section_tuple
+
+            # get section data from view
+            name = section_labels.name.get()
+            left_arm, right_arm = section_frame.build_arm_lists()
+
+            # update section data in model
+            self.model.update_section_data(id, name, left_arm, right_arm)

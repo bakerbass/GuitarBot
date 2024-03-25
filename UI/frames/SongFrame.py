@@ -28,3 +28,4 @@ class SongFrame(ctk.CTkScrollableFrame):
         labels.grid(row=self.i, column=0)
         section.grid(row=self.i, column=1)
         self.i += 1
+        self.curr_id += 1

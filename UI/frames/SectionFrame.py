@@ -234,9 +234,9 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     e.insert(tk.END, strum_patterns.get(self.strum_pattern_sel.get())[(count + 1) % 2])
             count += 1
 
-    def buildChordStrumData(self, timeSignature):
-        leftArm = []
-        rightArm = []
+    def build_arm_lists(self, timeSignature):
+        left_arm = []
+        right_arm = []
         numBeatsPerMeasure = (int)(timeSignature.get()[0])
 
         # generate left arm data
@@ -250,7 +250,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
             if count != 0:
                 currMeasure.append(e.get())
                 if count == numBeatsPerMeasure:
-                    leftArm.append(currMeasure)
+                    left_arm.append(currMeasure)
                     currMeasure = []
                     count = 1
                     continue
@@ -265,22 +265,22 @@ class SectionFrame(ctk.CTkScrollableFrame):
             if count != 0:
                 currMeasure.append(e.get())
                 if count == numBeatsPerMeasure * 2:
-                    rightArm.append(currMeasure)
+                    right_arm.append(currMeasure)
                     currMeasure = []
                     count = 1
                     continue
 
             count += 1
 
-        return (leftArm, rightArm)
+        return (left_arm, right_arm)
 
-    def insertChordStrumData(self, leftArm, rightArm):
+    def insertChordStrumData(self, left_arm, right_arm):
         # insert left arm data
         i = 0
         for e in reversed(self.grid_slaves(row=2)):
             if i != 0:
                 e.delete(0, tk.END)
-                e.insert(0, leftArm[i - 1])
+                e.insert(0, left_arm[i - 1])
             i += 1
 
         # insert right arm data
@@ -288,5 +288,5 @@ class SectionFrame(ctk.CTkScrollableFrame):
         for e in reversed(self.grid_slaves(row=3)):
             if i != 0:
                 e.delete(0, tk.END)
-                e.insert(0, rightArm[i - 1])
+                e.insert(0, right_arm[i - 1])
             i += 1

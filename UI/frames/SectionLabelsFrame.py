@@ -11,7 +11,7 @@ class SectionLabelsFrame(tk.Frame):
 
         self.height = height
         self.width = width
-        self.name = tk.StringVar(self, "Name")
+        self.name = tk.StringVar(self, "Section" + str(id))
         self.strum_pattern = tk.StringVar(self)
 
         # configure rows

@@ -13,19 +13,15 @@ class SongFrame(ctk.CTkScrollableFrame):
         self.height = height
         self.i = 0
         self.curr_id = 1
-
-        # add first section
-        self.add_section()
-        self.add_section()
-        self.add_section()
-
             
     def add_section(self):
-        labels = SectionLabelsFrame(master=self, id=self.curr_id, width=self.width * 0.05, height=self.height * 0.2)
-        section = SectionFrame(master=self, id=self.curr_id, width=self.width * 0.84, height=self.height * 0.33, time_signature="4/4")
-        self.sections.append((section, labels))
+        labels_frame = SectionLabelsFrame(master=self, id=self.curr_id, width=self.width * 0.05, height=self.height * 0.2)
+        section_frame = SectionFrame(master=self, id=self.curr_id, width=self.width * 0.84, height=self.height * 0.33, time_signature="4/4")
+        self.sections.append((section_frame, labels_frame))
 
-        labels.grid(row=self.i, column=0)
-        section.grid(row=self.i, column=1)
+        labels_frame.grid(row=self.i, column=0)
+        section_frame.grid(row=self.i, column=1)
         self.i += 1
         self.curr_id += 1
+
+        return section_frame.id, labels_frame.name

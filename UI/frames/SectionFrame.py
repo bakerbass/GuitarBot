@@ -13,7 +13,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.height = height
 
         self.last_column = 0
-        self.name = tk.StringVar(self)
         self.strum_pattern_sel = tk.StringVar(self, "Custom")
         self.num_measures = 0
         self.beats_per_measure = int(time_signature[0])

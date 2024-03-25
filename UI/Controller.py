@@ -1,5 +1,6 @@
 from Model import Model
 from View import View, ChordNotationsPopup
+from models.Section import Section
 
 class Controller:
     def __init__(self, view: View, model: Model):
@@ -12,9 +13,10 @@ class Controller:
         self.new_section_btn = view.new_section_btn
 
         self._create_event_bindings()
+        self._add_section()
 
     def start(self):
-        self.view.start_mainloop()
+        self.view.start_mainloop()        
 
     def _create_event_bindings(self):
         ### SONG CONTROLS
@@ -45,9 +47,13 @@ class Controller:
         self.song_controls_frame.send_btn.config(command=self._send_song_handler)
 
         ### SECTIONS/SECTION LABELS
+        # Clear, delete icon event handlers for each section
         for section in self.song_frame.sections:
             section_frame, section_labels = section
             section_labels.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame)) # use configure for CTk btn
+
+        # NEW SECTION BUTTON
+        self.new_section_btn.configure(command=self._new_section_handler) # use configure for CTk btn
 
     # Event handlers below
     ### SONG CONTROLS
@@ -95,6 +101,11 @@ class Controller:
         print('clear ', section_frame.name)
         section_frame.clearTable()
 
+
+    ### NEW SECTION BUTTON
+    def _new_section_handler(self):
+        self._add_section()
+
     
     ### HELPERS
     # Helper method for saving, loading, sending
@@ -102,11 +113,20 @@ class Controller:
     def _update_model_sections(self):
         # iterate over each section
         for section_tuple in self.view.song_frame.sections:
-            section_frame, section_labels = section_tuple
+            section_frame, labels_frame = section_tuple
 
             # get section data from view
-            name = section_labels.name.get()
+            name = labels_frame.name.get()
             left_arm, right_arm = section_frame.build_arm_lists()
 
             # update section data in model
             self.model.update_section_data(id, name, left_arm, right_arm)
+
+    # Helper method to add a new section to the View and Model accordingly
+    def _add_section(self):
+        # manually add new section to the UI
+        id, name = self.view.song_frame.add_section()
+
+        # now update this in the model accordingly
+        new_section = Section(id, name) # left_arm, right_arm will be initialized to empty lists
+        self.model.sections[id] = new_section

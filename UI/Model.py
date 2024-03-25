@@ -16,7 +16,7 @@ class Model:
         self.time_signature = DEFAULT_TIME_SIG
         self.chord_mode = DEFAULT_CHORD_MODE
 
-        self.sections = {} # pairs of form {id, Section} 
+        self.sections = {} # Key-value pairs of form {id, Section} 
         # David: I assumed a section was a tuple formatted [left_arm, right_arm]
 
     def _initialize_test_sections():

@@ -77,15 +77,15 @@ class Controller:
 
     # Save btn
     def _save_song_handler(self):
-        self._update_arm_lists()
+        self._update_model_sections()
 
     # Load btn
     def _load_song_handler(self):
-        self._update_arm_lists()
+        self._update_model_sections()
 
     # Send btn
     def _send_song_handler(self):
-        self._update_arm_lists()
+        self._update_model_sections()
         self.model.send_arm_lists()
 
 
@@ -99,7 +99,7 @@ class Controller:
     ### HELPERS
     # Helper method for saving, loading, sending
     # Saves all the current section data in the View to the Model
-    def _update_model_sections_data(self):
+    def _update_model_sections(self):
         # iterate over each section
         for section_tuple in self.view.song_frame.sections:
             section_frame, section_labels = section_tuple

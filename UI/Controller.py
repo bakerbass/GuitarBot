@@ -1,6 +1,5 @@
 from Model import Model
 from View import View, ChordNotationsPopup
-from models.Section import Section
 
 class Controller:
     def __init__(self, view: View, model: Model):
@@ -141,8 +140,7 @@ class Controller:
         # manually add new section to the UI
         id, name = self.view.song_frame.add_section()
 
-        # now update this in the model accordingly
-        new_section = Section(id, name) # left_arm, right_arm will be initialized to empty lists
-        self.model.sections[id] = new_section
+        # now update the model accordingly
+        self.model.add_section(id, name)
 
     #endregion Helpers

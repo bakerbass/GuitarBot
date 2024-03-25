@@ -2,6 +2,7 @@ from constants.bot_specs import DEFAULT_BPM, MIN_BPM, MAX_BPM
 from constants.time_signatures import DEFAULT_TIME_SIG
 from constants.chord_modes import DEFAULT_CHORD_MODE
 from parse import parseleft_M, parseright_M
+from models.Section import Section
 
 # model stores all of the UI's data
 # model also handles the business logic for the UI -> calls UIParse.py methods
@@ -18,17 +19,26 @@ class Model:
         self.sections = {} # Key-value pairs of form {id, Section}
         # David: I assumed a section was a tuple formatted [left_arm, right_arm]
 
-    def _initialize_test_sections():
-        #TODO (Jack)
-        pass
+    # Called by Controller, adds a new section to the Model
+    def add_section(self, id, name):
+        new_section = Section(id, name) # left_arm, right_arm will be initialized to empty lists
+        self.sections[id] = new_section
+        print(self.sections)
 
+    # Called by Controller, updates the data for a particular section (indexed by id)
+    # Data includes name and left_arm, right_arm lists
     def update_section_data(self, id, name, left_arm, right_arm):
-        # Called by Controller, updates the data for a particular section (indexed by id)
-        # Data includes name, left_arm, right_arm lists
         section = self.sections[id]
         section.name = name
         section.left_arm = left_arm
         section.right_arm = right_arm
+
+    # Called by Controller, clears all data for a particular section (indexed by id)
+    def clear_section_data(self, id):
+        section = self.sections[id]
+        section.name = ''
+        section.left_arm = []
+        section.right_arm = []
 
     def send_arm_lists(self):
         # TODO (David)

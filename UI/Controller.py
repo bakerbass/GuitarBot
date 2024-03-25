@@ -55,8 +55,8 @@ class Controller:
         for section in self.song_frame.sections:
             section_frame, labels_frame = section
 
-            labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame, labels_frame)) # use configure for CTk btn
-            labels_frame.trash_btn.configure(command=lambda: self._remove_section_handler(section_frame, labels_frame)) # use configure for CTk btn
+            labels_frame.eraser_btn.configure(command=lambda e: self._clear_section_handler(e, section_frame, labels_frame)) # use configure for CTk btn
+            labels_frame.trash_btn.configure(command=lambda e: self._remove_section_handler(e, section_frame, labels_frame)) # use configure for CTk btn
 
         # New section btn
         self.new_section_btn.configure(command=self._new_section_handler) # use configure for CTk btn
@@ -110,7 +110,7 @@ class Controller:
 
     #region Sections
         
-    def _clear_section_handler(self, section_frame, labels_frame):
+    def _clear_section_handler(self, event, section_frame, labels_frame):
         print('clear section')
         # clear section data in View
         section_frame.clear_table()
@@ -119,7 +119,7 @@ class Controller:
         # update Model accordingly
         self.model.clear_section_data(section_frame.id)
 
-    def _remove_section_handler(self, section_frame, labels_frame):
+    def _remove_section_handler(self, event, section_frame, labels_frame):
         print('remove section')
         # remove section from View
         #TODO

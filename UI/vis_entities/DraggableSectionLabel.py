@@ -101,13 +101,22 @@ class DndHandler:
 
 
 class DraggableSectionLabel:
+    existing_draggables_list = []
+    insert_x_pos = 30
+    separation = 80
 
     def __init__(self, name, mid_height_y):
+        DraggableSectionLabel.existing_draggables_list.append(self)
+
         self.name = name
         self.mid_height_y = mid_height_y
         self.canvas = self.label = self.id = None
 
-    def attach(self, canvas, x, y):
+    def attach_at_end(self, canvas):
+        self.attach(canvas, self.insert_x_pos)
+        DraggableSectionLabel.insert_x_pos += DraggableSectionLabel.separation
+    
+    def attach(self, canvas, x):
         if canvas is self.canvas:
             self.canvas.coords(self.id, x, self.mid_height_y)
             return
@@ -117,15 +126,37 @@ class DraggableSectionLabel:
             return
         label = tkinter.Label(canvas, text=self.name,
                               borderwidth=2, relief="raised", bg='navy blue', width=6, cursor='hand')
-        id = canvas.create_window(x, y, window=label, anchor="nw")
+        id = canvas.create_window(x, self.mid_height_y, window=label, anchor="nw")
         self.canvas = canvas
         self.label = label
         self.id = id
         label.bind("<ButtonPress-1>", self.press) # was ButtonPress
         label.bind("<ButtonRelease-2>", self.destroy)
 
+    def shift_left(self):
+        old_x = self.canvas.coords(self.id)[0]
+        self.canvas.coords(self.id, old_x - DraggableSectionLabel.separation, self.mid_height_y)
+
+    def shift_right(self):
+        old_x = self.canvas.coords(self.id)[0]
+        self.canvas.coords(self.id, old_x + DraggableSectionLabel.separation, self.mid_height_y)
+
     def destroy(self, event):
         self.detach()
+        DraggableSectionLabel.insert_x_pos -= DraggableSectionLabel.separation
+
+        i = 0
+
+        while i < len(DraggableSectionLabel.existing_draggables_list):
+            if DraggableSectionLabel.existing_draggables_list[i] == self:
+                del DraggableSectionLabel.existing_draggables_list[i]
+                shift_left = True
+                break
+            i += 1
+
+        while i < len(DraggableSectionLabel.existing_draggables_list):
+            DraggableSectionLabel.existing_draggables_list[i].shift_left()
+            i += 1
 
     def detach(self):
         canvas = self.canvas

@@ -29,15 +29,6 @@ class SongBuilderFrame(ctk.CTkScrollableFrame):
         
     def add_section(self, event, name):
         dsl = DraggableSectionLabel(name=name, mid_height_y=self.height/2.0)
-
-        # for i in range (0, len(self.section_labels)):
-        #     self.section_labels[i][1] = self.section_labels[i][1] - 30
-        #     self.section_labels[i][0].attach(canvas=self.drag_and_drop_canvas, x=self.section_labels[i][1], y=self.height/2.0)
-        
-        dsl.attach(canvas=self.drag_and_drop_canvas, x=self.width/2.0 + 30, y=self.height/2.0)
-        
-        # self.section_labels.append((dsl, self.width/2.0 + 30))
-
-        # need to track existing ones and left shift them?
+        dsl.attach_at_end(canvas=self.drag_and_drop_canvas)
 
     

@@ -31,4 +31,4 @@ class SongBuilderDragAndDropFrame(tk.Canvas):
     def dnd_commit(self, source, event):
         self.dnd_leave(source, event)
         x, y = source.where(self, event)
-        source.attach(self, x, y)
+        source.attach(self, x)

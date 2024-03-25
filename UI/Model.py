@@ -17,7 +17,6 @@ class Model:
         self.chord_mode = DEFAULT_CHORD_MODE
 
         self.sections = {} # Key-value pairs of form {id, Section}
-        # David: I assumed a section was a tuple formatted [left_arm, right_arm]
 
     # Called by Controller, adds a new section to the Model
     def add_section(self, id, name):
@@ -47,7 +46,7 @@ class Model:
 
         for section in self.sections.values():
             print(section.left_arm, section.right_arm)
-            parseleft_M(section.left_arm, 8) # i was unsure what measure time was, i hardcoded to assumption it's number of beat subdivisions in a measure for 4/4
-            parseright_M(section.right_arm, 8)
+            parseleft_M(section.left_arm, 4) # Assumes 4/4, 60 bpm
+            parseright_M(section.right_arm, 4)
 
             # incomplete!!!

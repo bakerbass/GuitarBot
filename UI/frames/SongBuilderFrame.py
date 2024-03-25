@@ -4,6 +4,8 @@ from vis_entities.DraggableSectionLabel import DraggableSectionLabel
 from frames.SongBuilderDragAndDropFrame import SongBuilderDragAndDropFrame
 
 class SongBuilderFrame(ctk.CTkScrollableFrame):
+    debug_id = 0
+
     def __init__(self, master, width, height):
         super().__init__(master, orientation='horizontal', width=width, height=height)
 
@@ -28,7 +30,7 @@ class SongBuilderFrame(ctk.CTkScrollableFrame):
         self.drag_and_drop_canvas.create_window(width/2.0, 15, anchor=tk.CENTER, window=section_button_frame)        
         
     def add_section(self, event, name):
-        dsl = DraggableSectionLabel(name=name, mid_height_y=self.height/2.0)
+        dsl = DraggableSectionLabel(name=name+str(SongBuilderFrame.debug_id), mid_height_y=self.height/2.0)
         dsl.attach_at_end(canvas=self.drag_and_drop_canvas)
-
+        SongBuilderFrame.debug_id += 1
     

@@ -1,5 +1,4 @@
 import tkinter as tkinter
-import math
 # import tkinter.dnd as Tkdnd # I copied the source code instead of importing this the sane way?
 
 __all__ = ["dnd_start", "DndHandler"]
@@ -136,17 +135,29 @@ class DraggableSectionLabel:
         label.bind("<ButtonPress-1>", self.press) # was ButtonPress
         label.bind("<ButtonRelease-2>", self.destroy)
 
-    # Determmines new x-coordinate and shifts other boxes
+    # Shifts other boxes and returns new x-coord
     def shift_others_to_accomodate_drop(self, x):
-        new_x = math.floor((x - DraggableSectionLabel.LEFTMOST_X_POS) / DraggableSectionLabel.separation) * DraggableSectionLabel.separation # reorients about leftmost x=0
+        new_x = round((x - DraggableSectionLabel.LEFTMOST_X_POS) / DraggableSectionLabel.separation) * DraggableSectionLabel.separation # reorients about leftmost x=0
 
         if (new_x < 0):
             new_x = 0
         else:
             new_x = min(new_x, DraggableSectionLabel.separation * (len(DraggableSectionLabel.existing_draggables_list) - 1))
 
-        # map new_x to an index in list
-        new_idx = new_x    
+        old_x = self.canvas.coords(self.id)[0]
+        old_idx = int((old_x - DraggableSectionLabel.LEFTMOST_X_POS) / DraggableSectionLabel.separation)
+        new_idx = int(new_x / DraggableSectionLabel.separation)
+        
+        del DraggableSectionLabel.existing_draggables_list[old_idx]
+
+        if new_idx < old_idx: # shifted left, others go right
+            for i in range(new_idx, old_idx):
+                DraggableSectionLabel.existing_draggables_list[i].shift_box_right()
+        else: # shifted right or now shift
+            for i in range(old_idx, new_idx):
+                DraggableSectionLabel.existing_draggables_list[i].shift_box_left()
+
+        DraggableSectionLabel.existing_draggables_list.insert(new_idx, self)
 
         new_x += DraggableSectionLabel.LEFTMOST_X_POS
         return new_x

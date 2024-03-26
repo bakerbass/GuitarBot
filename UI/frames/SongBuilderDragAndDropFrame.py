@@ -3,7 +3,6 @@ import tkinter as tk
 class SongBuilderDragAndDropFrame(tk.Canvas):
     def __init__(self, master, width, height):
         super().__init__(master=master, width=width, height=height)
-        self.top = tk.Toplevel(master)
         self.pack(fill="both", expand=1)
         self.dnd_accept = self.dnd_accept
 

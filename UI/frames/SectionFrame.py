@@ -205,6 +205,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
     #     self.update(num_cols, self.time_signature, 0, 1)
 
+    # TODO: this doesn't clear the first column
     def clear_table(self):
         count = 0
         for e in reversed(self.grid_slaves(row=2)):

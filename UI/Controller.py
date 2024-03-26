@@ -21,7 +21,6 @@ class Controller:
 
     #region EventBindings
     def _create_event_bindings(self):
-        #region SongControls
         # Song title entry
         self.song_controls_frame.song_title.trace_add(('write'), self._update_song_title_handler)
 
@@ -47,21 +46,17 @@ class Controller:
 
         # Send btn
         self.song_controls_frame.send_btn.config(command=self._send_song_handler)
-        #endregion SongControls
-
-        #region Sections
-
-        # Clear, delete icon event handlers for each section
-        for section in self.song_frame.sections:
-            section_frame, labels_frame = section
-
-            labels_frame.eraser_btn.configure(command=lambda e: self._clear_section_handler(e, section_frame, labels_frame)) # use configure for CTk btn
-            labels_frame.trash_btn.configure(command=lambda e: self._remove_section_handler(e, section_frame, labels_frame)) # use configure for CTk btn
 
         # New section btn
         self.new_section_btn.configure(command=self._new_section_handler) # use configure for CTk btn
         
-        #endregion Sections
+    def _create_section_event_bindings(self):
+        # Clear, delete icon event handlers for each section
+        for section in self.song_frame.sections:
+            section_frame, labels_frame = section
+
+            labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame, labels_frame)) # use configure for CTk btn
+            labels_frame.trash_btn.configure(command=lambda: self._remove_section_handler(section_frame, labels_frame)) # use configure for CTk btn
 
     #endregion EventBindings
         
@@ -110,23 +105,24 @@ class Controller:
 
     #region Sections
         
-    def _clear_section_handler(self, event, section_frame, labels_frame):
-        print('clear section')
+    def _clear_section_handler(self, section_frame, labels_frame):
         # clear section data in View
         section_frame.clear_table()
-        labels_frame.clear() # set strum options dropdown back to default value
+        labels_frame.clear() # this will set strum options dropdown back to default value
         
         # update Model accordingly
         self.model.clear_section_data(section_frame.id)
 
-    def _remove_section_handler(self, event, section_frame, labels_frame):
-        print('remove section')
+    # TODO
+    def _remove_section_handler(self, section_frame, labels_frame):
+        print('remove icon pressed')
         # remove section from View
-        #TODO
+        #TODO implement this
 
-        # update Model accordingly
-        self.model.remove_section(section_frame.id)
-        print(self.model.sections)
+        # uncomment below code once implemented
+        # # update Model accordingly
+        # self.model.remove_section(section_frame.id)
+        # print(self.model.sections)
 
     # New section btn
     def _new_section_handler(self):
@@ -160,5 +156,9 @@ class Controller:
 
         # now update the model accordingly
         self.model.add_section(id, name)
+
+        # add event bindings for new section
+        self._create_section_event_bindings()
+
 
     #endregion Helpers

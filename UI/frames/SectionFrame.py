@@ -13,9 +13,10 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.height = height
 
         self.time_signature = time_signature
-        self.last_column = 0
+        self.last_col = 0
         self.strum_pattern_sel = tk.StringVar(self, "Custom")
         self.num_measures = 0
+        self.curr_measure = 0
         self.beats_per_measure = int(time_signature[0])
         self.subdiv_per_measure = self.beats_per_measure * 2
         self.beat_labels = beat_labels[time_signature]
@@ -23,126 +24,103 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.chords_tab_order = []
         self.strums_tab_order = []
 
-        self.addMeasure()
-        print(self.last_column)
+        # create intial measure
+        self.add_measure() # start each section with an initial measure
+        self.add_measure()
 
-    def update(self, startColumn):
-        # build chords/strum chart
-        for i in range(0, 4):
-            # print(i + self.offset)
-            j = startColumn
-            while j <= self.subdiv_per_measure * self.num_measures:
-                currMeasure = 0
-                if i == 0 and currMeasure <= self.num_measures:
-                    # MEASURE LABELS
-                    # account for bar placement shift
-                    if (j != 0 and j == startColumn):
-                        j -= 1
+    def update(self, start_col):
+        # get underlying frame's background color
+        frame_bg =self.master.cget('bg')
 
-                    self.cell = tk.Label(self, width=4, text="Bar " + str(currMeasure))
-                    self.cell.grid(row=i, column=j + self.beats_per_measure, sticky='w',
+        # build chords/strum inputs
+        for row in range(0, 4):
+            col = start_col
+
+            while col <= self.subdiv_per_measure * self.num_measures:
+                if row == 0 and self.curr_measure <= self.num_measures:
+                    # BAR LABELS
+                    print(self.curr_measure)
+                    self.cell = tk.Label(self, width=4, text="Bar " + str(self.curr_measure), bg=frame_bg, justify="center")
+                    self.cell.grid(row=row, column=col + self.beats_per_measure - 1, sticky='w',
                                     columnspan=self.subdiv_per_measure)
-                    j += self.subdiv_per_measure
-                    currMeasure += 1
+                    
+                    col += self.subdiv_per_measure
                     continue
-                elif i == 1:
+                elif row == 1:
                     # BEAT LABELS
-                    if j == 0:
-                        # add empty label at beginning of row (placeholder to align w/ below rows)
-                        self.cell = tk.Label(self, width=6, text="")
-                        self.cell.grid(row=i, column=j)
-                        j += 1
-                        continue
-
                     self.cell = ttk.Entry(self, width=2, font=('Arial', 16, 'bold'))
 
-                    # add space after last beat of measure
-                    if j != 0 and j % self.subdiv_per_measure == 0:
-                        self.cell.grid(row=i, column=j, padx=(0, 30))
+                    # check if this is the last beat of the measure
+                    if col != 0 and col % self.subdiv_per_measure == 0:
+                        # add a space afterwards
+                        self.cell.grid(row=row, column=col, padx=(0, 30))
                     else:
-                        self.cell.grid(row=i, column=j)
+                        self.cell.grid(row=row, column=col)
 
                     self.cell.insert(tk.END,
-                                        self.beat_labels[(j - 1) % self.beats_per_measure])
+                                        self.beat_labels[(col - 1) % self.subdiv_per_measure])
+                    
+                    # disable entry
                     self.cell.config(state=tk.DISABLED)
-                elif i == 2:
+                elif row == 2:
                     # CHORD INPUTS
-                    if j == 0:
-                        # add "Chords: " label at beginning of row
-                        self.cell = tk.Label(self, width=6, text="Chords: ")
-                        self.cell.grid(row=i, column=j)
-                        j += 1
-                        continue
-
                     self.cell = ttk.Entry(self, width=6, font=('Arial', 16))
 
-                    # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
-                    self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
+                    # TODO: add these to controller
+                    # # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
+                    # self.cell.bind("<Shift-BackSpace>", self._backspacePressed)
 
                     # add <Return> event handler to every input box (adds new measure if pressed)
-                    self.cell.bind("<Return>", self.__returnPressed)
+                    self.cell.bind("<Return>", self._return_pressed)
 
-                    self.cell.grid(row=i, column=j, sticky='w', columnspan=2)
+                    self.cell.grid(row=row, column=col, sticky='w', columnspan=2)
                     self.chords_tab_order.append(self.cell)
 
                     self.cell.insert(tk.END, "")
-                    j += 1
-                elif i == 3:
+                    col += 1
+                elif row == 3:
                     # STRUM INPUTS
-                    if j == 0:
-                        # add "Strum Pattern: " dropdown at beginning of row
-                        if self.strum_pattern_sel.get() == "":
-                            self.strum_pattern_sel.set("Custom")
-
-                        self.cell = ttk.OptionMenu(self, self.strum_pattern_sel, self.strum_pattern_sel.get(), *strum_options,
-                                                command=self.fillStrumPattern)
-                        self.cell.grid(row=i, column=j)
-                        j += 1
-                        continue
-
                     self.cell = ttk.Entry(self, width=2, font=('Arial', 16))
 
-                    # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
-                    self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
+                    # TODO add these to controller
+                    # # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
+                    # self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
 
                     # add <Return> event handler to every input box (adds new measure if pressed)
-                    self.cell.bind("<Return>", self.__returnPressed)
+                    self.cell.bind("<Return>", self._return_pressed)
 
-                    # add spacing after last beat of measure
-                    if j != 0 and j % self.beats_per_measure == 0:
-                        self.cell.grid(row=i, column=j, padx=(0, 30))
+                    # check if this is the last beat of the measure
+                    if col != 0 and col % self.subdiv_per_measure == 0:
+                        # add a space afterwards
+                        self.cell.grid(row=row, column=col, padx=(0, 30))
                     else:
-                        self.cell.grid(row=i, column=j)
+                        self.cell.grid(row=row, column=col)
 
                     if (self.strum_pattern_sel.get() != "") and self.strum_pattern_sel.get()[0] == "W":
                         # Wonderwall strum patterns
-                        self.cell.insert(tk.END, strum_patterns.get(self.strum_pattern_sel.get())[(j - 1) % 32])
+                        self.cell.insert(tk.END, strum_patterns.get(self.strum_pattern_sel.get())[(col - 1) % 32])
                     elif self.strum_pattern_sel.get() != "Custom":
                         self.cell.insert(tk.END, strum_patterns.get(self.strum_pattern_sel.get())[
-                            (j + 1) % 2])  # autofill newly added cells with selected strum pattern
+                            (col + 1) % 2])  # autofill newly added cells with selected strum pattern
                     else:
                         self.cell.insert(tk.END, "")
 
                     self.strums_tab_order.append(self.cell)
-                j += 1
+                col += 1
 
         # set default focus to first input of last measure
-        self.grid_slaves(row=2, column=startColumn + 1)[0].focus_set()
+        self.grid_slaves(row=2, column=start_col + 1)[0].focus_set()
 
-        # update lastColumn
-        self.last_column = self.subdiv_per_measure * self.num_measures
-
-        # components for section name input
-        # NOTE: may be useful later
-        #nameInput.bind("<Key>", lambda c: self.__updateName(c, self, nameInput.get()))
+        # update last_column
+        self.last_col = self.subdiv_per_measure * self.num_measures
 
         # set tabbing order
-        self.__setTabOrder()
+        self._set_tab_order()
 
-    # TODO: fix bug when tabbing to name after removing a measure (not urgent)
-    def __setTabOrder(self):
+
+    def _set_tab_order(self):
         # NOTE: if user presses tab on last chord input in a section, focus will go to the first strum input on the next row
-
+        
         # iterate through the "Chords" row, set tabbing order from left -> right
         for cell in self.chords_tab_order:
             cell.lift()
@@ -152,20 +130,21 @@ class SectionFrame(ctk.CTkScrollableFrame):
             cell.lift()
 
     # event handler for add measure (Enter)
-    def __returnPressed(self, event):
-        self.addMeasure(self)
+    def _return_pressed(self, event):
+        self.add_measure(self)
 
-    def addMeasure(self):
-        self.num_measures = self.num_measures + 1
+    def add_measure(self):
+        self.num_measures += 1
+        self.curr_measure += 1
 
-        self.update(self.last_column + 1)
+        self.update(self.last_col + 1)
         # print("measure added")
 
     # event handler for remove measure (Shift+BackSpace)
-    def __backspacePressed(self, event):
-        self.removeMeasure(self)
+    def _backspace_pressed(self, event):
+        self.remove_measure(self)
 
-    def removeMeasure(self):
+    def remove_measure(self):
         # minimum of 1 measure per section
         if self.num_measures > 1:
             self.num_measures = self.num_measures - 1
@@ -173,7 +152,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
         # delete all components in last measure
         for i in range(self.subdiv_per_measure):
             for j in range(5):
-                for e in self.grid_slaves(column=self.last_column - i, row=j):
+                for e in self.grid_slaves(column=self.last_col - i, row=j):
                     e.grid_forget()
 
                     # remove deleted cells from tab orders
@@ -182,18 +161,18 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     if j == 3:
                         self.strums_tab_order.pop()
 
-                    self.__setTabOrder()
+                    self._set_tab_order()
 
         # update last column
-        self.last_column = self.last_column - self.subdiv_per_measure
+        self.last_col = self.last_col - self.subdiv_per_measure
 
         # set default focus to first input of last measure
-        self.grid_slaves(row=2, column=self.last_column - self.subdiv_per_measure + 1)[
+        self.grid_slaves(row=2, column=self.last_col - self.subdiv_per_measure + 1)[
             0].focus_set()
 
         # put bar labels back
         self.cell = tk.Label(self, width=4, text="Bar " + str(self.num_measures))
-        self.cell.grid(row=0, column=self.last_column - self.beats_per_measure, sticky='w',
+        self.cell.grid(row=0, column=self.last_col - self.beats_per_measure, sticky='w',
                         columnspan=self.subdiv_per_measure)
 
         # print("measure removed")
@@ -205,7 +184,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
     #     self.update(num_cols, self.time_signature, 0, 1)
 
-    def clear_table(self):
+    def clear(self):
         for e in reversed(self.grid_slaves(row=2)):
             e.delete(0, tk.END)
 
@@ -214,7 +193,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         # print("table cleared")
 
-    def fillStrumPattern(self, event):
+    def fill_strum_pattern(self, event):
         # implementation choice: autofill entire table on selection? Or just set that selection for new bars?
         count = 0
 
@@ -231,10 +210,9 @@ class SectionFrame(ctk.CTkScrollableFrame):
     def build_arm_lists(self):
         left_arm = []
         right_arm = []
-        numBeatsPerMeasure = (int)(self.time_signature[0])
 
         # generate left arm data
-        currMeasure = []
+        curr_measure = []
         count = 0
         for e in reversed(self.grid_slaves(row=2)):
             # print("count: ", count)
@@ -242,33 +220,30 @@ class SectionFrame(ctk.CTkScrollableFrame):
             # print("numbeats: ", numBeatsPerMeasure)
 
             if count != 0:
-                currMeasure.append(e.get())
-                if count == numBeatsPerMeasure:
-                    left_arm.append(currMeasure)
-                    currMeasure = []
+                curr_measure.append(e.get())
+                if count == self.beats_per_measure:
+                    left_arm.append(curr_measure)
+                    curr_measure = []
                     count = 1
                     continue
-
             count += 1
 
         # generate right arm data
-        currMeasure = []
+        curr_measure = []
         count = 0
-        # duration = (60 / bpm) / (numBeatsPerMeasure * 2)  # calculate duration of each strum
         for e in reversed(self.grid_slaves(row=3)):
             if count != 0:
-                currMeasure.append(e.get())
-                if count == numBeatsPerMeasure * 2:
-                    right_arm.append(currMeasure)
-                    currMeasure = []
+                curr_measure.append(e.get())
+                if count == self.beats_per_measure * 2:
+                    right_arm.append(curr_measure)
+                    curr_measure = []
                     count = 1
                     continue
-
             count += 1
 
         return (left_arm, right_arm)
 
-    def insertChordStrumData(self, left_arm, right_arm):
+    def insert_chord_strum_data(self, left_arm, right_arm):
         # insert left arm data
         i = 0
         for e in reversed(self.grid_slaves(row=2)):

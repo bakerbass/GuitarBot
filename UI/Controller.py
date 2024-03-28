@@ -107,7 +107,7 @@ class Controller:
         
     def _clear_section_handler(self, section_frame, labels_frame):
         # clear section data in View
-        section_frame.clear_table()
+        section_frame.clear()
         labels_frame.clear() # this will set strum options dropdown back to default value
         
         # update Model accordingly

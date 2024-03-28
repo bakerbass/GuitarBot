@@ -152,7 +152,10 @@ class Controller:
     # Helper method to add a new section to the View and Model accordingly
     def _add_section(self):
         # manually add new section to the UI
-        id, name = self.view.song_frame.add_section()
+        section_frame, labels_frame = self.view.song_frame.add_section()
+        id, name = section_frame.id, labels_frame.name
+
+        self.song_builder_frame.add_section_button(id, name)
 
         # now update the model accordingly
         self.model.add_section(id, name)

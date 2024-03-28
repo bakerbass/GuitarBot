@@ -4,33 +4,30 @@ from vis_entities.DraggableSectionLabel import DraggableSectionLabel
 from frames.SongBuilderDragAndDropFrame import SongBuilderDragAndDropFrame
 
 class SongBuilderFrame(ctk.CTkScrollableFrame):
-    debug_id = 0
-
     def __init__(self, master, width, height):
         super().__init__(master, orientation='horizontal', width=width, height=height)
 
         self.width = width
         self.height = height
-        self.section_labels = []
 
         self.drag_and_drop_canvas = SongBuilderDragAndDropFrame(master=self, width=width, height=height)
-        # consider making each a button that simply appends draggable labels to end of existing list
+        self.section_button_frame = tk.Frame(master=self.drag_and_drop_canvas)
+        self.button_column = 0
         
-        section_button_frame = tk.Frame(master=self.drag_and_drop_canvas)
-
-        verse_btn = tk.Label(master=section_button_frame, text="verse", bg='navy blue', width=6, cursor='hand2')
-        chorus_btn = tk.Label(master=section_button_frame, text="chorus", bg='navy blue', width=6, cursor='hand2')
-
-        verse_btn.bind("<ButtonPress-1>", lambda event, arg='verse': self.add_section(event, arg))
-        chorus_btn.bind("<ButtonPress-1>", lambda event, arg='chorus': self.add_section(event, arg))
-        
-        verse_btn.grid(row=0, column=0)
-        chorus_btn.grid(row=0, column=1, padx=5)
-        
-        self.drag_and_drop_canvas.create_window(width/2.0, 15, anchor=tk.CENTER, window=section_button_frame)        
-        
-    def add_section(self, event, name):
-        dsl = DraggableSectionLabel(name=name+str(SongBuilderFrame.debug_id), mid_height_y=self.height/2.0)
-        dsl.attach_at_end(canvas=self.drag_and_drop_canvas)
-        SongBuilderFrame.debug_id += 1
+        self.drag_and_drop_canvas.create_window(width/2.0, 15, anchor=tk.CENTER, window=self.section_button_frame)        
     
+    def add_section_button(self, id, section_name):
+        btn = tk.Label(master=self.section_button_frame, textvariable=section_name, bg='navy blue', width=6, cursor='hand2')
+
+        btn.bind("<ButtonPress-1>", lambda event, arg=(id, section_name): self.add_draggable_section(event, arg))
+        btn.grid(row=0, column=self.button_column, padx=5)
+
+        self.button_column += 1
+
+    def remove_section_button(self, id):
+        pass
+
+    def add_draggable_section(self, event, id_and_section_name):
+        id, section_name = id_and_section_name
+        dsl = DraggableSectionLabel(name=section_name, mid_height_y=self.height/2.0)
+        dsl.attach_at_end(canvas=self.drag_and_drop_canvas)    

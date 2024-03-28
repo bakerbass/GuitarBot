@@ -115,9 +115,10 @@ class Controller:
 
     # TODO
     def _remove_section_handler(self, section_frame, labels_frame):
-        print('remove icon pressed')
+        print(f'remove icon pressed for section w/ id {section_frame.id}')
         # remove section from View
         #TODO implement this
+        self.song_builder_frame.remove_section_button_and_draggables(section_frame.id)
 
         # uncomment below code once implemented
         # # update Model accordingly

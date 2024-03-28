@@ -106,11 +106,13 @@ class DraggableSectionLabel:
     insert_x_pos = LEFTMOST_X_POS
     separation = 80
 
-    def __init__(self, name, mid_height_y):
+    def __init__(self, name, mid_height_y, section_id):
         DraggableSectionLabel.existing_draggables_list.append(self)
 
         self.name = name
         self.mid_height_y = mid_height_y
+        self.section_id = section_id
+
         self.canvas = self.label = self.id = None
 
     def attach_at_end(self, canvas):

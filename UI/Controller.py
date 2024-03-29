@@ -52,12 +52,15 @@ class Controller:
         self.new_section_btn.configure(command=self._new_section_handler) # use configure for CTk btn
         
     def _create_section_event_bindings(self):
-        # Clear, delete icon event handlers for each section
         for section in self.song_frame.sections:
             section_frame, labels_frame = section
 
+            # Trash, eraser button icons
             labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame, labels_frame)) # use configure for CTk btn
             labels_frame.trash_btn.configure(command=lambda: self._remove_section_handler(section_frame, labels_frame)) # use configure for CTk btn
+
+            # Strum options dropdown
+            labels_frame.strum_pattern.trace_add(('write'), lambda e1, e2, e3: self._update_section_strum_pattern_handler(e1, e2, e3, section_frame, labels_frame))
 
     #endregion EventBindings
         
@@ -77,7 +80,15 @@ class Controller:
             self.model.bpm = int(self.song_controls_frame.bpm_spinbox.get())
 
     def _update_time_sig_handler(self, event, *args):
-        self.model.time_signature = self.song_controls_frame.time_signature.get()
+        time_sig = self.song_controls_frame.time_signature.get()
+
+        # update model
+        self.model.time_signature = time_sig
+
+        # reset view w/ updated time signature
+        for section in self.song_frame.sections:
+            section_frame, section_label = section
+            section_frame.rebuild_table(time_sig)
 
     def _update_chord_mode_handler(self, event, *args):
         self.model.chord_mode = self.song_controls_frame.chord_mode.get()
@@ -114,6 +125,11 @@ class Controller:
 
     #region Sections
         
+    def _update_section_strum_pattern_handler(self, e1, e2, e3, section_frame, labels_frame):
+        strum_pattern = labels_frame.strum_pattern.get()
+        section_frame.fill_strum_pattern(strum_pattern)
+        self._update_model_sections()
+        
     def _clear_section_handler(self, section_frame, labels_frame):
         # clear section data in View
         section_frame.clear_table()
@@ -122,12 +138,12 @@ class Controller:
         # update Model accordingly
         self.model.clear_section_data(section_frame.id)
 
-    # TODO
+    # TODO uncomment once sections are removed from the UI
     def _remove_section_handler(self, section_frame, labels_frame):
         print(f'remove icon pressed for section w/ id {section_frame.id}')
-        # remove section from View
-        #TODO implement this
-        self.song_builder_frame.remove_section_button_and_draggables(section_frame.id)
+        # # remove section from View
+        # #TODO implement this
+        # self.song_builder_frame.remove_section_button_and_draggables(section_frame.id)
 
         # uncomment below code once implemented
         # # update Model accordingly

@@ -15,7 +15,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         self.time_signature = time_signature
         self.last_col = 0
-        self.strum_pattern_sel = tk.StringVar(self, "Custom")
         self.num_measures = 0
         self.curr_measure = 0
         self.beats_per_measure = int(time_signature[0])
@@ -35,7 +34,23 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.add_measure()
         self.add_measure()
 
-    def create_measure(self, start_col):
+    def _reset_instance_variables(self, time_signature):
+        self.time_signature = time_signature
+        self.last_col = 0
+        self.num_measures = 0
+        self.curr_measure = 0
+        self.beats_per_measure = int(time_signature[0])
+        self.subdiv_per_measure = self.beats_per_measure * 2
+        self.beat_labels = beat_labels[time_signature]
+        
+        self.plus_btns = []
+        self.trash_btns = []
+        self.eraser_btns = []
+
+        self.chords_tab_order = []
+        self.strums_tab_order = []
+
+    def build_measure(self, start_col):
         # get underlying frame's background color
         frame_bg =self.master.cget('bg')
 
@@ -89,8 +104,8 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     # # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
                     # self.cell.bind("<Shift-BackSpace>", self._backspacePressed)
 
-                    # add <Return> event handler to every input box (adds new measure if pressed)
-                    self.cell.bind("<Return>", self._return_pressed)
+                    # # add <Return> event handler to every input box (adds new measure if pressed)
+                    # self.cell.bind("<Return>", self._return_pressed)
 
                     self.cell.grid(row=row, column=col, sticky='w', columnspan=2)
                     self.chords_tab_order.append(self.cell)
@@ -105,8 +120,8 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     # # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
                     # self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
 
-                    # add <Return> event handler to every input box (adds new measure if pressed)
-                    self.cell.bind("<Return>", self._return_pressed)
+                    # # add <Return> event handler to every input box (adds new measure if pressed)
+                    # self.cell.bind("<Return>", self._return_pressed)
 
                     # check if this is the last beat of the measure
                     if col != 0 and col % self.subdiv_per_measure == 0:
@@ -115,14 +130,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     else:
                         self.cell.grid(row=row, column=col)
 
-                    if (self.strum_pattern_sel.get() != "") and self.strum_pattern_sel.get()[0] == "W":
-                        # Wonderwall strum patterns
-                        self.cell.insert(tk.END, strum_patterns.get(self.strum_pattern_sel.get())[(col - 1) % 32])
-                    elif self.strum_pattern_sel.get() != "Custom":
-                        self.cell.insert(tk.END, strum_patterns.get(self.strum_pattern_sel.get())[
-                            (col + 1) % 2])  # autofill newly added cells with selected strum pattern
-                    else:
-                        self.cell.insert(tk.END, "")
+                    self.cell.insert(tk.END, "")
 
                     self.strums_tab_order.append(self.cell)
                 col += 1
@@ -143,10 +151,11 @@ class SectionFrame(ctk.CTkScrollableFrame):
         # set tabbing order
         self._set_tab_order()
 
-
+    #TODO
     def clear_measure(self, start_col):
         pass
 
+    #TODO
     def remove_measure(self, start_col):
         pass
 
@@ -169,7 +178,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.num_measures += 1
         self.curr_measure += 1
 
-        self.create_measure(self.last_col + 1)
+        self.build_measure(self.last_col + 1)
         # print("measure added")
 
     # event handler for remove measure (Shift+BackSpace)
@@ -209,12 +218,17 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         # print("measure removed")
 
-    # def editTable(self, num_cols):
-    #     # delete prev rows
-    #     for w in self.grid_slaves():
-    #         w.grid_forget()
+    # called when time signature changes
+    def rebuild_table(self, time_signature):
+        # delete prev rows
+        for w in self.grid_slaves():
+            w.grid_forget()
 
-    #     self.update(num_cols, self.time_signature, 0, 1)
+        self._reset_instance_variables(time_signature)
+        self.add_measure()
+        self.add_measure()
+        self.add_measure()
+        self.add_measure()
 
     def clear_table(self):
         for e in reversed(self.grid_slaves(row=2)):
@@ -225,18 +239,17 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         # print("table cleared")
             
-    def fill_strum_pattern(self, event):
-        # implementation choice: autofill entire table on selection? Or just set that selection for new bars?
+    def fill_strum_pattern(self, strum_pattern):
+        # print(strum_pattern)
+        # print(strum_patterns.get(strum_pattern))
         count = 0
-
         for e in reversed(self.grid_slaves(row=3)):
-            if count != 0:
-                e.delete(0, tk.END)
-                if self.strum_pattern_sel.get()[0] == "W":
-                    # Wonderwall strum patterns
-                    e.insert(tk.END, strum_patterns.get(self.strum_pattern_sel.get())[(count - 1) % 32])
-                elif self.strum_pattern_sel.get() != "Custom":
-                    e.insert(tk.END, strum_patterns.get(self.strum_pattern_sel.get())[(count + 1) % 2])
+            e.delete(0, tk.END)
+
+            if strum_pattern != "Custom":
+                length = len(strum_patterns.get(strum_pattern))
+                e.insert(tk.END, strum_patterns.get(strum_pattern)[count % length])
+
             count += 1
 
     def build_arm_lists(self):

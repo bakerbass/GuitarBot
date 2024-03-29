@@ -39,14 +39,16 @@ class Model:
     def remove_section(self, id):
         self.sections.pop(id)
 
-    def send_arm_lists(self):
-        # TODO (David)
+    def send_arm_lists(self, section_ids):
         # call parse.py, pass in left_arm, right_arm lists of each Section in self.sections
-        # modify parse.py to accept new chord notations
+        # appends arm lists to song based on the order of the sections in the Song Builder
+        # TODO: modify parse.py to accept new chord notations
 
-        for section in self.sections.values():
+        for id in section_ids:
+            section = self.sections[id]
+            print('section: ', id)
             print(section.left_arm, section.right_arm)
-            parseleft_M(section.left_arm, 4) # Assumes 4/4, 60 bpm
-            parseright_M(section.right_arm, 4)
+            measure_time = int(self.time_signature[0]) * (60/self.bpm) # calculate the total time for each measure in seconds
 
-            # incomplete!!!
+            parseleft_M(section.left_arm, measure_time) 
+            parseright_M(section.right_arm, measure_time)

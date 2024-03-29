@@ -1,5 +1,6 @@
 from Model import Model
 from View import View, ChordNotationsPopup
+from vis_entities.DraggableSectionLabel import DraggableSectionLabel
 
 class Controller:
     def __init__(self, view: View, model: Model):
@@ -97,9 +98,17 @@ class Controller:
 
     # Send btn
     def _send_song_handler(self):
-        #TODO: uncomment once UI is fully functional
-        #self._update_model_sections()
-        self.model.send_arm_lists()
+        self._update_model_sections()
+        section_ids = []
+
+        # loop through song builder and keep track of section order
+        for section in DraggableSectionLabel.existing_draggables_list:
+            section_ids.append(section.section_id)
+
+        #print(section_ids)
+
+        # send ordered section ids to model
+        self.model.send_arm_lists(section_ids)
 
     #endregion SongControls
 
@@ -107,7 +116,7 @@ class Controller:
         
     def _clear_section_handler(self, section_frame, labels_frame):
         # clear section data in View
-        section_frame.clear()
+        section_frame.clear_table()
         labels_frame.clear() # this will set strum options dropdown back to default value
         
         # update Model accordingly

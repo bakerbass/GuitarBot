@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 import customtkinter as ctk
 from constants.strum_patterns import *
 from constants.time_signatures import *
+from PIL import Image
 
 class SectionFrame(ctk.CTkScrollableFrame):
     def __init__(self, master, id, width, height, time_signature):
@@ -20,6 +21,10 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.beats_per_measure = int(time_signature[0])
         self.subdiv_per_measure = self.beats_per_measure * 2
         self.beat_labels = beat_labels[time_signature]
+        
+        self.plus_btns = []
+        self.trash_btns = []
+        self.eraser_btns = []
 
         self.chords_tab_order = []
         self.strums_tab_order = []
@@ -27,8 +32,10 @@ class SectionFrame(ctk.CTkScrollableFrame):
         # create intial measure
         self.add_measure() # start each section with an initial measure
         self.add_measure()
+        self.add_measure()
+        self.add_measure()
 
-    def update(self, start_col):
+    def create_measure(self, start_col):
         # get underlying frame's background color
         frame_bg =self.master.cget('bg')
 
@@ -36,13 +43,25 @@ class SectionFrame(ctk.CTkScrollableFrame):
         for row in range(0, 4):
             col = start_col
 
-            while col <= self.subdiv_per_measure * self.num_measures:
+            while col <= (self.subdiv_per_measure * self.num_measures):
                 if row == 0 and self.curr_measure <= self.num_measures:
                     # BAR LABELS
-                    print(self.curr_measure)
+                    #print(self.curr_measure)
                     self.cell = tk.Label(self, width=4, text="Bar " + str(self.curr_measure), bg=frame_bg, justify="center")
-                    self.cell.grid(row=row, column=col + self.beats_per_measure - 1, sticky='w',
-                                    columnspan=self.subdiv_per_measure)
+                    self.cell.grid(row=row, column=col + self.beats_per_measure - 2, sticky='e',
+                                    columnspan=2)
+                    
+                    img = Image.open('UI/icons/trash-16px.png')
+                    self.trash_icon = ctk.CTkImage(img, size=(16, 16)) # this must be an instance variable so python doesn't garbage collect it
+                    self.trash_btn = ctk.CTkButton(self, image=self.trash_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
+                    self.trash_btn.grid(row=row, column=col + self.beats_per_measure, sticky='w')
+                    self.trash_btns.append(self.trash_btn)
+
+                    img = Image.open('UI/icons/eraser-16px.png')
+                    self.eraser_icon = ctk.CTkImage(img, size=(16, 16)) # this must be an instance variable so python doesn't garbage collect it
+                    self.eraser_btn = ctk.CTkButton(self, image=self.eraser_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
+                    self.eraser_btn.grid(row=row, column=col + self.beats_per_measure + 1, sticky='w')
+                    self.eraser_btns.append(self.eraser_btn)
                     
                     col += self.subdiv_per_measure
                     continue
@@ -50,7 +69,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     # BEAT LABELS
                     self.cell = ttk.Entry(self, width=2, font=('Arial', 16, 'bold'))
 
-                    # check if this is the last beat of the measure
+                    #check if this is the last beat of the measure
                     if col != 0 and col % self.subdiv_per_measure == 0:
                         # add a space afterwards
                         self.cell.grid(row=row, column=col, padx=(0, 30))
@@ -111,12 +130,25 @@ class SectionFrame(ctk.CTkScrollableFrame):
         # set default focus to first input of last measure
         self.grid_slaves(row=2, column=start_col + 1)[0].focus_set()
 
+        # TODO plus sign icon between measures
+        # # add plus sign icon
+        # img = Image.open('UI/icons/plus-sign-24px.png')
+        # self.plus_icon = ctk.CTkImage(img, size=(24, 24)) # this must be an instance variable so python doesn't garbage collect it
+        # self.plus_btn = ctk.CTkButton(self, image=self.plus_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
+        # self.plus_btn.grid(row=2, column=col, sticky='w', columnspan=1)
+
         # update last_column
-        self.last_col = self.subdiv_per_measure * self.num_measures
+        self.last_col = (self.subdiv_per_measure * self.num_measures) # add 1 to account for plus sign icon
 
         # set tabbing order
         self._set_tab_order()
 
+
+    def clear_measure(self, start_col):
+        pass
+
+    def remove_measure(self, start_col):
+        pass
 
     def _set_tab_order(self):
         # NOTE: if user presses tab on last chord input in a section, focus will go to the first strum input on the next row
@@ -137,7 +169,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.num_measures += 1
         self.curr_measure += 1
 
-        self.update(self.last_col + 1)
+        self.create_measure(self.last_col + 1)
         # print("measure added")
 
     # event handler for remove measure (Shift+BackSpace)
@@ -184,7 +216,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
     #     self.update(num_cols, self.time_signature, 0, 1)
 
-    def clear(self):
+    def clear_table(self):
         for e in reversed(self.grid_slaves(row=2)):
             e.delete(0, tk.END)
 
@@ -192,7 +224,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
             e.delete(0, tk.END)
 
         # print("table cleared")
-
+            
     def fill_strum_pattern(self, event):
         # implementation choice: autofill entire table on selection? Or just set that selection for new bars?
         count = 0
@@ -219,26 +251,24 @@ class SectionFrame(ctk.CTkScrollableFrame):
             # print("value: ", e.get())
             # print("numbeats: ", numBeatsPerMeasure)
 
-            if count != 0:
-                curr_measure.append(e.get())
-                if count == self.beats_per_measure:
-                    left_arm.append(curr_measure)
-                    curr_measure = []
-                    count = 1
-                    continue
+            curr_measure.append(e.get())
+            if count == self.beats_per_measure:
+                left_arm.append(curr_measure)
+                curr_measure = []
+                count = 1
+                continue
             count += 1
 
         # generate right arm data
         curr_measure = []
         count = 0
         for e in reversed(self.grid_slaves(row=3)):
-            if count != 0:
-                curr_measure.append(e.get())
-                if count == self.beats_per_measure * 2:
-                    right_arm.append(curr_measure)
-                    curr_measure = []
-                    count = 1
-                    continue
+            curr_measure.append(e.get())
+            if count == self.beats_per_measure * 2:
+                right_arm.append(curr_measure)
+                curr_measure = []
+                count = 1
+                continue
             count += 1
 
         return (left_arm, right_arm)

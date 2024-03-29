@@ -25,4 +25,4 @@ class SongFrame(ctk.CTkScrollableFrame):
         self.i += 1
         self.curr_id += 1
 
-        return section_frame.id, labels_frame.name
+        return section_frame, labels_frame

@@ -115,9 +115,10 @@ class Controller:
 
     # TODO
     def _remove_section_handler(self, section_frame, labels_frame):
-        print('remove icon pressed')
+        print(f'remove icon pressed for section w/ id {section_frame.id}')
         # remove section from View
         #TODO implement this
+        self.song_builder_frame.remove_section_button_and_draggables(section_frame.id)
 
         # uncomment below code once implemented
         # # update Model accordingly
@@ -152,7 +153,10 @@ class Controller:
     # Helper method to add a new section to the View and Model accordingly
     def _add_section(self):
         # manually add new section to the UI
-        id, name = self.view.song_frame.add_section()
+        section_frame, labels_frame = self.view.song_frame.add_section()
+        id, name = section_frame.id, labels_frame.name
+
+        self.song_builder_frame.add_section_button(id, name)
 
         # now update the model accordingly
         self.model.add_section(id, name)

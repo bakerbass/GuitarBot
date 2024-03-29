@@ -106,11 +106,13 @@ class DraggableSectionLabel:
     insert_x_pos = LEFTMOST_X_POS
     separation = 80
 
-    def __init__(self, name, mid_height_y):
+    def __init__(self, name, mid_height_y, section_id):
         DraggableSectionLabel.existing_draggables_list.append(self)
 
         self.name = name
         self.mid_height_y = mid_height_y
+        self.section_id = section_id
+
         self.canvas = self.label = self.id = None
 
     def attach_at_end(self, canvas):
@@ -126,7 +128,7 @@ class DraggableSectionLabel:
             self.detach()
         if canvas is None:
             return
-        label = tkinter.Label(canvas, text=self.name,
+        label = tkinter.Label(canvas, textvariable=self.name,
                               borderwidth=2, relief="raised", bg='navy blue', width=6, cursor='hand')
         id = canvas.create_window(x, self.mid_height_y, window=label, anchor="nw")
         self.canvas = canvas

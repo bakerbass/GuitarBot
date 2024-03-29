@@ -14,7 +14,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.height = height
 
         self.time_signature = time_signature
-        self.last_col = -1
+        self.last_col = 0
         self.num_measures = 0
         self.curr_measure = 0
         self.beats_per_measure = int(time_signature[0])
@@ -30,13 +30,13 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         # create intial measure
         self.add_measure() # start each section with an initial measure
-        # self.add_measure()
-        # self.add_measure()
-        # self.add_measure()
+        self.add_measure()
+        self.add_measure()
+        self.add_measure()
 
     def _reset_instance_variables(self, time_signature):
         self.time_signature = time_signature
-        self.last_col = -1
+        self.last_col = 0
         self.num_measures = 0
         self.curr_measure = 0
         self.beats_per_measure = int(time_signature[0])
@@ -52,13 +52,13 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
     def build_measure(self, start_col):
         # get underlying frame's background color
-        frame_bg = self.master.cget('bg')
+        frame_bg =self.master.cget('bg')
 
         # build chords/strum inputs
         for row in range(0, 4):
             col = start_col
 
-            while col < self.subdiv_per_measure * self.num_measures:
+            while col <= (self.subdiv_per_measure * self.num_measures):
                 if row == 0 and self.curr_measure <= self.num_measures:
                     # BAR LABELS
                     #print(self.curr_measure)
@@ -82,20 +82,17 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     continue
                 elif row == 1:
                     # BEAT LABELS
-                    # if col != 0 and col % (self.subdiv_per_measure + 1) == 0:
-                    #     continue
-
                     self.cell = ttk.Entry(self, width=2, font=('Arial', 16, 'bold'))
 
                     #check if this is the last beat of the measure
-                    # if col != 0 and (col % self.subdiv_per_measure) == 0:
-                    #     # add a space afterwards
-                    #     self.cell.grid(row=row, column=col, padx=(0, 30))
-                    # else:
-                    self.cell.grid(row=row, column=col)
+                    if col != 0 and col % self.subdiv_per_measure == 0:
+                        # add a space afterwards
+                        self.cell.grid(row=row, column=col, padx=(0, 30))
+                    else:
+                        self.cell.grid(row=row, column=col)
 
                     self.cell.insert(tk.END,
-                                        self.beat_labels[col % (self.subdiv_per_measure)])
+                                        self.beat_labels[(col - 1) % self.subdiv_per_measure])
                     
                     # disable entry
                     self.cell.config(state=tk.DISABLED)
@@ -127,11 +124,11 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     # self.cell.bind("<Return>", self._return_pressed)
 
                     # check if this is the last beat of the measure
-                    # if col != 0 and col % (self.subdiv_per_measure) == 0:
-                    #     # add a space afterwards
-                    #     self.cell.grid(row=row, column=col, padx=(0, 30))
-                    # else:
-                    self.cell.grid(row=row, column=col)
+                    if col != 0 and col % self.subdiv_per_measure == 0:
+                        # add a space afterwards
+                        self.cell.grid(row=row, column=col, padx=(0, 30))
+                    else:
+                        self.cell.grid(row=row, column=col)
 
                     self.cell.insert(tk.END, "")
 
@@ -139,18 +136,17 @@ class SectionFrame(ctk.CTkScrollableFrame):
                 col += 1
 
         # set default focus to first input of last measure
-        self.grid_slaves(row=2, column=start_col)[0].focus_set()
+        self.grid_slaves(row=2, column=start_col + 1)[0].focus_set()
 
         # TODO plus sign icon between measures
-        # add plus sign icon
-        print(col)
-        img = Image.open('UI/icons/plus-sign-24px.png')
-        self.plus_icon = ctk.CTkImage(img, size=(24, 24)) # this must be an instance variable so python doesn't garbage collect it
-        self.plus_btn = ctk.CTkButton(self, image=self.plus_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
-        self.plus_btn.grid(row=2, column=col, sticky='w', columnspan=1)
+        # # add plus sign icon
+        # img = Image.open('UI/icons/plus-sign-24px.png')
+        # self.plus_icon = ctk.CTkImage(img, size=(24, 24)) # this must be an instance variable so python doesn't garbage collect it
+        # self.plus_btn = ctk.CTkButton(self, image=self.plus_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
+        # self.plus_btn.grid(row=2, column=col, sticky='w', columnspan=1)
 
         # update last_column
-        self.last_col = self.subdiv_per_measure * self.num_measures + 1 # add 1 to account for plus sign icon
+        self.last_col = (self.subdiv_per_measure * self.num_measures) # add 1 to account for plus sign icon
 
         # set tabbing order
         self._set_tab_order()
@@ -183,9 +179,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.curr_measure += 1
 
         self.build_measure(self.last_col + 1)
-
-        # if self.num_measures == 1:
-        #     self.last_col += 1
         # print("measure added")
 
     # event handler for remove measure (Shift+BackSpace)

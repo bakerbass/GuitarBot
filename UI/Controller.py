@@ -178,6 +178,7 @@ class Controller:
         section_frame, labels_frame = section
         id, name = section_frame.id, labels_frame.name
 
+        # add section button to song builder buttons list (this will also automatically drop the very first section onto the song)
         self.song_builder_frame.add_section_button(id, name)
 
         # now update the model accordingly

@@ -24,6 +24,10 @@ class SongBuilderFrame(ctk.CTkScrollableFrame):
         btn.bind("<ButtonPress-1>", lambda event, arg=(section_id, section_name): self.add_draggable_section(event, arg))
         btn.pack(side='left', padx=5)
 
+        # automatically add first section to the song so that it is already there when the application starts
+        if section_id == 1:
+            self.add_draggable_section(None, (section_id, section_name))
+
         self.btn_dict[section_id] = btn
         self.button_column += 1
 

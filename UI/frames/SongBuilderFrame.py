@@ -22,7 +22,6 @@ class SongBuilderFrame(ctk.CTkScrollableFrame):
         btn = tk.Label(master=self.section_button_frame, textvariable=section_name, bg='navy blue', width=6, cursor='hand2')
 
         btn.bind("<ButtonPress-1>", lambda event, arg=(section_id, section_name): self.add_draggable_section(event, arg))
-        # btn.grid(row=0, column=self.button_column, padx=5)
         btn.pack(side='left', padx=5)
 
         self.btn_dict[section_id] = btn
@@ -32,9 +31,11 @@ class SongBuilderFrame(ctk.CTkScrollableFrame):
         self.btn_dict[section_id].destroy()
         del self.btn_dict[section_id]
         
-        for dsl in DraggableSectionLabel.existing_draggables_list:
-            if dsl.section_id == section_id:
-                dsl.destroy(None)
+        i = 0
+        while i < len(DraggableSectionLabel.existing_draggables_list):
+            if DraggableSectionLabel.existing_draggables_list[i].section_id == section_id:
+                DraggableSectionLabel.existing_draggables_list[i].destroy(None)
+            i += 1
 
     def add_draggable_section(self, event, section_id_and_name):
         section_id, section_name = section_id_and_name

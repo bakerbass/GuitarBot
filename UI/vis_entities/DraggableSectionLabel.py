@@ -180,7 +180,7 @@ class DraggableSectionLabel:
 
         while i < len(DraggableSectionLabel.existing_draggables_list):
             if DraggableSectionLabel.existing_draggables_list[i] == self:
-                del DraggableSectionLabel.existing_draggables_list[i]
+                DraggableSectionLabel.existing_draggables_list.pop(i)
                 shift_left = True
                 break
             i += 1

@@ -51,16 +51,15 @@ class Controller:
         # New section btn
         self.new_section_btn.configure(command=self._new_section_handler) # use configure for CTk btn
         
-    def _create_section_event_bindings(self):
-        for section in self.song_frame.sections:
-            section_frame, labels_frame = section
+    def _create_section_event_bindings(self, section):
+        section_frame, labels_frame = section
 
-            # Trash, eraser button icons
-            labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame, labels_frame)) # use configure for CTk btn
-            labels_frame.trash_btn.configure(command=lambda: self._remove_section_handler(section_frame, labels_frame)) # use configure for CTk btn
+        # Trash, eraser button icons
+        labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame, labels_frame)) # use configure for CTk btn
+        labels_frame.trash_btn.configure(command=lambda: self._remove_section_handler(section_frame.id)) # use configure for CTk btn
 
-            # Strum options dropdown
-            labels_frame.strum_pattern.trace_add(('write'), lambda e1, e2, e3: self._update_section_strum_pattern_handler(e1, e2, e3, section_frame, labels_frame))
+        # Strum options dropdown
+        labels_frame.strum_pattern.trace_add(('write'), lambda e1, e2, e3: self._update_section_strum_pattern_handler(e1, e2, e3, section_frame, labels_frame))
 
     #endregion EventBindings
         
@@ -138,17 +137,14 @@ class Controller:
         # update Model accordingly
         self.model.clear_section_data(section_frame.id)
 
-    # TODO uncomment once sections are removed from the UI
-    def _remove_section_handler(self, section_frame, labels_frame):
-        print(f'remove icon pressed for section w/ id {section_frame.id}')
-        # # remove section from View
-        # #TODO implement this
-        # self.song_builder_frame.remove_section_button_and_draggables(section_frame.id)
+    def _remove_section_handler(self, id):
+        # remove section from View
+        self.song_frame.remove_section(id)
+        self.song_builder_frame.remove_section_button_and_draggables(id)
 
         # uncomment below code once implemented
         # # update Model accordingly
-        # self.model.remove_section(section_frame.id)
-        # print(self.model.sections)
+        self.model.remove_section(id)
 
     # New section btn
     def _new_section_handler(self):
@@ -178,7 +174,8 @@ class Controller:
     # Helper method to add a new section to the View and Model accordingly
     def _add_section(self):
         # manually add new section to the UI
-        section_frame, labels_frame = self.view.song_frame.add_section()
+        section = self.view.song_frame.add_section()
+        section_frame, labels_frame = section
         id, name = section_frame.id, labels_frame.name
 
         self.song_builder_frame.add_section_button(id, name)
@@ -187,7 +184,7 @@ class Controller:
         self.model.add_section(id, name)
 
         # add event bindings for new section
-        self._create_section_event_bindings()
+        self._create_section_event_bindings(section)
 
 
     #endregion Helpers

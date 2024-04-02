@@ -48,7 +48,7 @@ class Model:
             section = self.sections[id]
             print('section: ', id)
             print(section.left_arm, section.right_arm)
+            
             measure_time = int(self.time_signature[0]) * (60/self.bpm) # calculate the total time for each measure in seconds
-
             parseleft_M(section.left_arm, measure_time) 
             parseright_M(section.right_arm, measure_time)

@@ -118,7 +118,7 @@ def get_chords_M(directory, chord_letter, chord_type):
     print(dtraj, utraj)
     return fret_numbers, fret_play, dtraj, utraj
 
-
+# parse right arm (strums) input
 def parseright_M(right_arm, measure_time):
     initialStrum = "D"
     firstbfound = False
@@ -134,6 +134,9 @@ def parseright_M(right_arm, measure_time):
         tempM = []
         bra = 0
         for beat in measure:
+            # convert any lowercase inputs to uppercase:
+            beat = str.upper(beat)
+
             if beat == "U" or beat == "D" or beat == "":
                 if not firstbfound:
                     if beat == "D":
@@ -197,7 +200,7 @@ def parseright_M(right_arm, measure_time):
     print("ri", right_information, initialStrum)
     return right_information, initialStrum, strumOnsets
 
-
+# parse left arm (chords) input
 def parseleft_M(left_arm, measure_time):
     firstc = []
     firstcfound = False
@@ -208,71 +211,118 @@ def parseleft_M(left_arm, measure_time):
         bcount = 0
         for chords in measure:
             if len(chords) != 0:
+                # Parse each individual chord input
+                # default to major, natural chord: 'C', 'G', 'F', etc.
+                key = 'n'
                 type = "MAJOR"
-                key = chords[1]
-                if key == ' ':
-                    key = 'n'
-                if chords[2:3] == "M":
-                    type = "MAJOR"
-                if chords[2:3] == "m":
-                    type = "MINOR"
-                    # print("MINOR CHORD")
-                if chords[2:4] == "M7":
-                    type = "MAJOR7"
-                    # print("MAJOR7 CHORD")
-                if chords[2:4] == "M9":
-                    type = "MAJOR9"
-                    # print("MAJOR9 CHORD")
-                if chords[2:4] == "m9":
-                    type = "MINOR9"
-                    # print("MINOR9 CHORD")
-                if chords[2:6] == "SUS2":
-                    type = "SUS2"
-                    # print("SUS2 CHORD")
-                if chords[2:6] == "SUS4":
-                    type = "SUS4"
-                    # print("SUS4 CHORD")
-                if chords[2:4] == "M6":
-                    type = "MAJOR6"
-                    # print("MAJOR6 CHORD")
-                if chords[2:3] == "5":
-                    type = "FIFTH"
-                    # print("FIFTH CHORD")
-                if chords[2:12] == "DIMINISHED":
-                    type = "DIMINISHED"
-                    # print("DIMINISHED CHORD")
-                if chords[2:4] == "m7":
-                    type = "MINOR7"
-                    # print("MINOR CHORD")
-                if chords[2:4] == "m6":
-                    type = "MINOR6"
-                    # print("MINOR6 CHORD")
-                if chords[2:10] == "HALF-DIM":
-                    type = "HALF-DIM"
-                    # print("HALF-DIM CHORD")
-                if chords[2:10] == "DOMINANT":
-                    type = "DOMINANT"
-                    # print("DOMINANT CHORD")
-                if chords[2:7] == "TEST0":
-                    type = "TEST0"
-                    print("test 0 accepted")
-                if chords[2:7] == "TEST1":
-                    type = "TEST1"
-                if chords[2:7] == "TEST2":
-                    type = "TEST2"
-                if chords[2:7] == "TEST2":
-                    type = "TEST2"
-                if chords[2:7] == "TEST3":
-                    type = "TEST3"
-                if chords[2:7] == "TEST4":
-                    type = "TEST4"
-                if chords[2:7] == "TEST5":
-                    type = "TEST5"
-                if chords[2:7] == "TEST6":
-                    type = "TEST6"
-                if chords[2:7] == "TEST7":
-                    type = "TEST7"
-                frets, command, dtraj, utraj = get_chords_M("Chords - Chords.csv", chords[0] + key, type)
+
+                # in case the user entered a basic chord (ex. 'C'), we skip over this. Key/type have already been set by default
+                if len(chords) > 1:
+                    curr_index = 1
+
+                    # determine whether chord is sharp/natural/flat
+                    key = chords[curr_index]
+                    if key != '#' or key != 'b':
+                        key = 'n'
+                    else:
+                        curr_index += 1
+
+                    # grab the rest of the chord input
+                    remaining_input = chords[curr_index:]
+
+                    # check one-letter notations first
+                    if len(remaining_input) == 1:
+                        if remaining_input == 'm':
+                            type = "MINOR"
+                            # print("MINOR CHORD")
+
+                        #TODO: split these into individual chords once chords library is updated
+                        elif remaining_input == '7' or remaining_input == '9' or remaining_input == '13':
+                            type = "DOMINANT"
+                            # print("DOMINANT CHORD")
+                        elif remaining_input == 'o':
+                            type = "HALF-DIM"
+                            # print("HALF-DIM CHORD")
+
+                        # # TODO: add this to chords library, then uncomment
+                        # elif remaining_input == '+':
+                        #     type = "AUGMENTED"
+                        #     # print("AUGMENTED CHORD")
+                            
+                        elif remaining_input == '5':
+                            type = "FIFTH"
+                            # Power chord
+                            # print("FIFTH CHORD")
+
+                    # check two-letter notations
+                    elif len(remaining_input) == 2:
+                        if remaining_input == "M6":
+                            type = "MAJOR6"
+                             # print("MAJOR6 CHORD")
+                        elif remaining_input == "M7":
+                            type = "MAJOR7"
+                             # print("MAJOR7 CHORD")
+                        elif remaining_input == "M9":
+                            type = "MAJOR9"
+                             # print("MAJOR9 CHORD")
+                        elif remaining_input == "m6":
+                            type = "MINOR6"
+                            # print("MINOR6 CHORD")
+                        elif remaining_input == "m7":
+                            type = "MINOR7"
+                            # print("MINOR7 CHORD")
+                        elif remaining_input == "m9":
+                            type = "MINOR9"
+                            # print("MINOR9 CHORD")
+
+                        # # TODO: uncomment once added to chords library
+                        # elif remaining_input == "m11":
+                        #     type = "MINOR11"
+                        #     # print("MINOR11 CHORD")
+
+                    # check three-letter+ notations
+                    elif len(remaining_input) >= 3:
+                        if remaining_input == "sus" or remaining_input == "sus4":
+                            type = "SUS4"
+                            # print("SUS4 CHORD")
+                        elif remaining_input == "sus2":
+                            type = "SUS2"
+                            # print("SUS2 CHORD")
+
+                        #TODO: split these into individual chords once chords library is updated
+                        elif remaining_input == "dim" or remaining_input == "dim7":
+                            type = "DIMINISHED"
+                            # print("DIMINISHED CHORD")
+
+                        # check for test chord inputs
+                        if remaining_input == "TEST0" or remaining_input == "TEST":
+                            type = "TEST0"
+                            print("test 0 accepted")
+                        if remaining_input == "TEST1":
+                            type = "TEST1"
+                            print("test 1 accepted")
+                        if remaining_input == "TEST2":
+                            type = "TEST2"
+                            print("test 2 accepted")
+                        if remaining_input == "TEST3":
+                            type = "TEST3"
+                            print("test 3 accepted")
+                        if remaining_input == "TEST4":
+                            type = "TEST4"
+                            print("test 4 accepted")
+                        if remaining_input == "TEST5":
+                            type = "TEST5"
+                            print("test 5 accepted")
+                        if remaining_input == "TEST6":
+                            type = "TEST6"
+                            print("test 6 accepted")
+                        if remaining_input == "TEST7":
+                            type = "TEST7"
+                            print("test 7 accepted")
+
+                # read chord from csv
+                note = str.upper(chords[0])
+                frets, command, dtraj, utraj = get_chords_M("Chords - Chords.csv", note + key, type)
                 left_arm[mcount][bcount] = [frets, command]
                 mtimings.append(time)
                 if not firstcfound:

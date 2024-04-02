@@ -1,5 +1,5 @@
 from Model import Model
-from View import View, ChordNotationsPopup
+from View import View, ChordNotationsPopup, HelpPopup
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
 
 class Controller:
@@ -48,6 +48,9 @@ class Controller:
         # Send btn
         self.song_controls_frame.send_btn.config(command=self._send_song_handler)
 
+        # Help icon
+        self.song_controls_frame.help_btn.configure(command=lambda: self._show_help_popup()) # use configure for CTk btn
+
         # New section btn
         self.new_section_btn.configure(command=self._new_section_handler) # use configure for CTk btn
         
@@ -94,6 +97,13 @@ class Controller:
 
     def _show_chord_notations_popup(self):
         popup = ChordNotationsPopup(self.view)
+
+        # when "Close" button is clicked, popup will be destroyed
+        popup.close_btn.config(command=popup.destroy)
+
+    def _show_help_popup(self):
+        print('got here')
+        popup = HelpPopup(self.view)
 
         # when "Close" button is clicked, popup will be destroyed
         popup.close_btn.config(command=popup.destroy)

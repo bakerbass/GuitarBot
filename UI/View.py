@@ -36,7 +36,8 @@ class View(tk.Tk):
         self.mainloop()
 
 
-
+# POP-UP WINDOWS
+        
 class ChordNotationsPopup(tk.Toplevel):
     def __init__(self, master):
         super().__init__()
@@ -45,7 +46,23 @@ class ChordNotationsPopup(tk.Toplevel):
         self.geometry('800x500')
 
         # Add chord notations list (HTML)
-        html_content = HTMLScrolledText(self, html=RenderHTML('./UI/chords/chord_notations.html'))
+        html_content = HTMLScrolledText(self, html=RenderHTML('./UI/html/chord_notations_popup.html'))
+        html_content.pack(fill='both', expand=True)
+        # htmlContent.fit_height()
+
+        # Add close button
+        self.close_btn = tk.Button(self, text="Close")
+        self.close_btn.pack()
+
+class HelpPopup(tk.Toplevel):
+    def __init__(self, master):
+        super().__init__()
+
+        self.title("Help")
+        self.geometry('500x350')
+
+        # Add html content
+        html_content = HTMLScrolledText(self, html=RenderHTML('./UI/html/help_popup.html'))
         html_content.pack(fill='both', expand=True)
         # htmlContent.fit_height()
 

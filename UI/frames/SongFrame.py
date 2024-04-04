@@ -46,12 +46,12 @@ class SongFrame(ctk.CTkScrollableFrame):
         self.sections.pop(remove_idx)
         # self.add_idx -= 1 # This seems logical but breaks the code
     
-    def add_measure(self, section_id, measure_idx):
-        section_idx = self.id_to_section_idx(section_id)
-        pass
+    # def add_measure(self, section_id, measure_idx):
+    #     section_idx = self.id_to_section_idx(section_id)
+    #     pass
 
-    def remove_measure(self, section_id, measure_idx):
-        section_idx = self.id_to_section_idx(section_id)
-        section_frame, labels_frame = self.sections[section_idx]
+    # def remove_measure(self, section_id, measure_idx):
+    #     section_idx = self.id_to_section_idx(section_id)
+    #     section_frame, labels_frame = self.sections[section_idx]
 
-        #TODO: actually perform removal, use remove_measure()?
+    #     #TODO: actually perform removal, use remove_measure()?

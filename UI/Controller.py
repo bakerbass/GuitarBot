@@ -1,6 +1,7 @@
 from Model import Model
 from View import View, ChordNotationsPopup, HelpPopup
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
+from copy import copy, deepcopy
 
 class Controller:
     def __init__(self, view: View, model: Model):
@@ -64,11 +65,16 @@ class Controller:
         # Strum options dropdown
         labels_frame.strum_pattern.trace_add(('write'), lambda e1, e2, e3: self._update_section_strum_pattern_handler(e1, e2, e3, section_frame, labels_frame))
 
-        # Eraser (clear) icon
-        i = 0
-        for btn in section_frame.eraser_btns:
-            btn.configure(command=lambda: self._clear_measure_handler(section_frame, i)) # use configure for CTk btn
-            i += 1
+        # Eraser (clear measure) icons
+        for tuple in section_frame.eraser_btns:
+            btn, measure_num = tuple
+            # TODO: measure_num is only passing the last measure num. copy, deepcopy didn't fix it
+            btn.configure(command=lambda: self._clear_measure_handler(section_frame, measure_num)) # use configure for CTk btn
+
+        # Trash (remove measure) icons
+        for tuple in section_frame.trash_btns:
+            btn, measure_num = tuple
+            btn.configure(command=lambda: self._remove_measure_handler(section_frame, measure_num)) # use configure for CTk btn
 
     #endregion EventBindings
         
@@ -108,7 +114,6 @@ class Controller:
         popup.close_btn.config(command=popup.destroy)
 
     def _show_help_popup(self):
-        print('got here')
         popup = HelpPopup(self.view)
 
         # when "Close" button is clicked, popup will be destroyed
@@ -141,6 +146,7 @@ class Controller:
     #region Sections
         
     def _update_section_strum_pattern_handler(self, e1, e2, e3, section_frame, labels_frame):
+        # NOTE e1, e2, e3 are dummy parameters but needed to prevent erroring
         strum_pattern = labels_frame.strum_pattern.get()
         section_frame.fill_strum_pattern(strum_pattern)
         self._update_model_sections()
@@ -156,9 +162,9 @@ class Controller:
         # update section data in model
         self.model.update_section_data(section_frame.id, left_arm, right_arm)
 
-    def _clear_measure_handler(self, section_frame, measure_idx):
+    def _clear_measure_handler(self, section_frame, measure_num):
         # clear section data in View
-        section_frame.clear_measure(measure_idx)
+        section_frame.clear_measure(measure_num)
         
         # get updated section data from View
         left_arm, right_arm = section_frame.build_arm_lists()
@@ -175,12 +181,17 @@ class Controller:
         # update Model accordingly
         self.model.remove_section(id)
 
-    def _remove_measure_handler(self, section_frame_id, measure_idx):
-        print(f'Remove measure handler, {measure_idx} from section {section_frame_id}')
+    def _remove_measure_handler(self, section_frame, measure_num):
+        print(f'Remove measure handler, {measure_num} from section {section_frame.id}')
         # remove measure from View
-        self.song_frame.remove_measure(section_frame_id, measure_idx)
+        section_frame.remove_measure(measure_num)
 
-        # update Model accordingly
+        # get updated section data from View
+        left_arm, right_arm = section_frame.build_arm_lists()
+
+        # update section data in model
+        self.model.update_section_data(section_frame.id, left_arm, right_arm)
+        print(self.model.sections[section_frame.id].left_arm, self.model.sections[section_frame.id].right_arm)
 
     # New section btn
     def _new_section_handler(self):

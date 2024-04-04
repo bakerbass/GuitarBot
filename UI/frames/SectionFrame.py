@@ -151,9 +151,23 @@ class SectionFrame(ctk.CTkScrollableFrame):
         # set tabbing order
         self._set_tab_order()
 
-    #TODO
-    def clear_measure(self, start_col):
-        pass
+    #TODO fix
+    def clear_measure(self, measure_idx):
+        strum_col = (self.subdiv_per_measure) * (measure_idx + 1)
+        chord_col = (self.beats_per_measure) * (measure_idx + 1)
+
+        counter = self.subdiv_per_measure
+        while counter > 0:
+            print(chord_col, strum_col)
+            # clear chord input
+            self.grid_slaves(row=2, column=chord_col % 2)[0].delete(0, tk.END)
+            chord_col -= 1
+
+            # clear strum input
+            self.grid_slaves(row=3, column=strum_col)[0].delete(0, tk.END)
+            strum_col -= 1
+
+            counter -= 1
 
     #TODO
     def remove_measure(self, start_col):

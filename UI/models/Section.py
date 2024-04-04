@@ -9,7 +9,3 @@ class Section:
         # # time signature assumed to be 4/4
         # self.left_arm = [['C M', 'G M', 'D M', 'F M'], ['C M', 'Am M', 'G M', 'F M']]
         # self.right_arm = [['D', '', 'D', '', 'U', '', 'U', ''], ['D', 'U', 'D', 'U', 'D', 'U', 'D', 'U']]
-
-    def clear(self):
-        self.left_arm = []
-        self.right_arm = []

@@ -19,25 +19,22 @@ class Model:
         self.sections = {} # Key-value pairs of form {id, Section}
 
     # Called by Controller, adds a new section to the Model
-    def add_section(self, id, name):
-        new_section = Section(id, name) # left_arm, right_arm will be initialized to empty lists
+    def add_section(self, section_id, name):
+        new_section = Section(section_id, name) # left_arm, right_arm will be initialized to empty lists
         self.sections[id] = new_section
 
     # Called by Controller, updates the data for a particular section (indexed by id)
     # Data includes name and left_arm, right_arm lists
-    def update_section_data(self, id, name, left_arm, right_arm):
-        section = self.sections[id]
-        section.name = name
+    def update_section_data(self, section_id, left_arm, right_arm, name=None):
+        section = self.sections[section_id]
+        if name is not None:
+            section.name = name
         section.left_arm = left_arm
         section.right_arm = right_arm
 
-    # Called by Controller, clears all left_arm and right_arm data for a particular section (indexed by id)
-    def clear_section_data(self, id):
-        self.sections[id].clear()
-
     # Called by Controller, removes a particular section (indexed by id)
-    def remove_section(self, id):
-        self.sections.pop(id)
+    def remove_section(self, section_id):
+        self.sections.pop(section_id)
 
     def send_arm_lists(self, section_ids):
         # call parse.py, pass in left_arm, right_arm lists of each Section in self.sections

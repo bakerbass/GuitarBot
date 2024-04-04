@@ -64,6 +64,12 @@ class Controller:
         # Strum options dropdown
         labels_frame.strum_pattern.trace_add(('write'), lambda e1, e2, e3: self._update_section_strum_pattern_handler(e1, e2, e3, section_frame, labels_frame))
 
+        # Eraser (clear) icon
+        i = 0
+        for btn in section_frame.eraser_btns:
+            btn.configure(command=lambda: self._clear_measure_handler(section_frame, i)) # use configure for CTk btn
+            i += 1
+
     #endregion EventBindings
         
     #region EventHandlers
@@ -144,16 +150,29 @@ class Controller:
         section_frame.clear_table()
         labels_frame.clear() # this will set strum options dropdown back to default value
         
-        # update Model accordingly
-        self.model.clear_section_data(section_frame.id)
+        # get updated section data from View
+        left_arm, right_arm = section_frame.build_arm_lists()
+
+        # update section data in model
+        self.model.update_section_data(section_frame.id, left_arm, right_arm)
+
+    def _clear_measure_handler(self, section_frame, measure_idx):
+        # clear section data in View
+        section_frame.clear_measure(measure_idx)
+        
+        # get updated section data from View
+        left_arm, right_arm = section_frame.build_arm_lists()
+
+        # update section data in model
+        self.model.update_section_data(section_frame.id, left_arm, right_arm)
+        print(self.model.sections[section_frame.id].left_arm, self.model.sections[section_frame.id].right_arm)
 
     def _remove_section_handler(self, id):
         # remove section from View
         self.song_frame.remove_section(id)
         self.song_builder_frame.remove_section_button_and_draggables(id)
 
-        # uncomment below code once implemented
-        # # update Model accordingly
+        # update Model accordingly
         self.model.remove_section(id)
 
     # New section btn
@@ -179,7 +198,7 @@ class Controller:
             left_arm, right_arm = section_frame.build_arm_lists()
 
             # update section data in model
-            self.model.update_section_data(id, name, left_arm, right_arm)
+            self.model.update_section_data(id, left_arm, right_arm, name)
 
     # Helper method to add a new section to the View and Model accordingly
     def _add_section(self):

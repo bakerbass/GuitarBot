@@ -36,13 +36,14 @@ class SongFrame(ctk.CTkScrollableFrame):
 
         return section_frame, labels_frame
     
-    def remove_section(self, id):
-        remove_idx = self.id_to_section_idx(id)
+    def remove_section(self, section_id):
+        remove_idx = self.id_to_section_idx(section_id)
 
         removed_labels_frame, removed_section_frame = self.sections[remove_idx]
         removed_section_frame.grid_forget()
         removed_labels_frame.grid_forget()
     
         self.sections.pop(remove_idx)
-        self.curr_id -= 1
+        if section_id == self.curr_id - 1:
+            self.curr_id -= 1
         # self.add_idx -= 1 # This seems logical but breaks the code

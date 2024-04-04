@@ -59,7 +59,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
             col = start_col
 
             while col <= (self.subdiv_per_measure * self.num_measures):
-                if row == 0 and self.curr_measure <= self.num_measures:
+                if row == 0:
                     # BAR LABELS
                     #print(self.curr_measure)
                     self.cell = tk.Label(self, width=4, text="Bar " + str(self.curr_measure), bg=frame_bg, justify="center")
@@ -205,7 +205,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.curr_measure += 1
 
         self.build_measure(self.last_col + 1)
-        # print("measure added")
 
     def remove_measure(self):
         # minimum of 1 measure per section
@@ -213,20 +212,22 @@ class SectionFrame(ctk.CTkScrollableFrame):
             return
             
         self.num_measures -= 1
+        self.curr_measure -= 1
 
         # delete all components in last measure
-        for i in range(self.subdiv_per_measure):
-            for j in range(5):
-                for e in self.grid_slaves(column=self.last_col - i, row=j):
+        for col in range(self.subdiv_per_measure):
+            for row in range(4):
+                for e in self.grid_slaves(column=self.last_col - col, row=row):
                     e.grid_forget()
 
                     # remove deleted cells from tab orders
-                    if j == 2:
+                    if row == 2:
                         self.chords_tab_order.pop()
-                    if j == 3:
+                    if row == 3:
                         self.strums_tab_order.pop()
 
-                    self._set_tab_order()
+        # reset tab order
+        self._set_tab_order()
 
         # update last column
         self.last_col = self.last_col - self.subdiv_per_measure
@@ -234,13 +235,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
         # set default focus to first input of last measure
         self.grid_slaves(row=2, column=self.last_col - self.subdiv_per_measure + 1)[
             0].focus_set()
-
-        # put bar labels back
-        self.cell = tk.Label(self, width=4, text="Bar " + str(self.num_measures))
-        self.cell.grid(row=0, column=self.last_col - self.beats_per_measure, sticky='w',
-                        columnspan=self.subdiv_per_measure)
-
-        # print("measure removed")
 
     # called when time signature changes
     def rebuild_table(self, time_signature):

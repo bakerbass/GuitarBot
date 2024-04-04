@@ -30,9 +30,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         # create intial measure
         self.add_measure() # start each section with an initial measure
-        self.add_measure()
-        self.add_measure()
-        self.add_measure()
 
     def _reset_instance_variables(self, time_signature):
         self.time_signature = time_signature

@@ -58,23 +58,37 @@ class Controller:
     def _create_section_event_bindings(self, section):
         section_frame, labels_frame = section
 
-        # Trash, eraser button icons
-        labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame, labels_frame)) # use configure for CTk btn
-        labels_frame.trash_btn.configure(command=lambda: self._remove_section_handler(section_frame.id)) # use configure for CTk btn
+        # this allows us to just add the icon/input event bindings (helpful for add_measure)
+        if labels_frame is not None:
+            # Trash, eraser button icons
+            labels_frame.eraser_btn.configure(command=lambda: self._clear_section_handler(section_frame, labels_frame)) # use configure for CTk btn
+            labels_frame.trash_btn.configure(command=lambda: self._remove_section_handler(section_frame.id)) # use configure for CTk btn
 
-        # Strum options dropdown
-        labels_frame.strum_pattern.trace_add(('write'), lambda e1, e2, e3: self._update_section_strum_pattern_handler(e1, e2, e3, section_frame, labels_frame))
+            # Strum options dropdown
+            labels_frame.strum_pattern.trace_add(('write'), lambda e1, e2, e3: self._update_section_strum_pattern_handler(e1, e2, e3, section_frame, labels_frame))
 
         # Eraser (clear measure) icons
         for tuple in section_frame.eraser_btns:
-            btn, measure_num = tuple
-            # TODO: measure_num is only passing the last measure num. copy, deepcopy didn't fix it
-            btn.configure(command=lambda: self._clear_measure_handler(section_frame, measure_num)) # use configure for CTk btn
+            btn, measure_idx = tuple
+            # TODO: measure_idx is only passing the last measure num. copy, deepcopy didn't fix it
+            btn.configure(command=lambda: self._clear_measure_handler(section_frame, measure_idx)) # use configure for CTk btn
 
         # Trash (remove measure) icons
         for tuple in section_frame.trash_btns:
-            btn, measure_num = tuple
-            btn.configure(command=lambda: self._remove_measure_handler(section_frame, measure_num)) # use configure for CTk btn
+            btn, measure_idx = tuple
+            btn.configure(command=lambda: self._remove_measure_handler(None, section_frame, measure_idx)) # use configure for CTk btn
+
+        # Add/remove measure key bindings for input boxes
+        for row in range(2, 4):
+            for col in range(1, section_frame.subdiv_per_measure * section_frame.num_measures + 1):
+                entry = section_frame.grid_slaves(row=row, column=col)[0]
+                m = col % section_frame.subdiv_per_measure
+
+                # Return -> Add measure
+                entry.bind("<Return>", lambda e: self._add_measure_handler(e, section_frame, m))
+
+                # Shift+Backspace -> Remove measure
+                entry.bind("<Shift-BackSpace>", lambda e: self._remove_measure_handler(e, section_frame, m))
 
     #endregion EventBindings
         
@@ -162,14 +176,11 @@ class Controller:
         # update section data in model
         self.model.update_section_data(section_frame.id, left_arm, right_arm)
 
-    def _clear_measure_handler(self, section_frame, measure_num):
-        # clear section data in View
-        section_frame.clear_measure(measure_num)
-        
-        # update section data in model
-        self._update_model_section_data(section_frame)
-
     def _remove_section_handler(self, id):
+        # minimum of 1 section
+        if len(self.song_frame.sections) == 1:
+            return
+        
         # remove section from View
         self.song_frame.remove_section(id)
         self.song_builder_frame.remove_section_button_and_draggables(id)
@@ -177,10 +188,37 @@ class Controller:
         # update Model accordingly
         self.model.remove_section(id)
 
-    def _remove_measure_handler(self, section_frame, measure_num):
-        print(f'Remove measure handler, {measure_num} from section {section_frame.id}')
+    def _add_measure_handler(self, e, section_frame, measure_idx):
+        print(f'Add measure handler, {measure_idx} to section {section_frame.id}')
+        # add measure to View
+        # TODO uncomment once this function is implemented in SectionFrame.py (adds measure at any point in the section)
+        #section_frame.add_measure(measure_idx)
+
+        # for now, just add measure at the end of the section
+        section_frame.add_measure()
+
+        # re-add section event bindings to include new measure
+        # we don't need to re-add section_label bindings, so we pass in None for this
+        self._create_section_event_bindings((section_frame, None))
+
+        # update section data in model
+        self._update_model_section_data(section_frame)
+
+    def _clear_measure_handler(self, section_frame, measure_idx):
+        # clear section data in View
+        section_frame.clear_measure(measure_idx)
+        
+        # update section data in model
+        self._update_model_section_data(section_frame)
+
+    def _remove_measure_handler(self, e, section_frame, measure_idx):
+        print(f'Remove measure handler, {measure_idx} from section {section_frame.id}')
         # remove measure from View
-        section_frame.remove_measure(measure_num)
+        # TODO uncomment once this function is implemented in SectionFrame.py (removes measure from any point in the section)
+        # section_frame.remove_measure(measure_idx)
+
+        # for now, just remove measure from the end of the section
+        section_frame.remove_measure()
 
         # update section data in model
         self._update_model_section_data(section_frame)

@@ -22,8 +22,8 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.beat_labels = beat_labels[time_signature]
         
         self.plus_btns = [] # for plus signs (currently not implemented)
-        self.trash_btns = [] # tuple of form (trash_btn, measure_num)
-        self.eraser_btns = [] # tuple of form (eraser_btn, measure_num)
+        self.trash_btns = [] # tuple of form (trash_btn, measure_idx)
+        self.eraser_btns = [] # tuple of form (eraser_btn, measure_idx)
 
         self.chords_tab_order = []
         self.strums_tab_order = []
@@ -66,17 +66,19 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     self.cell.grid(row=row, column=col + self.beats_per_measure - 2, sticky='e',
                                     columnspan=2)
                     
+                    # Add trash (delete measure) icon
                     img = Image.open('UI/icons/trash-16px.png')
                     self.trash_icon = ctk.CTkImage(img, size=(16, 16)) # this must be an instance variable so python doesn't garbage collect it
                     self.trash_btn = ctk.CTkButton(self, image=self.trash_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
                     self.trash_btn.grid(row=row, column=col + self.beats_per_measure, sticky='w')
-                    self.trash_btns.append((self.trash_btn, self.curr_measure))
+                    self.trash_btns.append((self.trash_btn, self.curr_measure - 1)) # subtract 1 so measure_idx is 0-indexed
 
+                    # Add eraser (clear measure) icon
                     img = Image.open('UI/icons/eraser-16px.png')
                     self.eraser_icon = ctk.CTkImage(img, size=(16, 16)) # this must be an instance variable so python doesn't garbage collect it
                     self.eraser_btn = ctk.CTkButton(self, image=self.eraser_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
                     self.eraser_btn.grid(row=row, column=col + self.beats_per_measure + 1, sticky='w')
-                    self.eraser_btns.append((self.eraser_btn, self.curr_measure))
+                    self.eraser_btns.append((self.eraser_btn, self.curr_measure - 1)) # subtract 1 so measure_idx is 0-indexed
                     
                     col += self.subdiv_per_measure
                     continue
@@ -100,13 +102,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
                     # CHORD INPUTS
                     self.cell = ttk.Entry(self, width=6, font=('Arial', 16))
 
-                    # TODO: add these to controller
-                    # # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
-                    # self.cell.bind("<Shift-BackSpace>", self._backspacePressed)
-
-                    # # add <Return> event handler to every input box (adds new measure if pressed)
-                    # self.cell.bind("<Return>", self._return_pressed)
-
                     self.cell.grid(row=row, column=col, sticky='w', columnspan=2)
                     self.chords_tab_order.append(self.cell)
 
@@ -115,13 +110,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
                 elif row == 3:
                     # STRUM INPUTS
                     self.cell = ttk.Entry(self, width=2, font=('Arial', 16))
-
-                    # TODO add these to controller
-                    # # add <Shift-BackSpace> event handler to every input box (deletes current measure if pressed)
-                    # self.cell.bind("<Shift-BackSpace>", self.__backspacePressed)
-
-                    # # add <Return> event handler to every input box (adds new measure if pressed)
-                    # self.cell.bind("<Return>", self._return_pressed)
 
                     # check if this is the last beat of the measure
                     if col != 0 and col % self.subdiv_per_measure == 0:
@@ -151,11 +139,11 @@ class SectionFrame(ctk.CTkScrollableFrame):
         # set tabbing order
         self._set_tab_order()
 
-    def clear_measure(self, measure_num):
-        # print(measure_num)
-        col = (self.subdiv_per_measure) * measure_num
+    def clear_measure(self, measure_idx):
+        #print(measure_idx)
+        col = self.subdiv_per_measure * measure_idx
 
-        while col > (self.subdiv_per_measure) * (measure_num - 1):
+        while col <= self.subdiv_per_measure * (measure_idx + 1):
             #print(col)
             # clear chord input
             self.grid_slaves(row=2, column=col)[0].delete(0, tk.END)
@@ -163,13 +151,13 @@ class SectionFrame(ctk.CTkScrollableFrame):
             # clear strum input
             self.grid_slaves(row=3, column=col)[0].delete(0, tk.END)
 
-            col -= 1
+            col += 1
 
     # TODO: Generalization of remove from end function it overloads
-    def remove_measure(self, measure_num):
+    def remove_measure(self, measure_idx):
         pass
         # TODO: test, and modify further if needed
-        # start_col = (measure_num - 1) * self.subdiv_per_measure
+        # start_col = (measure_idx - 1) * self.subdiv_per_measure
         #
         # # minimum of 1 measure per section
         # if self.num_measures > 1:
@@ -212,11 +200,6 @@ class SectionFrame(ctk.CTkScrollableFrame):
         for cell in self.strums_tab_order:
             cell.lift()
 
-    # TODO implement this in controller instead
-    # # event handler for add measure (Enter)
-    # def _return_pressed(self, event):
-    #     self.add_measure(self)
-
     def add_measure(self):
         self.num_measures += 1
         self.curr_measure += 1
@@ -224,15 +207,12 @@ class SectionFrame(ctk.CTkScrollableFrame):
         self.build_measure(self.last_col + 1)
         # print("measure added")
 
-    # TODO implement this in controller instead
-    # # event handler for remove measure (Shift+BackSpace)
-    # def _backspace_pressed(self, event):
-    #     self.remove_measure(self)
-
     def remove_measure(self):
         # minimum of 1 measure per section
-        if self.num_measures > 1:
-            self.num_measures = self.num_measures - 1
+        if self.num_measures == 1:
+            return
+            
+        self.num_measures -= 1
 
         # delete all components in last measure
         for i in range(self.subdiv_per_measure):
@@ -331,6 +311,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         return (left_arm, right_arm)
 
+    # Used for loading song from json
     def insert_chord_strum_data(self, left_arm, right_arm):
         # insert left arm data
         i = 0

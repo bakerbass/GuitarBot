@@ -35,11 +35,16 @@ class SongBuilderFrame(ctk.CTkScrollableFrame):
         self.btn_dict[section_id].destroy()
         del self.btn_dict[section_id]
         
-        i = 0
-        while i < len(DraggableSectionLabel.existing_draggables_list):
-            if DraggableSectionLabel.existing_draggables_list[i].section_id == section_id:
-                DraggableSectionLabel.existing_draggables_list[i].destroy(None)
-            i += 1
+        # filter for sections we do/don't want to keep
+        keep_list = [item for item in DraggableSectionLabel.existing_draggables_list if item.section_id != section_id]
+        destroy_list = [item for item in DraggableSectionLabel.existing_draggables_list if item.section_id == section_id]
+        
+        # destroy sections which matched the section_id
+        for section in destroy_list:
+            section.destroy(None)
+
+        # update draggable sections list
+        DraggableSectionLabel.existing_draggables_list = keep_list
 
     def add_draggable_section(self, event, section_id_and_name):
         section_id, section_name = section_id_and_name

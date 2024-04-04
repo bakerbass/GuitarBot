@@ -21,7 +21,7 @@ class Model:
     # Called by Controller, adds a new section to the Model
     def add_section(self, section_id, name):
         new_section = Section(section_id, name) # left_arm, right_arm will be initialized to empty lists
-        self.sections[id] = new_section
+        self.sections[section_id] = new_section
 
     # Called by Controller, updates the data for a particular section (indexed by id)
     # Data includes name and left_arm, right_arm lists

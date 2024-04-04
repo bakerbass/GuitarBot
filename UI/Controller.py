@@ -166,12 +166,8 @@ class Controller:
         # clear section data in View
         section_frame.clear_measure(measure_num)
         
-        # get updated section data from View
-        left_arm, right_arm = section_frame.build_arm_lists()
-
         # update section data in model
-        self.model.update_section_data(section_frame.id, left_arm, right_arm)
-        print(self.model.sections[section_frame.id].left_arm, self.model.sections[section_frame.id].right_arm)
+        self._update_model_section_data(section_frame)
 
     def _remove_section_handler(self, id):
         # remove section from View
@@ -186,12 +182,8 @@ class Controller:
         # remove measure from View
         section_frame.remove_measure(measure_num)
 
-        # get updated section data from View
-        left_arm, right_arm = section_frame.build_arm_lists()
-
         # update section data in model
-        self.model.update_section_data(section_frame.id, left_arm, right_arm)
-        print(self.model.sections[section_frame.id].left_arm, self.model.sections[section_frame.id].right_arm)
+        self._update_model_section_data(section_frame)
 
     # New section btn
     def _new_section_handler(self):
@@ -217,6 +209,15 @@ class Controller:
 
             # update section data in model
             self.model.update_section_data(id, left_arm, right_arm, name)
+
+    # Updates the data for a particular section in the Model
+    def _update_model_section_data(self, section_frame):
+        # get updated section data from View
+        left_arm, right_arm = section_frame.build_arm_lists()
+
+        # update section data in model
+        self.model.update_section_data(section_frame.id, left_arm, right_arm)
+        print(self.model.sections[section_frame.id].left_arm, self.model.sections[section_frame.id].right_arm)
 
     # Helper method to add a new section to the View and Model accordingly
     def _add_section(self):

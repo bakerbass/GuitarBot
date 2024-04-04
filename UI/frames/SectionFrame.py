@@ -156,7 +156,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
         col = (self.subdiv_per_measure) * measure_num
 
         while col > (self.subdiv_per_measure) * (measure_num - 1):
-            print(col)
+            #print(col)
             # clear chord input
             self.grid_slaves(row=2, column=col)[0].delete(0, tk.END)
 
@@ -302,7 +302,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         # generate left arm data
         curr_measure = []
-        count = 0
+        count = 1 # this must start at 1
         for e in reversed(self.grid_slaves(row=2)):
             # print("count: ", count)
             # print("value: ", e.get())
@@ -318,10 +318,11 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
         # generate right arm data
         curr_measure = []
-        count = 0
+        count = 1 # this must start at 1
         for e in reversed(self.grid_slaves(row=3)):
             curr_measure.append(e.get())
-            if count == self.beats_per_measure * 2:
+            if count == self.subdiv_per_measure:
+                # start a new measure
                 right_arm.append(curr_measure)
                 curr_measure = []
                 count = 1

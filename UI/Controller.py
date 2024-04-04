@@ -175,6 +175,13 @@ class Controller:
         # update Model accordingly
         self.model.remove_section(id)
 
+    def _remove_measure_handler(self, section_frame_id, measure_idx):
+        print(f'Remove measure handler, {measure_idx} from section {section_frame_id}')
+        # remove measure from View
+        self.song_frame.remove_measure(section_frame_id, measure_idx)
+
+        # update Model accordingly
+
     # New section btn
     def _new_section_handler(self):
         self._add_section()

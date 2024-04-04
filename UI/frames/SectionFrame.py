@@ -169,9 +169,39 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
             counter -= 1
 
-    #TODO
+    # TODO: Generalization of remove from end function it overloads
     def remove_measure(self, start_col):
         pass
+        # TODO: test, and modify further if needed
+        # # minimum of 1 measure per section
+        # if self.num_measures > 1:
+        #     self.num_measures = self.num_measures - 1
+
+        # # delete all components in last measure
+        # for i in range(self.subdiv_per_measure):
+        #     for j in range(5):
+        #         for e in self.grid_slaves(column=start_col + i, row=j):
+        #             e.grid_forget()
+
+        #             # remove deleted cells from tab orders
+        #             if j == 2:
+        #                 self.chords_tab_order.pop(start_col + i)
+        #             if j == 3:
+        #                 self.strums_tab_order.pop(start_col + i)
+
+        #             self._set_tab_order()
+
+        # # update last column
+        # self.last_col = self.last_col - self.subdiv_per_measure
+
+        # # set default focus to first input of last measure
+        # self.grid_slaves(row=2, column=self.last_col - self.subdiv_per_measure + 1)[
+        #     0].focus_set()
+
+        # # put bar labels back
+        # self.cell = tk.Label(self, width=4, text="Bar " + str(self.num_measures))
+        # self.cell.grid(row=0, column=self.last_col - self.beats_per_measure, sticky='w',
+        #                 columnspan=self.subdiv_per_measure)
 
     def _set_tab_order(self):
         # NOTE: if user presses tab on last chord input in a section, focus will go to the first strum input on the next row

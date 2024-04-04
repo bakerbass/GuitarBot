@@ -14,6 +14,16 @@ class SongFrame(ctk.CTkScrollableFrame):
         self.add_idx = 0
         self.curr_id = 1
 
+    def id_to_section_idx(self, id):
+        # id -> remove_idx
+        section_idx = 0
+        for section in self.sections:
+            if section[0].id == id:
+                break
+            section_idx += 1
+
+        return section_idx
+    
     def add_section(self):
         labels_frame = SectionLabelsFrame(master=self, id=self.curr_id, width=self.width * 0.05, height=self.height * 0.2)
         section_frame = SectionFrame(master=self, id=self.curr_id, width=self.width * 0.84, height=self.height * 0.21, time_signature="4/4")
@@ -27,16 +37,21 @@ class SongFrame(ctk.CTkScrollableFrame):
         return section_frame, labels_frame
     
     def remove_section(self, id):
-        # id -> remove_idx
-        remove_idx = 0
-        for section in self.sections:
-            if section[0].id == id:
-                break
-            remove_idx += 1
+        remove_idx = self.id_to_section_idx(id)
 
         removed_labels_frame, removed_section_frame = self.sections[remove_idx]
         removed_section_frame.grid_forget()
         removed_labels_frame.grid_forget()
     
         self.sections.pop(remove_idx)
-        # self.add_idx -= 1
+        # self.add_idx -= 1 # This seems logical but breaks the code
+    
+    def add_measure(self, section_id, measure_idx):
+        section_idx = self.id_to_section_idx(section_id)
+        pass
+
+    def remove_measure(self, section_id, measure_idx):
+        section_idx = self.id_to_section_idx(section_id)
+        section_frame, labels_frame = self.sections[section_idx]
+
+        #TODO: actually perform removal, use remove_measure()?

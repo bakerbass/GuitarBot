@@ -1,7 +1,6 @@
 from constants.bot_specs import DEFAULT_BPM, MIN_BPM, MAX_BPM
 from constants.time_signatures import DEFAULT_TIME_SIG
 from constants.chord_modes import DEFAULT_CHORD_MODE
-from parse import parseleft_M, parseright_M
 from models.Section import Section
 
 # model stores all of the UI's data
@@ -35,17 +34,3 @@ class Model:
     # Called by Controller, removes a particular section (indexed by id)
     def remove_section(self, section_id):
         self.sections.pop(section_id)
-
-    def send_arm_lists(self, section_ids):
-        # call parse.py, pass in left_arm, right_arm lists of each Section in self.sections
-        # appends arm lists to song based on the order of the sections in the Song Builder
-        # TODO: modify parse.py to accept new chord notations
-
-        for id in section_ids:
-            section = self.sections[id]
-            print('section: ', id)
-            print(section.left_arm, section.right_arm)
-            
-            measure_time = int(self.time_signature[0]) * (60/self.bpm) # calculate the total time for each measure in seconds
-            parseleft_M(section.left_arm, measure_time) 
-            parseright_M(section.right_arm, measure_time)

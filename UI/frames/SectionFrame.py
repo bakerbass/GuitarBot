@@ -138,7 +138,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
 
     def clear_measure(self, measure_idx):
         #print(measure_idx)
-        col = self.subdiv_per_measure * measure_idx
+        col = (self.subdiv_per_measure * measure_idx) + 1
 
         while col <= self.subdiv_per_measure * (measure_idx + 1):
             #print(col)

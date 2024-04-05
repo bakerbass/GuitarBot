@@ -1,7 +1,7 @@
 from Model import Model
 from View import View, ChordNotationsPopup, HelpPopup
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
-from copy import copy, deepcopy
+from parse import parseleft_M, parseright_M
 
 class Controller:
     def __init__(self, view: View, model: Model):
@@ -85,7 +85,7 @@ class Controller:
                 m = col % section_frame.subdiv_per_measure
 
                 # Return -> Add measure
-                entry.bind("<Return>", lambda e: self._add_measure_handler(e, section_frame, m))
+                entry.bind("<Shift-Return>", lambda e: self._add_measure_handler(e, section_frame, m))
 
                 # Shift+Backspace -> Remove measure
                 entry.bind("<Shift-BackSpace>", lambda e: self._remove_measure_handler(e, section_frame, m))
@@ -144,16 +144,7 @@ class Controller:
     # Send btn
     def _send_song_handler(self):
         self._update_model_sections()
-        section_ids = []
-
-        # loop through song builder and keep track of section order
-        for section in DraggableSectionLabel.existing_draggables_list:
-            section_ids.append(section.section_id)
-
-        #print(section_ids)
-
-        # send ordered section ids to model
-        self.model.send_arm_lists(section_ids)
+        self._send_song_to_bot()
 
     #endregion SongControls
 
@@ -273,5 +264,27 @@ class Controller:
         # add event bindings for new section
         self._create_section_event_bindings(section)
 
+    def _send_song_to_bot(self):
+        section_ids = []
+
+        # loop through song builder and get section ids in the correct order
+        for section in DraggableSectionLabel.existing_draggables_list:
+            section_ids.append(section.section_id)
+        #print(section_ids)
+        
+        # calculate the total time for each measure in seconds
+        measure_time = int(self.model.time_signature[0]) * (60/self.model.bpm)
+        
+        # call parse.py methods to parse left_arm, right_arm data for each section
+        for id in section_ids:
+            section = self.model.sections[id]
+            # print('section: ', id)
+            # print(section.left_arm, section.right_arm)
+            
+            left_arm_info, first_c, m_timings = parseleft_M(section.left_arm, measure_time)
+            right_arm_info, initial_strum, strum_onsets = parseright_M(section.right_arm, measure_time)
+
+        # TODO send song data to robot controller via UDP message
+        # Should this be done as each individual section is parsed? Or compile everything together and then send once
 
     #endregion Helpers

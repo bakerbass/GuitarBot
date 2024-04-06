@@ -1,8 +1,9 @@
 from Model import Model
 from View import View, ChordNotationsPopup, HelpPopup
+# drag and drop
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
+# parsing
 from parse import parseleft_M, parseright_M
-
 # preview functions
 from preview.midi.ParserToMIDI import arms_to_MIDI
 from preview.midi.PluginIntegration import play_midi_with_plugin

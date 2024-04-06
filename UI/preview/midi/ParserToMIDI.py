@@ -1,5 +1,5 @@
 from mido import Message
-from UI.chords.chord_dict import chord_dict, sharp_to_flat
+from chords.chord_dict import chord_dict, sharp_to_flat
 
 MAJOR_THIRD, PERFECT_FOURTH = 4, 5
 

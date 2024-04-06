@@ -3,6 +3,10 @@ from View import View, ChordNotationsPopup, HelpPopup
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
 from parse import parseleft_M, parseright_M
 
+# preview functions
+from preview.midi.ParserToMIDI import arms_to_MIDI
+from preview.midi.PluginIntegration import play_midi_with_plugin
+
 class Controller:
     def __init__(self, view: View, model: Model):
         self.view = view
@@ -49,7 +53,10 @@ class Controller:
         # Send btn
         self.song_controls_frame.send_btn.config(command=self._send_song_handler)
 
-        # Help icon
+        # Preview icon btn
+        self.song_controls_frame.preview_btn.configure(command=lambda: self._preview_song_handler()) # use configure for CTk btn
+
+        # Help icon btn
         self.song_controls_frame.help_btn.configure(command=lambda: self._show_help_popup()) # use configure for CTk btn
 
         # New section btn
@@ -145,6 +152,11 @@ class Controller:
     def _send_song_handler(self):
         self._update_model_sections()
         self._send_song_to_bot()
+
+    # Preview btn
+    def _preview_song_handler(self):
+        self._update_model_sections()
+        self._preview_song_with_plugin()
 
     #endregion SongControls
 
@@ -264,27 +276,41 @@ class Controller:
         # add event bindings for new section
         self._create_section_event_bindings(section)
 
-    def _send_song_to_bot(self):
-        section_ids = []
+    def _build_complete_arm_lists(self):
+        left_arm = []
+        right_arm = []
 
-        # loop through song builder and get section ids in the correct order
-        for section in DraggableSectionLabel.existing_draggables_list:
-            section_ids.append(section.section_id)
-        #print(section_ids)
+        # loop through song builder and append individual section left/right arm lists to the total lists
+        for dd_section in DraggableSectionLabel.existing_draggables_list:
+            # get the current section from the model
+            model_section = self.model.sections[dd_section.section_id]
+
+            # append left_arm, right_arm lists
+            left_arm = left_arm + model_section.left_arm
+            right_arm = right_arm + model_section.right_arm
+
+        # print(left_arm, '\n', right_arm)
+        return left_arm, right_arm
+
+    def _send_song_to_bot(self):
+        left_arm, right_arm = self._build_complete_arm_lists()
         
         # calculate the total time for each measure in seconds
         measure_time = int(self.model.time_signature[0]) * (60/self.model.bpm)
         
-        # call parse.py methods to parse left_arm, right_arm data for each section
-        for id in section_ids:
-            section = self.model.sections[id]
-            # print('section: ', id)
-            # print(section.left_arm, section.right_arm)
-            
-            left_arm_info, first_c, m_timings = parseleft_M(section.left_arm, measure_time)
-            right_arm_info, initial_strum, strum_onsets = parseright_M(section.right_arm, measure_time)
+        # # call parse.py methods to parse left_arm, right_arm data for entire song
+        left_arm_info, first_c, m_timings = parseleft_M(left_arm, measure_time)
+        right_arm_info, initial_strum, strum_onsets = parseright_M(right_arm, measure_time)
 
-        # TODO send song data to robot controller via UDP message
-        # Should this be done as each individual section is parsed? Or compile everything together and then send once
+        # TODO send parseleft_M, parseright_M outputs to robot controller via UDP message
+
+    # TODO run on a separate thread so this doesn't block entire UI
+    def _preview_song_with_plugin(self):
+        left_arm, right_arm = self._build_complete_arm_lists()
+
+        # preview with VST plugin
+        # NOTE: plugin must be open and running separately through compatible DAW (GarageBand as of rn)
+        midi_chords = arms_to_MIDI(left_arm, right_arm, self.model.bpm, subdiv_per_beat=2)
+        play_midi_with_plugin(midi_chords)
 
     #endregion Helpers

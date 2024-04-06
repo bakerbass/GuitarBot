@@ -52,6 +52,12 @@ class SongControlsFrame(tk.Frame):
         self.send_btn = tk.Button(self, text="Send")
         self.send_btn.grid(row=1, column=5, sticky='W')
 
+        # Preview audio icon button
+        img = Image.open('UI/icons/preview-audio-24px.png')
+        self.preview_icon = ctk.CTkImage(img, size=(24, 24)) # this must be an instance variable so python doesn't garbage collect it
+        self.preview_btn = ctk.CTkButton(self, image=self.preview_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
+        self.preview_btn.grid(row=0, column=6, sticky='W')
+
         # Help icon button
         img = Image.open('UI/icons/help-24px.png')
         self.help_icon = ctk.CTkImage(img, size=(24, 24)) # this must be an instance variable so python doesn't garbage collect it

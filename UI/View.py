@@ -35,7 +35,6 @@ class View(tk.Tk):
     def start_mainloop(self):
         self.mainloop()
 
-
 # POP-UP WINDOWS
         
 class ChordNotationsPopup(tk.Toplevel):

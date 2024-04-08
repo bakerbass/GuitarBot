@@ -2,8 +2,10 @@ from Model import Model
 from View import View, ChordNotationsPopup, HelpPopup
 # drag and drop
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
+# json saving/loading
+from helpers.JsonHelper import JsonHelper
 # parsing
-from parse import parseleft_M, parseright_M
+from parsing.SongParser import SongParser
 # preview functions
 from preview.midi.ParserToMIDI import arms_to_MIDI
 from preview.midi.PluginIntegration import play_midi_with_plugin
@@ -19,12 +21,13 @@ class Controller:
         self.new_section_btn = view.new_section_btn
 
         self._create_event_bindings()
+        self._create_key_shortcuts()
 
         # manually add the first section to the UI
         self._add_section()
 
     def start(self):
-        self.view.start_mainloop()        
+        self.view.start_mainloop()
 
     #region EventBindings
     def _create_event_bindings(self):
@@ -99,6 +102,20 @@ class Controller:
                 entry.bind("<Shift-BackSpace>", lambda e: self._remove_measure_handler(e, section_frame, m))
 
     #endregion EventBindings
+
+    #region KeyShortcuts
+
+    def _create_key_shortcuts(self):
+        # Ctrl-S -> save song
+        self.view.bind('<Control-s>', lambda e: self._save_song_handler())
+
+        # Ctrl-L -> load song
+        self.view.bind('<Control-l>', lambda e: self._load_song_handler())
+
+        # Ctrl-P -> send song
+        self.view.bind('<Control-p>', lambda e: self._send_song_handler())
+
+    #endregion KeyShortcuts
         
     #region EventHandlers
     
@@ -143,11 +160,17 @@ class Controller:
 
     # Save btn
     def _save_song_handler(self):
+        print('save song')
         self._update_model_sections()
+        # #TODO params
+        # JsonHelper.write_song_to_json()
 
     # Load btn
     def _load_song_handler(self):
+        print('load song')
         self._update_model_sections()
+        # #TODO params
+        # JsonHelper.load_song_from_json()
 
     # Send btn
     def _send_song_handler(self):
@@ -300,8 +323,8 @@ class Controller:
         measure_time = int(self.model.time_signature[0]) * (60/self.model.bpm)
         
         # # call parse.py methods to parse left_arm, right_arm data for entire song
-        left_arm_info, first_c, m_timings = parseleft_M(left_arm, measure_time)
-        right_arm_info, initial_strum, strum_onsets = parseright_M(right_arm, measure_time)
+        left_arm_info, first_c, m_timings = SongParser.parseleft_M(left_arm, measure_time)
+        right_arm_info, initial_strum, strum_onsets = SongParser.parseright_M(right_arm, measure_time)
 
         # TODO send parseleft_M, parseright_M outputs to robot controller via UDP message
 

@@ -17,7 +17,7 @@ import json
 
 # constants
 from UI.constants.strum_patterns import strum_patterns, strum_options
-from UI.constants.time_signatures import time_signatures, beat_labels
+from UI.constants.time_signatures import time_signature_options, beat_labels
 
 # preview stuff
 # from UI.preview.audio.AudioHelper import AudioHelper
@@ -492,7 +492,7 @@ def UI():
     create_table(initSection, timeSelection)
 
     # time signature / bpm / measure dropdowns
-    timeMenu = OptionMenu(timeFrame, timeSelection, "4/4", *time_signatures, command=update_table)
+    timeMenu = OptionMenu(timeFrame, timeSelection, "4/4", *time_signature_options, command=update_table)
     timeLabel = Label(timeFrame, text="Time Signature: ")
     timeLabel.pack(side=LEFT)
     timeMenu.pack(side=LEFT)

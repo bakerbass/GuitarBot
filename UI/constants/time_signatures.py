@@ -1,4 +1,6 @@
-time_signatures = [
+DEFAULT_TIME_SIG = "4/4"
+
+time_signature_options = [
     "2/4",
     "3/4",
     "4/4"

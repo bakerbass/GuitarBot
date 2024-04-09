@@ -5,21 +5,22 @@ from tkinter.filedialog import askopenfilename
 
 class JsonHelper:
     @staticmethod
-    def write_song_to_json(name, input):
+    def write_song_to_json(song_title, time_signature, bpm, chord_mode, song_order, sections):
         # check to make sure that user does not accidentally overwrite existing song
-        if name != "default" and os.path.isfile('./songs/' + name + '.json'):
+        if song_title != "default" and os.path.isfile('./UI/songs/' + song_title + '.json'):
             response = tkinter.messagebox.askquestion("Warning",
                                                       "A song with the same name is already saved. Would you like to overwrite the " +
                                                       "contents of the existing song? (If you select no, song will be saved as a new file.)")
             if response == 'no':
-                name = name + "(1)"
+                song_title = song_title + "(1)"
 
         # organize general song data
         song_dict = {
-            "name": name,
-            "timeSig": timeSelection.get(),
-            "bpm": bpmInput.get(),
-            "input": input
+            "song_title": song_title,
+            "time_signature": time_signature,
+            "bpm": bpm,
+            "chord_mode": chord_mode,
+            "song_order": song_order
         }
 
         json_data = []
@@ -27,19 +28,19 @@ class JsonHelper:
 
         # add individual section data to json_data
         for section in sections:
-            data = section.buildChordStrumData(timeSelection)
             section_dict = {}
             section_dict["name"] = section.name
-            section_dict["numMeasures"] = section.numMeasures
-            section_dict["strumPattern"] = section.strumPattern.get()
-            section_dict["leftArm"] = data[0]
-            section_dict["rightArm"] = data[1]
+            section_dict["num_measures"] = section.num_measures
+            section_dict["strum_pattern"] = section.strum_pattern if section.strum_pattern != "Strum Pattern" else "Custom" # if user didn't select a strum pattern, set to "Custom"
+            section_dict["left_arm"] = section.left_arm
+            section_dict["right_arm"] = section.right_arm
             json_data.append(section_dict)
 
-        with open('./UI/songs/' + name + '.json', 'w') as file:
+        with open('./UI/songs/' + song_title + '.json', 'w') as file:
             # write data to json
             file.write(json.dumps(json_data, indent=4))
 
+    # TODO
     @staticmethod
     def load_song_from_json():
         path = askopenfilename()

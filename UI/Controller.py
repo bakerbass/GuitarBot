@@ -166,14 +166,12 @@ class Controller:
 
     # Save btn
     def _save_song_handler(self):
-        print('save song')
         self._update_model_sections()
-        # #TODO params
-        # JsonHelper.write_song_to_json()
+        song_order = self._get_ordered_section_names()
+        JsonHelper.write_song_to_json(self.model.song_title, self.model.time_signature, self.model.bpm, self.model.chord_mode, song_order, self.model.sections.values())
 
     # Load btn
     def _load_song_handler(self):
-        print('load song')
         self._update_model_sections()
         # #TODO params
         # JsonHelper.load_song_from_json()
@@ -235,14 +233,14 @@ class Controller:
         self._create_section_event_bindings((section_frame, None))
 
         # update section data in model
-        self._update_model_section_data(section_frame)
+        self._update_model_section_arm_lists(section_frame)
 
     def _clear_measure_handler(self, section_frame, measure_idx):
         # clear section data in View
         section_frame.clear_measure(measure_idx)
         
         # update section data in model
-        self._update_model_section_data(section_frame)
+        self._update_model_section_arm_lists(section_frame)
 
     def _remove_measure_handler(self, e, section_frame, measure_idx):
         print(f'Remove measure handler, {measure_idx} from section {section_frame.id}')
@@ -254,7 +252,7 @@ class Controller:
         section_frame.remove_measure()
 
         # update section data in model
-        self._update_model_section_data(section_frame)
+        self._update_model_section_arm_lists(section_frame)
 
     # New section btn
     def _new_section_handler(self):
@@ -276,19 +274,36 @@ class Controller:
             # get section data from View
             id = section_frame.id
             name = labels_frame.name.get()
+            strum_pattern = labels_frame.strum_pattern.get()
+            num_measures = section_frame.num_measures
             left_arm, right_arm = section_frame.build_arm_lists()
 
             # update section data in model
-            self.model.update_section_data(id, left_arm, right_arm, name)
+            self.model.update_section_data(id, left_arm, right_arm, name, strum_pattern, num_measures)
 
-    # Updates the data for a particular section in the Model
-    def _update_model_section_data(self, section_frame):
+    # Updates the arm lists for a particular section in the Model
+    def _update_model_section_arm_lists(self, section_frame):
         # get updated section data from View
         left_arm, right_arm = section_frame.build_arm_lists()
 
         # update section data in model
         self.model.update_section_data(section_frame.id, left_arm, right_arm)
-        print(self.model.sections[section_frame.id].left_arm, self.model.sections[section_frame.id].right_arm)
+        #print(self.model.sections[section_frame.id].left_arm, self.model.sections[section_frame.id].right_arm)
+
+    # Returns a comma-separated string of the section names in order of the song builder layout
+    def _get_ordered_section_names(self):
+        section_names = ""
+
+        # loop through song builder and append section names in order
+        for dd_section in DraggableSectionLabel.existing_draggables_list:
+            # get the current section from the model
+            model_section = self.model.sections[dd_section.section_id]
+            section_names += model_section.name + ", "
+
+        # remove last ", "
+        section_names = section_names[:-2]
+
+        return section_names
 
     # Helper method to add a new section to the View and Model accordingly
     def _add_section(self):

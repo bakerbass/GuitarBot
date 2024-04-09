@@ -24,10 +24,17 @@ class Model:
 
     # Called by Controller, updates the data for a particular section (indexed by id)
     # Data includes name and left_arm, right_arm lists
-    def update_section_data(self, section_id, left_arm, right_arm, name=None):
+    def update_section_data(self, section_id, left_arm, right_arm, name=None, strum_pattern=None, num_measures=None):
         section = self.sections[section_id]
+
+        # update optional fields
         if name is not None:
             section.name = name
+        if strum_pattern is not None:
+            section.strum_pattern = strum_pattern
+        if num_measures is not None:
+            section.num_measures = num_measures
+
         section.left_arm = left_arm
         section.right_arm = right_arm
 

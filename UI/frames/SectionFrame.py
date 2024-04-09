@@ -240,9 +240,7 @@ class SectionFrame(ctk.CTkScrollableFrame):
             w.grid_forget()
 
         self._reset_instance_variables(time_signature)
-        self.add_measure()
-        self.add_measure()
-        self.add_measure()
+        # add first measure back
         self.add_measure()
 
     def clear_table(self):

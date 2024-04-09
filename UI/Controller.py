@@ -143,6 +143,12 @@ class Controller:
             section_frame, section_label = section
             section_frame.rebuild_table(time_sig)
 
+            # re-add section event bindings
+            self._create_section_event_bindings(section)
+
+        # update model accordingly
+        self._update_model_sections()
+
     def _update_chord_mode_handler(self, event, *args):
         self.model.chord_mode = self.song_controls_frame.chord_mode.get()
 
@@ -287,7 +293,7 @@ class Controller:
     # Helper method to add a new section to the View and Model accordingly
     def _add_section(self):
         # manually add new section to the UI
-        section = self.view.song_frame.add_section()
+        section = self.view.song_frame.add_section(self.model.time_signature)
         section_frame, labels_frame = section
         id, name = section_frame.id, labels_frame.name
 
@@ -320,6 +326,7 @@ class Controller:
         left_arm, right_arm = self._build_complete_arm_lists()
         
         # calculate the total time for each measure in seconds
+        # NOTE assumes _/4 time signature
         measure_time = int(self.model.time_signature[0]) * (60/self.model.bpm)
         
         # # call parse.py methods to parse left_arm, right_arm data for entire song

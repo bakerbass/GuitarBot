@@ -321,15 +321,22 @@ class Controller:
 
         # print(left_arm, '\n', right_arm)
         return left_arm, right_arm
+    
+    # calculate the total time per each measure in seconds
+    def _calculate_measure_time(self):
+        beats_per_measure = int(self.model.time_signature[0])
+        beat_duration = 4/int(self.model.time_signature[2])
+        measure_time = beats_per_measure * (60/self.model.bpm) * beat_duration
+        return measure_time
 
     def _send_song_to_bot(self):
         left_arm, right_arm = self._build_complete_arm_lists()
         
-        # calculate the total time for each measure in seconds
-        # NOTE assumes _/4 time signature
-        measure_time = int(self.model.time_signature[0]) * (60/self.model.bpm)
+        # get the total time for each measure in seconds
+        measure_time = self._calculate_measure_time()
+        #print(measure_time)
         
-        # # call parse.py methods to parse left_arm, right_arm data for entire song
+        # call parse.py methods to parse left_arm, right_arm data for entire song
         left_arm_info, first_c, m_timings = SongParser.parseleft_M(left_arm, measure_time)
         right_arm_info, initial_strum, strum_onsets = SongParser.parseright_M(right_arm, measure_time)
 

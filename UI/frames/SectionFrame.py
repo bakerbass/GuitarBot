@@ -64,14 +64,14 @@ class SectionFrame(ctk.CTkScrollableFrame):
                                     columnspan=2)
                     
                     # Add trash (delete measure) icon
-                    img = Image.open('UI/icons/trash-16px.png')
+                    img = Image.open('./UI/icons/trash-16px.png')
                     self.trash_icon = ctk.CTkImage(img, size=(16, 16)) # this must be an instance variable so python doesn't garbage collect it
                     self.trash_btn = ctk.CTkButton(self, image=self.trash_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
                     self.trash_btn.grid(row=row, column=col + self.beats_per_measure, sticky='w')
                     self.trash_btns.append((self.trash_btn, self.curr_measure - 1)) # subtract 1 so measure_idx is 0-indexed
 
                     # Add eraser (clear measure) icon
-                    img = Image.open('UI/icons/eraser-16px.png')
+                    img = Image.open('./UI/icons/eraser-16px.png')
                     self.eraser_icon = ctk.CTkImage(img, size=(16, 16)) # this must be an instance variable so python doesn't garbage collect it
                     self.eraser_btn = ctk.CTkButton(self, image=self.eraser_icon, width=0, border_width=0, border_spacing=0, text='', fg_color='transparent')
                     self.eraser_btn.grid(row=row, column=col + self.beats_per_measure + 1, sticky='w')

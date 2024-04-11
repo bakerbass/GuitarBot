@@ -1,15 +1,19 @@
 import socket
+import RobotControllerAmit
 from ast import literal_eval
 from parsing.ArmListParser import ArmListParser
-import RobotControllerAmit
+from UI.messaging.udp_constants import *
 
+# Define ip/port/headers
+udp_ip = LOCAL_UDP_IP
+udp_port = UDP_PORT
+left_arm_header = LEFT_ARM_HEADER
+right_arm_header = RIGHT_ARM_HEADER
+measure_time_header = MEASURE_TIME_HEADER
+header_delimiter = HEADER_DELIMITER
+
+# Create socket
 socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-udp_ip = "127.0.0.1" #UDP_IP
-udp_port = 40012 #UDP_PORT
-left_arm_header = "l_arm_guitar"
-right_arm_header = "r_arm_guitar"
-measure_time_header = "measure_time_guitar"
-
 socket.bind((udp_ip, udp_port))
 
 left_arm = None
@@ -17,15 +21,15 @@ right_arm = None
 measure_time = None
 
 # loop to recieve messages and send to robot controller
+# TODO run the message recieving/robot controller call on separate threads with a queue of messages
 while True:
     recieved_msg = socket.recv(1024) # 1024 byte buffer size
     recieved_msg = recieved_msg.decode("utf-8")
 
-    # parse message
-    split = recieved_msg.split('#')
+    # parse UDP message
+    split = recieved_msg.split(header_delimiter)
     msg_header = split[0]
     msg_body = split[1]
-    print("message header: ", msg_header)
 
     if msg_header == left_arm_header:
         left_arm = literal_eval(msg_body)
@@ -36,12 +40,15 @@ while True:
     else:
         print("Message header not recognized: ", msg_header)
 
+    # print message info
+    print("message header: ", msg_header)
     print("message body: ", msg_body)
 
-    print(left_arm)
-    print(right_arm)
-    print(measure_time)
+    print("recieved left arm: ", left_arm)
+    print("recieved right arm: ", right_arm)
+    print("recieved measure time: ", measure_time)
 
+    # Check that all 3 components have been recieved
     if left_arm is not None and right_arm is not None and measure_time is not None:
         # parse arm lists
         left_arm_info, first_c, m_timings = ArmListParser.parseleft_M(left_arm, measure_time)
@@ -56,3 +63,6 @@ while True:
 
         # send song data to robot controller
         RobotControllerAmit.main(right_arm_info, left_arm_info, first_c, measure_time, m_timings, strum_onsets)
+
+        # reset variables so that they're ready to accept new message
+        left_arm, right_arm, measure_time = None, None, None

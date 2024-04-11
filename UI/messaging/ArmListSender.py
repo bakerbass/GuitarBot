@@ -1,24 +1,28 @@
 import socket
 from socket import INADDR_ANY
+from messaging.udp_constants import *
 
 class ArmListSender:
     def __init__(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udp_ip = "127.0.0.1" #UDP_IP
-        self.udp_port = 40012 #UDP_PORT
-        self.left_arm_header = "l_arm_guitar#"
-        self.right_arm_header = "r_arm_guitar#"
-        self.measure_time_header = "measure_time_guitar#"
+        self.udp_ip = LOCAL_UDP_IP
+        self.udp_port = UDP_PORT
+        self.left_arm_header = LEFT_ARM_HEADER
+        self.right_arm_header = RIGHT_ARM_HEADER
+        self.measure_time_header = MEASURE_TIME_HEADER
+        self.header_delimiter = HEADER_DELIMITER
 
+        self.socket.connect((self.udp_ip, self.udp_port))
+        
     def send_arm_lists_to_reciever(self, left_arm, right_arm, measure_time):
         # send left arm data
-        msg = self.left_arm_header + str(left_arm)
-        self.socket.sendto(msg.encode("utf-8"), (self.udp_ip, self.udp_port))
+        msg = self.left_arm_header + self.header_delimiter + str(left_arm)
+        self.socket.send(msg.encode("utf-8"))
 
         # send right arm data
-        msg = self.right_arm_header + str(right_arm)
-        self.socket.sendto(msg.encode("utf-8"), (self.udp_ip, self.udp_port))
+        msg = self.right_arm_header + self.header_delimiter + str(right_arm)
+        self.socket.send(msg.encode("utf-8"))
 
         # send measure time
-        msg = self.measure_time_header + str(measure_time)
-        self.socket.sendto(msg.encode("utf-8"), (self.udp_ip, self.udp_port))
+        msg = self.measure_time_header + self.header_delimiter + str(measure_time)
+        self.socket.send(msg.encode("utf-8"))

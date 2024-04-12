@@ -76,57 +76,5 @@ def optimization(e, a, d, g, b, e2, N):
 # -----------------------------
 
 
-# out = linearInterpolate(0, 2, 40, 8000, 0.001)
-
-out = np.zeros(75, dtype=float)
-# out[:25]    = interpWithBend(10, 5, 25, 0.3) # how fast it accelerates
-# out[25:50]  = interpWithBend(5, -10, 25, 0.1)
-# out[50:]    = interpWithBend(-10, 10, 25, 0.1)
-
-# all of these graphs are different strings
-
-# e = interpWithBend(-3, 5, 25, 0.3)
-# e_derive = np.gradient(e)
-# e_derive2 = np.gradient(np.gradient(e))
-# a = interpWithBend(4, -10, 25, 0.3)
-# a_derive = np.gradient(a)
-# a_derive2 = np.gradient(np.gradient(a))
-# new = interpWithBend(3, 8, 25, 0.1)
-# new_derive = np.gradient(new)
-# new_derive2 = np.gradient(new_derive)
-# print(e_derive2, a_derive2, new_derive2)
-
-# d = interpWithBend(0, 3, 25, 0.1)
-# g = interpWithBend(6, 9, 25, 0.4)
-# b = interpWithBend(2, -5, 25, 0.2)
-# e2 = interpWithBend(0, 7, 25, 0.2)
-
-# print(optimization(e, a, d, g, b, e2, 25))
-
-# take og graph, derive twice, find average value.
-
-out = np.zeros(75, dtype=float)
-out[:25]    = interpWithBend(10, 5, 25, 0.3)
-out[25:50]  = interpWithBend(5, -10, 25, 0.1)
-out[50:]    = interpWithBend(-10, 10, 25, 0.1)
-
-# what are the different ways i can play it
-# make the trajectories
-
-# plt.plot(e, label = 'e string')
-# plt.plot(e_derive, label = 'e derive')
-# plt.plot(e_derive2, label = 'e derive2')
-# plt.plot(-(a), label = 'a string')
-# plt.plot(-(a_derive), label = 'a derive')
-# plt.plot(-(a_derive2), label = 'a derive2')
-# plt.plot(new, label = 'new string')
-# plt.plot(new_derive, label = 'new derive')
-# plt.plot(new_derive2, label = 'new derive2')
-# plt.plot(d, label = 'd string')
-# plt.plot(g, label = 'g string')
-# plt.plot(b, label = 'b string')
-# plt.plot(e2, label = 'e2 string')
-# plt.legend()
-# plt.show()
 
 

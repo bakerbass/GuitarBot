@@ -4,16 +4,19 @@ from View import View, ChordNotationsPopup, HelpPopup
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
 # json saving/loading
 from helpers.JsonHelper import JsonHelper
-# parsing
-from parsing.SongParser import SongParser
 # preview functions
 from preview.midi.ParserToMIDI import arms_to_MIDI
 from preview.midi.PluginIntegration import play_midi_with_plugin
+# messaging
+from messaging.ArmListSender import ArmListSender
 
 class Controller:
     def __init__(self, view: View, model: Model):
         self.view = view
         self.model = model
+
+        # initialize udp message sender
+        self.arm_list_sender = ArmListSender() 
 
         self.song_controls_frame = view.song_controls_frame
         self.song_frame = view.song_frame
@@ -350,12 +353,15 @@ class Controller:
         # get the total time for each measure in seconds
         measure_time = self._calculate_measure_time()
         #print(measure_time)
-        
-        # call parse.py methods to parse left_arm, right_arm data for entire song
-        left_arm_info, first_c, m_timings = SongParser.parseleft_M(left_arm, measure_time)
-        right_arm_info, initial_strum, strum_onsets = SongParser.parseright_M(right_arm, measure_time)
 
-        # TODO send parseleft_M, parseright_M outputs to robot controller via UDP message
+        # send arm lists, measure_time to reciever via UDP message
+        self.arm_list_sender.send_arm_lists_to_reciever(left_arm, right_arm, measure_time)
+        
+        # # call parse.py methods to parse left_arm, right_arm data for entire song
+        # left_arm_info, first_c, m_timings = SongParser.parseleft_M(left_arm, measure_time)
+        # right_arm_info, initial_strum, strum_onsets = SongParser.parseright_M(right_arm, measure_time)
+
+        # # TODO send parseleft_M, parseright_M outputs to robot controller via UDP message
 
     # TODO run on a separate thread so this doesn't block entire UI
     def _preview_song_with_plugin(self):

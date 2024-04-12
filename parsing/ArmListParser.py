@@ -1,7 +1,6 @@
 import pandas as pd
-from chords.chord_dict import chord_dict
 
-class SongParser:
+class ArmListParser:
     @staticmethod
     def get_chords_M(directory, chord_letter, chord_type):
         df_chords = pd.read_csv(directory)
@@ -326,7 +325,7 @@ class SongParser:
 
                     # read chord from csv
                     note = str.upper(chords[0])
-                    frets, command, dtraj, utraj = SongParser.get_chords_M("Chords - Chords.csv", note + key, type)
+                    frets, command, dtraj, utraj = ArmListParser.get_chords_M("Chords - Chords.csv", note + key, type)
                     left_arm[mcount][bcount] = [frets, command]
                     mtimings.append(time)
                     if not firstcfound:

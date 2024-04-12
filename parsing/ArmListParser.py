@@ -4,11 +4,16 @@ class ArmListParser:
     @staticmethod
     def get_chords_M(directory, chord_letter, chord_type):
         df_chords = pd.read_csv(directory)
+
+        # TODO: replace this with Katherine's code to decide which chord voicing to play next
         for new_x in range(334):
             if df_chords.iloc[new_x][0] == chord_letter:
                 if df_chords.iloc[new_x][1] == chord_type:
                     x = new_x
                     break
+
+        # NOTE: nothing below this should need to be changed (we're just trying to decide what 'x' is)
+
         ftraj = False
         dtraj = []
         utraj = []

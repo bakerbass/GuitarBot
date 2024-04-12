@@ -3,7 +3,7 @@ import traj
 import notes
 
 
-def optimization(current_fret_positions, current_string, desired_note, N):
+def optimization(current_fret_positions, current_string, desired_note, N = 25):
     desired_note = notes.notePossibilities(desired_note)
     fret_lengths = [0, 35.63981144712466, 33.639502533759924,
                     31.751462333006657, 29.96938968620543, 28.287337091556935,
@@ -52,25 +52,3 @@ def optimization(current_fret_positions, current_string, desired_note, N):
 
     return string_fret_costs, new_string_pos, new_fret_pos
 
-
-current_positions = [0, 2, 7, 2, 10, 0]
-string_pos = 4
-note = "B2"
-# [-1, -1, 9, 4, 0, -1]
-print(optimization(current_positions, string_pos, note, 25))
-
-current_positions = [0, 0, 0, 0, 10, 5]
-string_pos = 5
-note = "A3"
-# [-1, -1, -1, -1, 10, 5]
-print(optimization(current_positions, string_pos, note, 25))
-
-current_positions = [1, 2, 3, 4, 5, 6]
-string_pos = 3
-note = "Gb3"
-print(optimization(current_positions, string_pos, note, 25))
-
-current_positions = [1, 2, 3, 4, 5, 6]
-string_pos = 3
-note = "Z"
-print(optimization(current_positions, string_pos, note, 25))

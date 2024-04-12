@@ -6,12 +6,23 @@ class ArmListParser:
         df_chords = pd.read_csv(directory)
 
         # TODO: replace this with Katherine's code to decide which chord voicing to play next
-        for new_x in range(334):
-            if df_chords.iloc[new_x][0] == chord_letter:
-                if df_chords.iloc[new_x][1] == chord_type:
-                    x = new_x
-                    break
 
+        optimized = False
+        chord_possibilities = []
+        for new_x in range(334):
+            if df_chords.iloc[new_x].iloc[0] == chord_letter:
+                if df_chords.iloc[new_x].iloc[1] == chord_type:
+                    x = new_x
+                    chord = [df_chords.iloc[new_x].iloc[3], df_chords.iloc[new_x].iloc[4],
+                        df_chords.iloc[new_x].iloc[5], df_chords.iloc[new_x].iloc[6],
+                        df_chords.iloc[new_x].iloc[7], df_chords.iloc[new_x].iloc[8]]
+                    chord_possibilities.append(chord)
+                    optimized = True
+                
+            frets_numbers_optimized = findLowestCostChord(current_fret_positions, directory, chord_letter, chord_type)
+            
+            break
+        
         # NOTE: nothing below this should need to be changed (we're just trying to decide what 'x' is)
 
         ftraj = False
@@ -120,9 +131,19 @@ class ArmListParser:
             fret_play.append(3)
         else:
             fret_play.append(2)
-        print(fret_numbers, fret_play)
-        print(dtraj, utraj)
-        return fret_numbers, fret_play, dtraj, utraj
+
+        if optimized:
+            print(frets_numbers_optimized, fret_play)
+            print(dtraj, utraj)
+            
+            return frets_numbers_optimized, fret_play, dtraj, utraj
+            
+        else: 
+            print(frets_numbers_optimized, fret_play)
+            print(dtraj, utraj)
+            
+            return frets_numbers_optimized, fret_play, dtraj, utraj
+            
 
     # parse right arm (strums) input
     @staticmethod
@@ -352,3 +373,55 @@ class ArmListParser:
         print("jc", justchords)
         # return left_arm, firstc, mtimings
         return justchords, firstc, mtimings
+
+    #----------------------------------Katherine's Code--------------------------------------
+        
+    def get_chords_M(directory, chord_letter, chord_type):
+        df_chords = pd.read_csv(directory)
+        chord_possibilities = []
+        for new_x in range(334):
+            if df_chords.iloc[new_x].iloc[0] == chord_letter:
+                if df_chords.iloc[new_x].iloc[1] == chord_type:
+                    x = new_x
+                    chord = [df_chords.iloc[new_x].iloc[3], df_chords.iloc[new_x].iloc[4],
+                        df_chords.iloc[new_x].iloc[5], df_chords.iloc[new_x].iloc[6],
+                        df_chords.iloc[new_x].iloc[7], df_chords.iloc[new_x].iloc[8]]
+                    chord_possibilities.append(chord)
+    
+        return chord_possibilities
+
+    
+    def calculate_cost(arr1, arr2, N = 25):
+        cost = 0
+        for a, b in zip(arr1, arr2):
+            fret_lengths = [0, 35.63981144712466, 33.639502533759924,
+                            31.751462333006657, 29.96938968620543, 28.287337091556935,
+                            26.69969085488873, 25.201152354471787, 23.786720357363606,
+                            22.45167432825832, 21.191558675138026]
+    
+            y1 = fret_lengths[a]
+            y2 = fret_lengths[b]
+    
+            x_values = np.linspace(0, 1, N)
+            avg = (0 + N) / 2
+    
+            out = traj.interpWithBend(y1, y2, 25, 0.2)
+            costs = abs(np.gradient(out))
+            y_value = np.interp(avg, x_values, costs)
+    
+            cost += y_value * 59.9406059
+
+
+        return cost
+    
+    def findLowestCostChord(current_fret_positions, directory, chord_letter, chord_type):
+        min_cost = float('inf')
+        easiest_frets = None
+
+        for arr in get_chords_M(directory, chord_letter, chord_type):
+            cost = calculate_cost(arr, current_fret_positions)
+            if cost < min_cost:
+                min_cost = cost
+                easiest_frets = arr
+    
+        return easiest_frets

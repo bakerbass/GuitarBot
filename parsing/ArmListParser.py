@@ -1,148 +1,41 @@
 import pandas as pd
+from chord_selector import find_lowest_cost_chord
 
 class ArmListParser:
+    current_fret_positions = [0, 0, 0, 0, 0, 0] # begins by preferring voicings near first position
+
     @staticmethod
-    def get_chords_M(directory, chord_letter, chord_type):
-        df_chords = pd.read_csv(directory)
+    def _get_chords_M(filepath, chord_letter, chord_type):
+        fret_numbers_optimized = find_lowest_cost_chord(ArmListParser.current_fret_positions, filepath, chord_letter, chord_type)
+        ArmListParser.current_fret_positions = fret_numbers_optimized
 
-        # TODO: replace this with Katherine's code to decide which chord voicing to play next
+        # TODO: determine if these are even worth keeping?  They aren't used in leftarm parse, only place that calls this.
+        dtraj, utraj = [], []
 
-        optimized = False
-        chord_possibilities = []
-        for new_x in range(334):
-            if df_chords.iloc[new_x].iloc[0] == chord_letter:
-                if df_chords.iloc[new_x].iloc[1] == chord_type:
-                    x = new_x
-                    chord = [df_chords.iloc[new_x].iloc[3], df_chords.iloc[new_x].iloc[4],
-                        df_chords.iloc[new_x].iloc[5], df_chords.iloc[new_x].iloc[6],
-                        df_chords.iloc[new_x].iloc[7], df_chords.iloc[new_x].iloc[8]]
-                    chord_possibilities.append(chord)
-                    optimized = True
-                
-            frets_numbers_optimized = findLowestCostChord(current_fret_positions, directory, chord_letter, chord_type)
-            
-            break
-        
-        # NOTE: nothing below this should need to be changed (we're just trying to decide what 'x' is)
+        for i in range(6):
+            if fret_numbers_optimized[i] != -1:
+                dtraj = [i, 6]
+                utraj = [6, i]
+                break
 
-        ftraj = False
-        dtraj = []
-        utraj = []
-        try:
-            s1 = int(df_chords.iloc[x][3])
-            dtraj = [0, 6]
-            utraj = [6, 0]
-            ftraj = True
-        except:
-            s1 = -1
-        try:
-            s2 = int(df_chords.iloc[x][4])
-            if ftraj == False:
-                dtraj = [1, 6]
-                utraj = [6, 1]
-                ftraj = True
-        except:
-            s2 = -1
-
-        try:
-            s3 = int(df_chords.iloc[x][5])
-            if ftraj == False:
-                dtraj = [2, 6]
-                utraj = [6, 2]
-                ftraj = True
-        except:
-            s3 = -1
-        try:
-            s4 = int(df_chords.iloc[x][6])
-            if ftraj == False:
-                dtraj = [3, 6]
-                utraj = [6, 3]
-                ftraj = True
-        except:
-            s4 = -1
-        try:
-            s5 = int(df_chords.iloc[x][7])
-            if ftraj == False:
-                dtraj = [4, 6]
-                utraj = [6, 4]
-                ftraj = True
-        except:
-            s5 = -1
-        try:
-            s6 = int(df_chords.iloc[x][8])
-            if ftraj == False:
-                dtraj = [5, 6]
-                utraj = [6, 5]
-                ftraj = True
-        except:
-            s6 = -1
-        fret_numbers = [s1, s2, s3, s4, s5, s6]
+        fret_numbers = fret_numbers_optimized.copy()
         fret_play = []
-        if fret_numbers[0] == 0:
-            fret_numbers[0] += 1
-            fret_play.append(1)
-        elif fret_numbers[0] == -1:
-            fret_numbers[0] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
 
-        if fret_numbers[1] == 0:
-            fret_numbers[1] += 1
-            fret_play.append(1)
-        elif fret_numbers[1] == -1:
-            fret_numbers[1] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
-
-        if fret_numbers[2] == 0:
-            fret_numbers[2] += 1
-            fret_play.append(1)
-        elif fret_numbers[2] == -1:
-            fret_numbers[2] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
-
-        if fret_numbers[3] == 0:
-            fret_numbers[3] += 1
-            fret_play.append(1)
-        elif fret_numbers[3] == -1:
-            fret_numbers[3] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
-
-        if fret_numbers[4] == 0:
-            fret_numbers[4] += 1
-            fret_play.append(1)
-        elif fret_numbers[4] == -1:
-            fret_numbers[4] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
-
-        if fret_numbers[5] == 0:
-            fret_numbers[5] += 1
-            fret_play.append(1)
-        elif fret_numbers[5] == -1:
-            fret_numbers[5] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
-
-        if optimized:
-            print(frets_numbers_optimized, fret_play)
-            print(dtraj, utraj)
+        # fret_play of 1 is open, 2 is pressed, 3 is unplayed
+        for i in range(6):
+            if fret_numbers[i] == 0:
+                fret_numbers[i] = 1
+                fret_play.append(1)
+            elif fret_numbers[i] == -1:
+                fret_numbers[i] = 1
+                fret_play.append(3)
+            else:
+                fret_play.append(2)
             
-            return frets_numbers_optimized, fret_play, dtraj, utraj
-            
-        else: 
-            print(frets_numbers_optimized, fret_play)
-            print(dtraj, utraj)
-            
-            return frets_numbers_optimized, fret_play, dtraj, utraj
+        print(fret_numbers, fret_play)
+        print(dtraj, utraj)
+    
+        return fret_numbers, fret_play, dtraj, utraj
             
 
     # parse right arm (strums) input
@@ -351,7 +244,7 @@ class ArmListParser:
 
                     # read chord from csv
                     note = str.upper(chords[0])
-                    frets, command, dtraj, utraj = ArmListParser.get_chords_M("Chords - Chords.csv", note + key, type)
+                    frets, command, dtraj, utraj = ArmListParser._get_chords_M("Chords - Chords.csv", note + key, type)
                     left_arm[mcount][bcount] = [frets, command]
                     mtimings.append(time)
                     if not firstcfound:
@@ -373,55 +266,3 @@ class ArmListParser:
         print("jc", justchords)
         # return left_arm, firstc, mtimings
         return justchords, firstc, mtimings
-
-    #----------------------------------Katherine's Code--------------------------------------
-        
-    def get_chords_M(directory, chord_letter, chord_type):
-        df_chords = pd.read_csv(directory)
-        chord_possibilities = []
-        for new_x in range(334):
-            if df_chords.iloc[new_x].iloc[0] == chord_letter:
-                if df_chords.iloc[new_x].iloc[1] == chord_type:
-                    x = new_x
-                    chord = [df_chords.iloc[new_x].iloc[3], df_chords.iloc[new_x].iloc[4],
-                        df_chords.iloc[new_x].iloc[5], df_chords.iloc[new_x].iloc[6],
-                        df_chords.iloc[new_x].iloc[7], df_chords.iloc[new_x].iloc[8]]
-                    chord_possibilities.append(chord)
-    
-        return chord_possibilities
-
-    
-    def calculate_cost(arr1, arr2, N = 25):
-        cost = 0
-        for a, b in zip(arr1, arr2):
-            fret_lengths = [0, 35.63981144712466, 33.639502533759924,
-                            31.751462333006657, 29.96938968620543, 28.287337091556935,
-                            26.69969085488873, 25.201152354471787, 23.786720357363606,
-                            22.45167432825832, 21.191558675138026]
-    
-            y1 = fret_lengths[a]
-            y2 = fret_lengths[b]
-    
-            x_values = np.linspace(0, 1, N)
-            avg = (0 + N) / 2
-    
-            out = traj.interpWithBend(y1, y2, 25, 0.2)
-            costs = abs(np.gradient(out))
-            y_value = np.interp(avg, x_values, costs)
-    
-            cost += y_value * 59.9406059
-
-
-        return cost
-    
-    def findLowestCostChord(current_fret_positions, directory, chord_letter, chord_type):
-        min_cost = float('inf')
-        easiest_frets = None
-
-        for arr in get_chords_M(directory, chord_letter, chord_type):
-            cost = calculate_cost(arr, current_fret_positions)
-            if cost < min_cost:
-                min_cost = cost
-                easiest_frets = arr
-    
-        return easiest_frets

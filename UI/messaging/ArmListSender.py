@@ -5,7 +5,7 @@ from messaging.udp_constants import *
 class ArmListSender:
     def __init__(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udp_ip = LOCAL_UDP_IP
+        self.udp_ip = SENDER_RECEIVER_IP
         self.udp_port = UDP_PORT
         self.left_arm_header = LEFT_ARM_HEADER
         self.right_arm_header = RIGHT_ARM_HEADER

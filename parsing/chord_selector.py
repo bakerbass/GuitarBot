@@ -1,5 +1,5 @@
 import numpy as np
-import guitar_cost.traj as traj
+import parsing.guitar_cost.traj as traj
 import pandas as pd
 
 def find_lowest_cost_chord(current_fret_positions, filepath, chord_letter, chord_type):

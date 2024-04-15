@@ -1,5 +1,5 @@
 import pandas as pd
-from chord_selector import find_lowest_cost_chord
+from parsing.chord_selector import find_lowest_cost_chord
 
 class ArmListParser:
     current_fret_positions = [0, 0, 0, 0, 0, 0] # begins by preferring voicings near first position

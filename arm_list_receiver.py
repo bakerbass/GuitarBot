@@ -5,7 +5,7 @@ from parsing.ArmListParser import ArmListParser
 from UI.messaging.udp_definitions import *
 
 # Define ip/port/headers
-udp_ip = SENDER_RECEIVER_IP
+udp_ip = RECEIVER_IP
 udp_port = UDP_PORT
 left_arm_header = LEFT_ARM_HEADER
 right_arm_header = RIGHT_ARM_HEADER

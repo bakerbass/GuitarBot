@@ -45,7 +45,7 @@ class ChordNotationsPopup(tk.Toplevel):
         self.geometry('800x500')
 
         # Add chord notations list (HTML)
-        html_content = HTMLScrolledText(self, html=RenderHTML('./UI/html/chord_notations_popup.html'))
+        html_content = HTMLScrolledText(self, html=RenderHTML('./html/chord_notations_popup.html'))
         html_content.pack(fill='both', expand=True)
         # htmlContent.fit_height()
 
@@ -61,7 +61,7 @@ class HelpPopup(tk.Toplevel):
         self.geometry('500x350')
 
         # Add html content
-        html_content = HTMLScrolledText(self, html=RenderHTML('./UI/html/help_popup.html'))
+        html_content = HTMLScrolledText(self, html=RenderHTML('./html/help_popup.html'))
         html_content.pack(fill='both', expand=True)
         # htmlContent.fit_height()
 

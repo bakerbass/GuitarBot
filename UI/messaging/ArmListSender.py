@@ -1,6 +1,5 @@
 import socket
-from socket import INADDR_ANY
-from messaging.udp_constants import *
+from UI.messaging.udp_definitions import *
 
 class ArmListSender:
     def __init__(self):

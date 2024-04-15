@@ -1,123 +1,42 @@
 import pandas as pd
+from parsing.chord_selector import find_lowest_cost_chord
 
 class ArmListParser:
+    current_fret_positions = [0, 0, 0, 0, 0, 0] # begins by preferring voicings near first position
+
     @staticmethod
-    def get_chords_M(directory, chord_letter, chord_type):
-        df_chords = pd.read_csv(directory)
-        for new_x in range(334):
-            if df_chords.iloc[new_x][0] == chord_letter:
-                if df_chords.iloc[new_x][1] == chord_type:
-                    x = new_x
-                    break
-        ftraj = False
-        dtraj = []
-        utraj = []
-        try:
-            s1 = int(df_chords.iloc[x][3])
-            dtraj = [0, 6]
-            utraj = [6, 0]
-            ftraj = True
-        except:
-            s1 = -1
-        try:
-            s2 = int(df_chords.iloc[x][4])
-            if ftraj == False:
-                dtraj = [1, 6]
-                utraj = [6, 1]
-                ftraj = True
-        except:
-            s2 = -1
+    def _get_chords_M(filepath, chord_letter, chord_type):
+        fret_numbers_optimized = find_lowest_cost_chord(ArmListParser.current_fret_positions, filepath, chord_letter, chord_type)
+        ArmListParser.current_fret_positions = fret_numbers_optimized
 
-        try:
-            s3 = int(df_chords.iloc[x][5])
-            if ftraj == False:
-                dtraj = [2, 6]
-                utraj = [6, 2]
-                ftraj = True
-        except:
-            s3 = -1
-        try:
-            s4 = int(df_chords.iloc[x][6])
-            if ftraj == False:
-                dtraj = [3, 6]
-                utraj = [6, 3]
-                ftraj = True
-        except:
-            s4 = -1
-        try:
-            s5 = int(df_chords.iloc[x][7])
-            if ftraj == False:
-                dtraj = [4, 6]
-                utraj = [6, 4]
-                ftraj = True
-        except:
-            s5 = -1
-        try:
-            s6 = int(df_chords.iloc[x][8])
-            if ftraj == False:
-                dtraj = [5, 6]
-                utraj = [6, 5]
-                ftraj = True
-        except:
-            s6 = -1
-        fret_numbers = [s1, s2, s3, s4, s5, s6]
+        # TODO: determine if these are even worth keeping?  They aren't used in leftarm parse, only place that calls this.
+        dtraj, utraj = [], []
+
+        for i in range(6):
+            if fret_numbers_optimized[i] != -1:
+                dtraj = [i, 6]
+                utraj = [6, i]
+                break
+
+        fret_numbers = fret_numbers_optimized.copy()
         fret_play = []
-        if fret_numbers[0] == 0:
-            fret_numbers[0] += 1
-            fret_play.append(1)
-        elif fret_numbers[0] == -1:
-            fret_numbers[0] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
 
-        if fret_numbers[1] == 0:
-            fret_numbers[1] += 1
-            fret_play.append(1)
-        elif fret_numbers[1] == -1:
-            fret_numbers[1] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
-
-        if fret_numbers[2] == 0:
-            fret_numbers[2] += 1
-            fret_play.append(1)
-        elif fret_numbers[2] == -1:
-            fret_numbers[2] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
-
-        if fret_numbers[3] == 0:
-            fret_numbers[3] += 1
-            fret_play.append(1)
-        elif fret_numbers[3] == -1:
-            fret_numbers[3] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
-
-        if fret_numbers[4] == 0:
-            fret_numbers[4] += 1
-            fret_play.append(1)
-        elif fret_numbers[4] == -1:
-            fret_numbers[4] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
-
-        if fret_numbers[5] == 0:
-            fret_numbers[5] += 1
-            fret_play.append(1)
-        elif fret_numbers[5] == -1:
-            fret_numbers[5] = 1
-            fret_play.append(3)
-        else:
-            fret_play.append(2)
+        # fret_play of 1 is open, 2 is pressed, 3 is unplayed
+        for i in range(6):
+            if fret_numbers[i] == 0:
+                fret_numbers[i] = 1
+                fret_play.append(1)
+            elif fret_numbers[i] == -1:
+                fret_numbers[i] = 1
+                fret_play.append(3)
+            else:
+                fret_play.append(2)
+            
         print(fret_numbers, fret_play)
         print(dtraj, utraj)
+    
         return fret_numbers, fret_play, dtraj, utraj
+            
 
     # parse right arm (strums) input
     @staticmethod
@@ -325,7 +244,7 @@ class ArmListParser:
 
                     # read chord from csv
                     note = str.upper(chords[0])
-                    frets, command, dtraj, utraj = ArmListParser.get_chords_M("Chords - Chords.csv", note + key, type)
+                    frets, command, dtraj, utraj = ArmListParser._get_chords_M("Chords - Chords.csv", note + key, type)
                     left_arm[mcount][bcount] = [frets, command]
                     mtimings.append(time)
                     if not firstcfound:

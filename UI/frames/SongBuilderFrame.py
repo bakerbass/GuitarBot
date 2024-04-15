@@ -19,7 +19,7 @@ class SongBuilderFrame(ctk.CTkScrollableFrame):
         self.drag_and_drop_canvas.create_window(width/2.0, 15, anchor=tk.CENTER, window=self.section_button_frame)        
     
     def add_section_button(self, section_id, section_name):
-        btn = tk.Label(master=self.section_button_frame, textvariable=section_name, bg='navy blue', width=6, cursor='hand2')
+        btn = tk.Label(master=self.section_button_frame, textvariable=section_name, bg='navy blue', fg='white', width=6, cursor='hand2')
 
         btn.bind("<ButtonPress-1>", lambda event, arg=(section_id, section_name): self.add_draggable_section(event, arg))
         btn.pack(side='left', padx=5)

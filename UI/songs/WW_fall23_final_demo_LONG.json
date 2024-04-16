@@ -1,41 +1,42 @@
 [
     {
-        "name": "wonderwall",
-        "timeSig": "4/4",
+        "song_title": "WW_fall23_final_demo_LONG",
+        "time_signature": "4/4",
         "bpm": "145",
-        "input": "v, v, b, v, v, c, c"
+        "chord_mode": "Optimal",
+        "song_order": "v,v,b,v,v,p1,p1,p2,c,c"
     },
     {
         "name": "v",
-        "numMeasures": 4,
-        "strumPattern": "WV",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "WV",
+        "left_arm": [
             [
-                "E m7",
+                "Em",
                 "",
                 "",
                 ""
             ],
             [
-                "G M",
+                "G",
                 "",
                 "",
                 ""
             ],
             [
-                "D SUS4",
+                "D",
                 "",
                 "",
-                "A SUS4"
+                "A"
             ],
             [
-                "",
+                "A",
                 "",
                 "",
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "",
@@ -80,35 +81,35 @@
     },
     {
         "name": "c",
-        "numMeasures": 4,
-        "strumPattern": "WC",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "WC",
+        "left_arm": [
             [
-                "C M",
+                "C",
                 "",
                 "",
                 ""
             ],
             [
-                "E m7",
+                "Em",
                 "",
                 "",
                 ""
             ],
             [
-                "G M",
+                "G",
                 "",
                 "",
                 ""
             ],
             [
-                "E m7",
+                "Em",
                 "",
                 "",
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "",
@@ -153,35 +154,35 @@
     },
     {
         "name": "b",
-        "numMeasures": 4,
-        "strumPattern": "WB",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "WB",
+        "left_arm": [
             [
-                "C M",
+                "C",
                 "",
                 "",
                 ""
             ],
             [
-                "D SUS4",
+                "D",
                 "",
                 "",
                 ""
             ],
             [
+                "D",
                 "",
                 "",
-                "",
-                "A SUS4"
+                "A"
             ],
             [
-                "",
+                "A",
                 "",
                 "",
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "",
@@ -219,6 +220,152 @@
                 "U",
                 "D",
                 "U",
+                "D",
+                "U"
+            ]
+        ]
+    },
+    {
+        "name": "p1",
+        "num_measures": 4,
+        "strum_pattern": "WV",
+        "left_arm": [
+            [
+                "C",
+                "",
+                "",
+                ""
+            ],
+            [
+                "D",
+                "",
+                "",
+                ""
+            ],
+            [
+                "Em",
+                "",
+                "",
+                ""
+            ],
+            [
+                "Em",
+                "",
+                "",
+                ""
+            ]
+        ],
+        "right_arm": [
+            [
+                "D",
+                "",
+                "D",
+                "",
+                "D",
+                "",
+                "",
+                "U"
+            ],
+            [
+                "D",
+                "U",
+                "D",
+                "",
+                "D",
+                "",
+                "",
+                "U"
+            ],
+            [
+                "D",
+                "U",
+                "D",
+                "",
+                "D",
+                "",
+                "D",
+                "U"
+            ],
+            [
+                "",
+                "U",
+                "D",
+                "U",
+                "D",
+                "U",
+                "D",
+                "U"
+            ]
+        ]
+    },
+    {
+        "name": "p2",
+        "num_measures": 4,
+        "strum_pattern": "Custom",
+        "left_arm": [
+            [
+                "C",
+                "",
+                "",
+                ""
+            ],
+            [
+                "D",
+                "",
+                "",
+                ""
+            ],
+            [
+                "G",
+                "",
+                "F#",
+                ""
+            ],
+            [
+                "Em",
+                "",
+                "G",
+                ""
+            ]
+        ],
+        "right_arm": [
+            [
+                "D",
+                "",
+                "D",
+                "",
+                "D",
+                "",
+                "",
+                "U"
+            ],
+            [
+                "D",
+                "U",
+                "D",
+                "",
+                "D",
+                "",
+                "",
+                "U"
+            ],
+            [
+                "D",
+                "",
+                "D",
+                "U",
+                "D",
+                "",
+                "D",
+                "U"
+            ],
+            [
+                "D",
+                "",
+                "D",
+                "U",
+                "D",
+                "",
                 "D",
                 "U"
             ]

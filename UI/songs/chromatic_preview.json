@@ -1,15 +1,16 @@
 [
     {
-        "name": "chromatic_preview",
-        "timeSig": "4/4",
+        "song_title": "chromatic_preview",
+        "time_signature": "4/4",
         "bpm": "60",
-        "input": "maj"
+        "chord_mode": "Optimal",
+        "song_order": "maj"
     },
     {
         "name": "maj",
-        "numMeasures": 4,
-        "strumPattern": "Down/Up",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "Down/Up",
+        "left_arm": [
             [
                 "A",
                 "Bb",
@@ -35,7 +36,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "U",
@@ -80,9 +81,9 @@
     },
     {
         "name": "min",
-        "numMeasures": 4,
-        "strumPattern": "Down/Up",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "Down/Up",
+        "left_arm": [
             [
                 "Am",
                 "Bbm",
@@ -108,7 +109,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "U",

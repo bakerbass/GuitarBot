@@ -1,15 +1,16 @@
 [
     {
-        "name": "syncopated_demo",
-        "timeSig": "4/4",
+        "song_title": "syncopated_demo",
+        "time_signature": "4/4",
         "bpm": "90",
-        "input": "v,v,v,end"
+        "chord_mode": "Optimal",
+        "song_order": "v,v,v,end"
     },
     {
         "name": "v",
-        "numMeasures": 1,
-        "strumPattern": "Boom Chicka",
-        "leftArm": [
+        "num_measures": 1,
+        "strum_pattern": "Boom Chicka",
+        "left_arm": [
             [
                 "C",
                 "F",
@@ -17,7 +18,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "d",
                 "u",
@@ -32,9 +33,9 @@
     },
     {
         "name": "end",
-        "numMeasures": 1,
-        "strumPattern": "Custom",
-        "leftArm": [
+        "num_measures": 1,
+        "strum_pattern": "Custom",
+        "left_arm": [
             [
                 "F",
                 "C",
@@ -42,7 +43,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "d",
                 "u",

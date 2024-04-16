@@ -1,15 +1,16 @@
 [
     {
         "name": "wonderwall-preview",
-        "timeSig": "4/4",
+        "time_signature": "4/4",
         "bpm": "145",
-        "input": "v,v,v,v,v,v,v,b,v,v,v,v,p1,p1,p2,c,c,c,c"
+        "chord_mode": "Optimal",
+        "song_order": "v,v,v,v,v,v,v,b,v,v,v,v,p1,p1,p2,c,c,c,c"
     },
     {
         "name": "v",
-        "numMeasures": 4,
-        "strumPattern": "WV",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "WV",
+        "left_arm": [
             [
                 "Em",
                 "",
@@ -35,7 +36,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "",
@@ -80,9 +81,9 @@
     },
     {
         "name": "c",
-        "numMeasures": 4,
-        "strumPattern": "WC",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "WC",
+        "left_arm": [
             [
                 "C",
                 "",
@@ -108,7 +109,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "",
@@ -153,9 +154,9 @@
     },
     {
         "name": "b",
-        "numMeasures": 4,
-        "strumPattern": "WB",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "WB",
+        "left_arm": [
             [
                 "C",
                 "",
@@ -181,7 +182,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "",
@@ -226,9 +227,9 @@
     },
     {
         "name": "p1",
-        "numMeasures": 4,
-        "strumPattern": "WV",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "WV",
+        "left_arm": [
             [
                 "C",
                 "",
@@ -254,7 +255,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "",
@@ -299,9 +300,9 @@
     },
     {
         "name": "p2",
-        "numMeasures": 4,
-        "strumPattern": "Custom",
-        "leftArm": [
+        "num_measures": 4,
+        "strum_pattern": "Custom",
+        "left_arm": [
             [
                 "C",
                 "",
@@ -327,7 +328,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "D",
                 "",

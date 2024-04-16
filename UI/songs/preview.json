@@ -1,15 +1,16 @@
 [
     {
-        "name": "preview",
-        "timeSig": "4/4",
+        "song_title": "preview",
+        "time_signature": "4/4",
         "bpm": "60",
-        "input": "v, c"
+        "chord_mode": "Optimal",
+        "song_order": "v, c"
     },
     {
         "name": "v",
-        "numMeasures": 2,
-        "strumPattern": "Custom",
-        "leftArm": [
+        "num_measures": 2,
+        "strum_pattern": "Custom",
+        "left_arm": [
             [
                 "C",
                 "",
@@ -23,7 +24,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "d",
                 "",
@@ -48,9 +49,9 @@
     },
     {
         "name": "c",
-        "numMeasures": 1,
-        "strumPattern": "Custom",
-        "leftArm": [
+        "num_measures": 1,
+        "strum_pattern": "Custom",
+        "left_arm": [
             [
                 "F",
                 "",
@@ -58,7 +59,7 @@
                 ""
             ]
         ],
-        "rightArm": [
+        "right_arm": [
             [
                 "d",
                 "u",

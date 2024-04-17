@@ -357,12 +357,6 @@ class Controller:
         # send arm lists, measure_time to reciever via UDP message
         self.arm_list_sender.send_arm_lists_to_reciever(left_arm, right_arm, measure_time)
         
-        # # call parse.py methods to parse left_arm, right_arm data for entire song
-        # left_arm_info, first_c, m_timings = SongParser.parseleft_M(left_arm, measure_time)
-        # right_arm_info, initial_strum, strum_onsets = SongParser.parseright_M(right_arm, measure_time)
-
-        # # TODO send parseleft_M, parseright_M outputs to robot controller via UDP message
-
     # TODO run on a separate thread so this doesn't block entire UI
     def _preview_song_with_plugin(self):
         left_arm, right_arm = self._build_complete_arm_lists()

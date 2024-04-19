@@ -62,4 +62,5 @@ def _calculate_cost(arr1, arr2, N = 25):
 
         cost += y_value * 59.9406059
 
+    cost = cost/6
     return cost

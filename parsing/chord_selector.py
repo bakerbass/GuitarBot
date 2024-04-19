@@ -7,7 +7,7 @@ def find_lowest_cost_chord(current_fret_positions, filepath, chord_letter, chord
     easiest_frets = None
 
     for chord_voicing in _get_chord_voicings_list(filepath, chord_letter, chord_type):
-        cost = _calculate_cost(chord_voicing, current_fret_positions)
+        cost = _calculate_cost(current_fret_positions, chord_voicing)
         if cost < min_cost:
             min_cost = cost
             easiest_frets = chord_voicing

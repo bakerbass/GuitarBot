@@ -28,16 +28,9 @@ You're all set! Run the **UI/main.py** script to start the GuitarBot UI.
 ## Documentation
 See https://github.com/JackKeller27/GuitarBot/wiki.
 
-Contains documentation on the project, along with to-do and existing bugs lists.
+Contains documentation on the project along with a future improvements page.
 
-## Todo
-- Scrollbar
-- Drag & drop for song components
-- "Legend" for how to input chords
-- Saving custom strum pattern
-- Strum patterns for different time signatures (how to handle a user trying to put a 3/4 strum pattern into a 4/4 bar?)
-- 6/8? Custom time signatures?
+## Existing Bugs
+See https://github.com/JackKeller27/GuitarBot/issues.
 
-Existing bugs:
-- Section "Name" input box does not show up in 2/4 with only one bar
-- Tab issue: details are documented in UIGen.py at the beginning of the "Section" class
+Contains details regarding existing issues/bugs with the project.

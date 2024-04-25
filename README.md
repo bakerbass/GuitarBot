@@ -25,6 +25,11 @@ You're all set! Run the **UI/main.py** script to start the GuitarBot UI.
 2. If not already activated, run `conda activate guitarbot_env` to activate the guitarbot environment.
 3. Run `conda env export > environment.yml` to export the guitarbot environment to a new environment.yml file. Make sure to replace the existing environment.yml file.
 
+## Documentation
+See https://github.com/JackKeller27/GuitarBot/wiki.
+
+Contains documentation on the project, along with to-do and existing bugs lists.
+
 ## Todo
 - Scrollbar
 - Drag & drop for song components

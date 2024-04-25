@@ -5,7 +5,8 @@ from tkinter.filedialog import askopenfilename
 
 class JsonHelper:
     @staticmethod
-    def write_song_to_json(song_title, time_signature, bpm, chord_mode, song_order, sections):
+    # Save song data in JSON format 
+    def write_song_to_json(song_title, time_signature, bpm, chord_mode, ordered_section_ids, sections):
         # check to make sure that user does not accidentally overwrite existing song
         if song_title != "default" and os.path.isfile('./UI/songs/' + song_title + '.json'):
             response = tkinter.messagebox.askquestion("Warning",
@@ -20,7 +21,7 @@ class JsonHelper:
             "time_signature": time_signature,
             "bpm": bpm,
             "chord_mode": chord_mode,
-            "song_order": song_order
+            "ordered_section_ids": ordered_section_ids
         }
 
         json_data = []
@@ -29,6 +30,7 @@ class JsonHelper:
         # add individual section data to json_data
         for section in sections:
             section_dict = {}
+            section_dict["id"] = section.id
             section_dict["name"] = section.name
             section_dict["num_measures"] = section.num_measures
             section_dict["strum_pattern"] = section.strum_pattern if section.strum_pattern != "Strum Pattern" else "Custom" # if user didn't select a strum pattern, set to "Custom"
@@ -40,16 +42,24 @@ class JsonHelper:
             # write data to json
             file.write(json.dumps(json_data, indent=4))
 
-    # TODO
     @staticmethod
+    # Load song data from JSON file
+    # Returns song_dict, section_dicts[] which contain song and sections data
     def load_song_from_json():
         path = askopenfilename()
         print(str(path))
         with open(path, 'r') as file:
             json_data = json.load(file)
 
-        # set general song data
+        # get general song data
         song_dict = json_data.pop(0)
+
+        # get sections data
+        section_dicts = []
+        for section_dict in json_data:
+            section_dicts.append(section_dict)
+
+        return song_dict, section_dicts
 
         # update UI components
         songTitle.delete(0, END)

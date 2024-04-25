@@ -3,7 +3,7 @@ from View import View, ChordNotationsPopup, HelpPopup
 # drag and drop
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
 # json saving/loading
-from helpers.JsonHelper import JsonHelper
+from saving_loading.JsonHelper import JsonHelper
 # preview functions
 from preview.midi.ParserToMIDI import arms_to_MIDI
 from preview.midi.PluginIntegration import play_midi_with_plugin
@@ -170,14 +170,44 @@ class Controller:
     # Save btn
     def _save_song_handler(self):
         self._update_model_sections()
-        song_order = self._get_ordered_section_names()
+        song_order = self._get_ordered_section_ids()
         JsonHelper.write_song_to_json(self.model.song_title, self.model.time_signature, self.model.bpm, self.model.chord_mode, song_order, self.model.sections.values())
 
     # Load btn
     def _load_song_handler(self):
+        # load song data
+        song_dict, section_dicts = JsonHelper.load_song_from_json()
+
+        # unpack song_dict
+        song_title = song_dict["song_title"]
+        bpm = song_dict["bpm"]
+        time_signature = song_dict["time_signature"]
+        chord_mode = song_dict["chord_mode"]
+        ordered_section_ids = song_dict["ordered_section_ids"]
+
+        # update song data in model
+        self.model.update_song_data(song_title, bpm, time_signature, chord_mode)
+
+        # remove existing sections from view
+        for section_dict in section_dicts:
+            section_id = section_dict["id"]
+            self.song_frame.remove_section(section_id)
+
+        # update song data in view
+        self.song_controls_frame.update_song_data(song_title, bpm, time_signature, chord_mode)
+        
+        # add sections back to the view
+        for section_dict in section_dicts:
+            # TODO fill new sections with existing song data
+            self._add_section()
+
+        # add sections to drag and drop song builder (in the correct order)
+        for section_id in ordered_section_ids:
+            section_name = self.model.sections[section_id].name
+            self.song_builder_frame.add_draggable_section(None, (section_id, section_name))
+
+        # update sections data in the model
         self._update_model_sections()
-        # #TODO params
-        # JsonHelper.load_song_from_json()
 
     # Send btn
     def _send_song_handler(self):
@@ -293,20 +323,17 @@ class Controller:
         self.model.update_section_data(section_frame.id, left_arm, right_arm)
         #print(self.model.sections[section_frame.id].left_arm, self.model.sections[section_frame.id].right_arm)
 
-    # Returns a comma-separated string of the section names in order of the song builder layout
-    def _get_ordered_section_names(self):
-        section_names = ""
+    # Returns a list of the section ids in order of the song builder layout
+    def _get_ordered_section_ids(self):
+        ordered_section_ids = []
 
-        # loop through song builder and append section names in order
+        # loop through song builder and append section ids in order
         for dd_section in DraggableSectionLabel.existing_draggables_list:
             # get the current section from the model
             model_section = self.model.sections[dd_section.section_id]
-            section_names += model_section.name + ", "
+            ordered_section_ids.append(model_section.id)
 
-        # remove last ", "
-        section_names = section_names[:-2]
-
-        return section_names
+        return ordered_section_ids
 
     # Helper method to add a new section to the View and Model accordingly
     def _add_section(self):

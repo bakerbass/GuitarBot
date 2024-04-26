@@ -47,7 +47,7 @@ class JsonHelper:
     # Returns song_dict, section_dicts[] which contain song and sections data
     def load_song_from_json():
         path = askopenfilename()
-        print(str(path))
+        # print(str(path))
         with open(path, 'r') as file:
             json_data = json.load(file)
 
@@ -60,36 +60,3 @@ class JsonHelper:
             section_dicts.append(section_dict)
 
         return song_dict, section_dicts
-
-        # update UI components
-        songTitle.delete(0, END)
-        songTitle.insert(0, song_dict["name"])
-        songInput.delete(0, END)
-        songInput.insert(0, song_dict["input"])
-        bpmInput.delete(0, END)
-        bpmInput.insert(0, song_dict["bpm"])
-        timeSelection.set(song_dict["timeSig"])
-
-        # reset UI to initial state
-        update_table(None)
-
-        # create and populate sections with data
-        count = 0
-        for section_dict in json_data:
-            if count == 0:
-                section = initSection
-            else:
-                section = add_section()
-
-            section.name = section_dict["name"]
-            section.nameInput.insert(0, section.name)
-
-            for i in range(1, int(section_dict["numMeasures"])):
-                add_measure(section)
-
-            section.strumPattern.set(section_dict["strumPattern"])
-            # flatten input arrays
-            leftArm = [item for sublist in section_dict["leftArm"] for item in sublist]
-            rightArm = [item for sublist in section_dict["rightArm"] for item in sublist]
-            section.insertChordStrumData(leftArm, rightArm)
-            count += 1

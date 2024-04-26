@@ -197,19 +197,34 @@ class Controller:
 
         # repopulate song data (title, bpm, time signature, chord mode) in view
         self.song_controls_frame.update_song_data(song_title, bpm, time_signature, chord_mode)
+
+        # Dictionary that stores section name tk.StringVar variables for each section
+        # Needed later in this function when adding draggable sections
+        section_name_vars = {}
         
         # add sections back to the view
         for section_dict in section_dicts:
-            # TODO fill new sections with existing song data
-            self._add_section(add_first_section_to_drag_drop=False)
+            section_frame, labels_frame = self._add_section(add_first_section_to_drag_drop=False)
 
-        # add sections to drag and drop song builder (in the correct order)
-        for section_id in ordered_section_ids:
-            section_name = self.model.sections[section_id].name
-            self.song_builder_frame.add_draggable_section(None, (section_id, section_name))
+            # get section data from section_dict
+            id = section_dict["id"]
+            name = section_dict["name"]
+            strum_pattern = section_dict["strum_pattern"]
+            num_measures = section_dict["num_measures"]
+            left_arm = section_dict["left_arm"]
+            right_arm = section_dict["right_arm"]
+
+            self._populate_section_with_data(section_frame, labels_frame, name, strum_pattern, num_measures, left_arm, right_arm)
+            section_name_vars[id] = labels_frame.name
 
         # update sections data in the model
         self._update_model_sections()
+
+        # add sections to drag and drop song builder (in the correct order)
+        for section_id in ordered_section_ids:
+            # NOTE in order for name to display correctly on drag/drop section, it must be a tk.StringVar variable (not just a regular string)
+            section_name = section_name_vars[section_id]
+            self.song_builder_frame.add_draggable_section(None, (section_id, section_name))
 
     # Send btn
     def _send_song_handler(self):
@@ -352,6 +367,15 @@ class Controller:
 
         # add event bindings for new section
         self._create_section_event_bindings(section)
+
+        return section_frame, labels_frame
+    
+    def _populate_section_with_data(self, section_frame, labels_frame, name, strum_pattern, num_measures, left_arm, right_arm):
+        # add name, strum pattern selection to the section labels
+        labels_frame.update_name_and_strum_pattern(name, strum_pattern)
+
+        # add measures and left_arm, right_arm data
+        section_frame.update_section_data(num_measures, left_arm, right_arm)
 
     def _build_complete_arm_lists(self):
         left_arm = []

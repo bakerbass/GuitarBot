@@ -189,17 +189,19 @@ class Controller:
         self.model.update_song_data(song_title, bpm, time_signature, chord_mode)
 
         # remove existing sections from view
-        for section_dict in section_dicts:
-            section_id = section_dict["id"]
+        for section_id in self.model.sections.keys():
+            # remove section from song frame
             self.song_frame.remove_section(section_id)
+            # remove section from song builder (drag and drop)
+            self.song_builder_frame.remove_section_button_and_draggables(section_id)
 
-        # update song data in view
+        # repopulate song data (title, bpm, time signature, chord mode) in view
         self.song_controls_frame.update_song_data(song_title, bpm, time_signature, chord_mode)
         
         # add sections back to the view
         for section_dict in section_dicts:
             # TODO fill new sections with existing song data
-            self._add_section()
+            self._add_section(add_first_section_to_drag_drop=False)
 
         # add sections to drag and drop song builder (in the correct order)
         for section_id in ordered_section_ids:
@@ -336,14 +338,14 @@ class Controller:
         return ordered_section_ids
 
     # Helper method to add a new section to the View and Model accordingly
-    def _add_section(self):
+    def _add_section(self, add_first_section_to_drag_drop=True):
         # manually add new section to the UI
         section = self.view.song_frame.add_section(self.model.time_signature)
         section_frame, labels_frame = section
         id, name = section_frame.id, labels_frame.name
 
         # add section button to song builder buttons list (this will also automatically drop the very first section onto the song)
-        self.song_builder_frame.add_section_button(id, name)
+        self.song_builder_frame.add_section_button(id, name, add_first_section_to_drag_drop)
 
         # now update the model accordingly
         self.model.add_section(id, name)

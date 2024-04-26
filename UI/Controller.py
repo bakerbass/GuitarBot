@@ -9,6 +9,8 @@ from preview.midi.ParserToMIDI import arms_to_MIDI
 from preview.midi.PluginIntegration import play_midi_with_plugin
 # messaging
 from messaging.ArmListSender import ArmListSender
+# threading
+import threading
 
 class Controller:
     def __init__(self, view: View, model: Model):
@@ -410,13 +412,15 @@ class Controller:
         # send arm lists, measure_time to reciever via UDP message
         self.arm_list_sender.send_arm_lists_to_reciever(left_arm, right_arm, measure_time)
         
-    # TODO run on a separate thread so this doesn't block entire UI
     def _preview_song_with_plugin(self):
         left_arm, right_arm = self._build_complete_arm_lists()
 
         # preview with VST plugin
         # NOTE: plugin must be open and running separately through compatible DAW (GarageBand as of rn)
         midi_chords = arms_to_MIDI(left_arm, right_arm, self.model.bpm, subdiv_per_beat=2)
-        play_midi_with_plugin(midi_chords)
+
+        # create separate thread to run preview function on
+        preview_thread = threading.Thread(target=play_midi_with_plugin(midi_chords))
+        preview_thread.start()
 
     #endregion Helpers

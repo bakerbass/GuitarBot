@@ -412,6 +412,7 @@ class Controller:
         # send arm lists, measure_time to reciever via UDP message
         self.arm_list_sender.send_arm_lists_to_reciever(left_arm, right_arm, measure_time)
         
+    # TODO run this on a separate thread so that it doesn't block entire UI (current implementation not working)
     def _preview_song_with_plugin(self):
         left_arm, right_arm = self._build_complete_arm_lists()
 

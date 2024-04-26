@@ -22,6 +22,12 @@ class Model:
         new_section = Section(section_id, name) # left_arm, right_arm will be initialized to empty lists
         self.sections[section_id] = new_section
 
+    def update_song_data(self, song_title, bpm, time_signature, chord_mode):
+        self.song_title = song_title
+        self.bpm = bpm
+        self.time_signature = time_signature
+        self.chord_mode = chord_mode
+
     # Called by Controller, updates the data for a particular section (indexed by id)
     # Data includes name and left_arm, right_arm lists
     def update_section_data(self, section_id, left_arm, right_arm, name=None, strum_pattern=None, num_measures=None):

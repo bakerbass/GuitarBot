@@ -4,9 +4,13 @@
         "time_signature": "4/4",
         "bpm": "60",
         "chord_mode": "Optimal",
-        "song_order": "v, c"
+        "ordered_section_ids": [
+            1,
+            2
+        ]
     },
     {
+        "id": 1,
         "name": "v",
         "num_measures": 2,
         "strum_pattern": "Custom",
@@ -48,6 +52,7 @@
         ]
     },
     {
+        "id": 2,
         "name": "c",
         "num_measures": 1,
         "strum_pattern": "Custom",

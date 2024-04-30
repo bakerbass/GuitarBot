@@ -4,7 +4,6 @@ from constants.chord_modes import DEFAULT_CHORD_MODE
 from models.Section import Section
 
 # model stores all of the UI's data
-# model also handles the business logic for the UI -> calls UIParse.py methods
 class Model:
     def __init__(self):
         self.song_title = 'Song Title'

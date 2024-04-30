@@ -33,4 +33,4 @@ Contains documentation on the project along with a future improvements page.
 ## Existing Bugs
 See https://github.com/JackKeller27/GuitarBot/issues.
 
-Contains details regarding existing issues/bugs with the project.
+Contains details regarding existing bugs/issues within the project.

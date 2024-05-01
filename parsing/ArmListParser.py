@@ -1,12 +1,15 @@
 import pandas as pd
 from parsing.chord_selector import find_lowest_cost_chord
 
+
 class ArmListParser:
-    current_fret_positions = [0, 0, 0, 0, 0, 0] # begins by preferring voicings near first position
+    current_fret_positions = [0, 0, 0, 0, 0, 0]  # begins by preferring voicings near first position
 
     @staticmethod
     def _get_chords_M(filepath, chord_letter, chord_type):
-        fret_numbers_optimized = find_lowest_cost_chord(ArmListParser.current_fret_positions, filepath, chord_letter, chord_type)
+        # print("chord stats: ", chord_type, chord_letter)
+        fret_numbers_optimized = find_lowest_cost_chord(ArmListParser.current_fret_positions, filepath, chord_letter,
+                                                        chord_type)
         ArmListParser.current_fret_positions = fret_numbers_optimized
 
         # NOTE keep for future use (when we want to know exactly which strings to strum)
@@ -21,7 +24,7 @@ class ArmListParser:
         fret_numbers = fret_numbers_optimized.copy()
         fret_play = []
 
-        # fret_play of 1 is open, 2 is pressed, 3 is unplayed
+        # fret_play of 1 is open, 2 is pressed, 3 is muted
         for i in range(6):
             if fret_numbers[i] == 0:
                 fret_numbers[i] = 1
@@ -31,12 +34,11 @@ class ArmListParser:
                 fret_play.append(3)
             else:
                 fret_play.append(2)
-            
+
         print(fret_numbers, fret_play)
         print(dtraj, utraj)
-    
+
         return fret_numbers, fret_play, dtraj, utraj
-            
 
     # parse right arm (strums) input
     @staticmethod
@@ -144,7 +146,7 @@ class ArmListParser:
 
                         # determine whether chord is sharp/natural/flat
                         key = chords[curr_index]
-                        if key != '#' or key != 'b':
+                        if key != '#' and key != 'b':
                             key = 'n'
                         else:
                             curr_index += 1
@@ -170,7 +172,7 @@ class ArmListParser:
                             # elif remaining_input == '+':
                             #     type = "AUGMENTED"
                             #     # print("AUGMENTED CHORD")
-                                
+
                             elif remaining_input == '5':
                                 type = "FIFTH"
                                 # Power chord
@@ -241,6 +243,7 @@ class ArmListParser:
                             if remaining_input == "TEST7":
                                 type = "TEST7"
                                 print("test 7 accepted")
+
 
                     # read chord from csv
                     note = str.upper(chords[0])

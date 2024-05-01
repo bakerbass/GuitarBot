@@ -116,13 +116,21 @@ class GuitarRobotController():
         #Test
         # self.guitarbot_udp.send_msg_left(iplaycommand=firstc[1], ifretnumber=firstc[0])
         self.guitarbot_udp.send_msg_arduino(iplaycommand=firstc[1], ifretnumber=firstc[0])
+##F#,MAJOR,0,2,4,4,3,4,4,F#,MAJOR,0,X,9,8,X,7,9,
 
-        time.sleep(1)
+        bpm = 60
+        bps = bpm / 60
+
+        print("4")
+        time.sleep(1 / bps)
         print("3")
-        time.sleep(1)
+        time.sleep(1 / bps)
         print("2")
-        time.sleep(1)
+        time.sleep(1 / bps)
         print("1")
+        time.sleep((1 / bps) - .15)
+
+
         chordindex = 0
 
         ts = 0
@@ -141,6 +149,7 @@ class GuitarRobotController():
             # beat_duration = measure_time / 4
 
             while ts < tNextEvent:
+                #TODO: Refactor to not constantly check, and add offset for changing chords
                 ts = time.time() - tbaseline
                 time.sleep(0.001)
             # print("we hit time", t_start_local)
@@ -172,10 +181,12 @@ class GuitarRobotController():
         time.sleep(2)
         # self.guitarbot_udp.send_msg_left(iplaycommand=[1, 1, 1, 1, 1, 1], ifretnumber=firstc[0])
         # test
-        # self.guitarbot_udp.send_msg_arduino(iplaycommand=[1, 1, 1, 1, 1, 1], ifretnumber=firstc[0])
+        self.guitarbot_udp.send_msg_arduino(iplaycommand=[1, 1, 1, 1, 1, 1], ifretnumber=firstc[0])
+        print("done")
         return 0
 
     def traj_generationUser(self, ri):
+
         print("hi")
         # Strum len will change according to different ranges of BPM
         strumlen = .15

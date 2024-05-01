@@ -247,7 +247,8 @@ class ArmListParser:
 
                     # read chord from csv
                     note = str.upper(chords[0])
-                    frets, command, dtraj, utraj = ArmListParser._get_chords_M("Chords - Chords.csv", note + key, type)
+                    #frets, command, dtraj, utraj = ArmListParser._get_chords_M("Chords - Chords.csv", note + key, type)
+                    frets, command, dtraj, utraj = ArmListParser._get_chords_M("Alternate_Chords.csv", note + key, type)
                     left_arm[mcount][bcount] = [frets, command]
                     mtimings.append(time)
                     if not firstcfound:

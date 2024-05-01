@@ -293,7 +293,7 @@ public:
                     strings[i + 7] = -10;
                     break;
                 case 2:
-                    strings[i + 7] = 34;
+                    strings[i + 7] = 36;
                     break;
                 case 3:
                     strings[i + 7] = 23;

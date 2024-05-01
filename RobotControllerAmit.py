@@ -116,7 +116,6 @@ class GuitarRobotController():
         #Test
         # self.guitarbot_udp.send_msg_left(iplaycommand=firstc[1], ifretnumber=firstc[0])
         self.guitarbot_udp.send_msg_arduino(iplaycommand=firstc[1], ifretnumber=firstc[0])
-##F#,MAJOR,0,2,4,4,3,4,4,F#,MAJOR,0,X,9,8,X,7,9,
 
         bpm = 60
         bps = bpm / 60

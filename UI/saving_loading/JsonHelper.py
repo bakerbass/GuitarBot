@@ -8,7 +8,7 @@ class JsonHelper:
     # Save song data in JSON format 
     def write_song_to_json(song_title, time_signature, bpm, chord_mode, ordered_section_ids, sections):
         # check to make sure that user does not accidentally overwrite existing song
-        if song_title != "default" and os.path.isfile('./UI/songs/' + song_title + '.json'):
+        if song_title != "default" and os.path.isfile('../UI/songs/' + song_title + '.json'):
             response = tkinter.messagebox.askquestion("Warning",
                                                       "A song with the same name is already saved. Would you like to overwrite the " +
                                                       "contents of the existing song? (If you select no, song will be saved as a new file.)")
@@ -38,7 +38,7 @@ class JsonHelper:
             section_dict["right_arm"] = section.right_arm
             json_data.append(section_dict)
 
-        with open('./UI/songs/' + song_title + '.json', 'w') as file:
+        with open('../UI/songs/' + song_title + '.json', 'w') as file:
             # write data to json
             file.write(json.dumps(json_data, indent=4))
 

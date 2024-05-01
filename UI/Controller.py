@@ -1,5 +1,6 @@
 from Model import Model
 from View import View, ChordNotationsPopup, HelpPopup
+from constants.bot_specs import DEFAULT_BPM
 # drag and drop
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
 # json saving/loading
@@ -135,7 +136,11 @@ class Controller:
         elif type == 'Decrement':
             self.model.bpm = int(self.song_controls_frame.bpm_spinbox.get()) - 1
         elif type == 'KeyRelease':
-            self.model.bpm = int(self.song_controls_frame.bpm_spinbox.get())
+            try:
+                self.model.bpm = int(self.song_controls_frame.bpm_spinbox.get())
+            except ValueError:
+                # If user enters invalid BPM (such as a letter or empty string) then set BPM to default value
+                self.model.bpm = DEFAULT_BPM
 
     def _update_time_sig_handler(self, event, *args):
         time_sig = self.song_controls_frame.time_signature.get()
@@ -407,7 +412,7 @@ class Controller:
         
         # get the total time for each measure in seconds
         measure_time = self._calculate_measure_time()
-        #print(measure_time)
+        # print(measure_time)
 
         # send arm lists, measure_time to reciever via UDP message
         self.arm_list_sender.send_arm_lists_to_reciever(left_arm, right_arm, measure_time)

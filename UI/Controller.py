@@ -3,7 +3,7 @@ from View import View, ChordNotationsPopup, HelpPopup
 # drag and drop
 from vis_entities.DraggableSectionLabel import DraggableSectionLabel
 # json saving/loading
-from helpers.JsonHelper import JsonHelper
+from saving_loading.JsonHelper import JsonHelper
 # preview functions
 from preview.midi.ParserToMIDI import arms_to_MIDI
 from preview.midi.PluginIntegration import play_midi_with_plugin
@@ -172,14 +172,61 @@ class Controller:
     # Save btn
     def _save_song_handler(self):
         self._update_model_sections()
-        song_order = self._get_ordered_section_names()
+        song_order = self._get_ordered_section_ids()
         JsonHelper.write_song_to_json(self.model.song_title, self.model.time_signature, self.model.bpm, self.model.chord_mode, song_order, self.model.sections.values())
 
     # Load btn
     def _load_song_handler(self):
+        # load song data
+        song_dict, section_dicts = JsonHelper.load_song_from_json()
+
+        # unpack song_dict
+        song_title = song_dict["song_title"]
+        bpm = song_dict["bpm"]
+        time_signature = song_dict["time_signature"]
+        chord_mode = song_dict["chord_mode"]
+        ordered_section_ids = song_dict["ordered_section_ids"]
+
+        # update song data in model
+        self.model.update_song_data(song_title, bpm, time_signature, chord_mode)
+
+        # remove existing sections from view
+        for section_id in self.model.sections.keys():
+            # remove section from song frame
+            self.song_frame.remove_section(section_id)
+            # remove section from song builder (drag and drop)
+            self.song_builder_frame.remove_section_button_and_draggables(section_id)
+
+        # repopulate song data (title, bpm, time signature, chord mode) in view
+        self.song_controls_frame.update_song_data(song_title, bpm, time_signature, chord_mode)
+
+        # Dictionary that stores section name tk.StringVar variables for each section
+        # Needed later in this function when adding draggable sections
+        section_name_vars = {}
+        
+        # add sections back to the view
+        for section_dict in section_dicts:
+            section_frame, labels_frame = self._add_section(add_first_section_to_drag_drop=False)
+
+            # get section data from section_dict
+            id = section_dict["id"]
+            name = section_dict["name"]
+            strum_pattern = section_dict["strum_pattern"]
+            num_measures = section_dict["num_measures"]
+            left_arm = section_dict["left_arm"]
+            right_arm = section_dict["right_arm"]
+
+            self._populate_section_with_data(section_frame, labels_frame, name, strum_pattern, num_measures, left_arm, right_arm)
+            section_name_vars[id] = labels_frame.name
+
+        # update sections data in the model
         self._update_model_sections()
-        # #TODO params
-        # JsonHelper.load_song_from_json()
+
+        # add sections to drag and drop song builder (in the correct order)
+        for section_id in ordered_section_ids:
+            # NOTE in order for name to display correctly on drag/drop section, it must be a tk.StringVar variable (not just a regular string)
+            section_name = section_name_vars[section_id]
+            self.song_builder_frame.add_draggable_section(None, (section_id, section_name))
 
     # Send btn
     def _send_song_handler(self):
@@ -295,36 +342,42 @@ class Controller:
         self.model.update_section_data(section_frame.id, left_arm, right_arm)
         #print(self.model.sections[section_frame.id].left_arm, self.model.sections[section_frame.id].right_arm)
 
-    # Returns a comma-separated string of the section names in order of the song builder layout
-    def _get_ordered_section_names(self):
-        section_names = ""
+    # Returns a list of the section ids in order of the song builder layout
+    def _get_ordered_section_ids(self):
+        ordered_section_ids = []
 
-        # loop through song builder and append section names in order
+        # loop through song builder and append section ids in order
         for dd_section in DraggableSectionLabel.existing_draggables_list:
             # get the current section from the model
             model_section = self.model.sections[dd_section.section_id]
-            section_names += model_section.name + ", "
+            ordered_section_ids.append(model_section.id)
 
-        # remove last ", "
-        section_names = section_names[:-2]
-
-        return section_names
+        return ordered_section_ids
 
     # Helper method to add a new section to the View and Model accordingly
-    def _add_section(self):
+    def _add_section(self, add_first_section_to_drag_drop=True):
         # manually add new section to the UI
         section = self.view.song_frame.add_section(self.model.time_signature)
         section_frame, labels_frame = section
         id, name = section_frame.id, labels_frame.name
 
         # add section button to song builder buttons list (this will also automatically drop the very first section onto the song)
-        self.song_builder_frame.add_section_button(id, name)
+        self.song_builder_frame.add_section_button(id, name, add_first_section_to_drag_drop)
 
         # now update the model accordingly
         self.model.add_section(id, name)
 
         # add event bindings for new section
         self._create_section_event_bindings(section)
+
+        return section_frame, labels_frame
+    
+    def _populate_section_with_data(self, section_frame, labels_frame, name, strum_pattern, num_measures, left_arm, right_arm):
+        # add name, strum pattern selection to the section labels
+        labels_frame.update_name_and_strum_pattern(name, strum_pattern)
+
+        # add measures and left_arm, right_arm data
+        section_frame.update_section_data(num_measures, left_arm, right_arm)
 
     def _build_complete_arm_lists(self):
         left_arm = []
@@ -359,13 +412,7 @@ class Controller:
         # send arm lists, measure_time to reciever via UDP message
         self.arm_list_sender.send_arm_lists_to_reciever(left_arm, right_arm, measure_time)
         
-        # # call parse.py methods to parse left_arm, right_arm data for entire song
-        # left_arm_info, first_c, m_timings = SongParser.parseleft_M(left_arm, measure_time)
-        # right_arm_info, initial_strum, strum_onsets = SongParser.parseright_M(right_arm, measure_time)
-
-        # # TODO send parseleft_M, parseright_M outputs to robot controller via UDP message
-
-    # NOTE tried to run this on a separate thread, but due to the Global Python Interpreter lock (GIL), a separate thread still blocks the main UI thread.
+    # TODO run this on a separate thread so that it doesn't block entire UI (current implementation not working)
     def _preview_song_with_plugin(self):
         left_arm, right_arm = self._build_complete_arm_lists()
 

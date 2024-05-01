@@ -9,7 +9,7 @@ class ArmListParser:
         fret_numbers_optimized = find_lowest_cost_chord(ArmListParser.current_fret_positions, filepath, chord_letter, chord_type)
         ArmListParser.current_fret_positions = fret_numbers_optimized
 
-        # TODO: determine if these are even worth keeping?  They aren't used in leftarm parse, only place that calls this.
+        # NOTE keep for future use (when we want to know exactly which strings to strum)
         dtraj, utraj = [], []
 
         for i in range(6):

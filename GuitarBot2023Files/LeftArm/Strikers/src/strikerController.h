@@ -427,6 +427,7 @@ public:
                 pluckLength = 7;
                 break;
         }
+        //TODO: change for picker
         for(int i = 1; i < NUM_MOTORS + 1; i++) {
             float q0 = m_striker[i].getPosition_ticks();
             if(i == 13){
@@ -451,7 +452,7 @@ public:
             }
         }
 
-
+        //TODO: add to picker queue
         //Make and push traj points to queue
         Trajectory<int32_t>::point_t temp_point;
         for (int i = 0; i < 5; i++) {
@@ -514,7 +515,7 @@ public:
         //strike(uiStrike);
 
     }
-
+    //TODO: picker queue?
     void start() {
         float offset = 7; //MINIMUM needed to go from home to top of string!
         float pos2pulse = (offset * 1024) / 9.4;
@@ -624,6 +625,7 @@ public:
             }
         }
         // Enable pdoPressers here
+        //TODO: change for picker array
         for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_STRIKERS + NUM_PRESSERS + NUM_PLUCKERS + 1; ++i) {
             err = m_striker[i].enablePDO(bEnable);
             LOG_LOG("Enabling PDO for presser %i", i);

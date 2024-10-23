@@ -118,7 +118,7 @@ class GuitarRobotController():
         print("t: ", timings)
         print("firstc: ", firstc)
         #Test
-        self.guitarbot_udp.send_msg_left(iplaycommand=firstc[1], ifretnumber=firstc[0], ipickcommand=picking_information[0])
+        self.guitarbot_udp.send_msg_left(iplaycommand=firstc[1], ifretnumber=firstc[0], ipickcommand=[0, 0, 0, 0, 0, 0])
 
         bpm = 60
         bps = bpm / 60

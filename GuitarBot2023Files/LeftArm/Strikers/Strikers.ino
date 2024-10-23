@@ -39,12 +39,12 @@ void setup() {
 
 
     // put your setup code here, to run once:
-    delay(8000); //Added delay for output reading
+    delay(2000); //Added delay for output reading
     LOG_LOG("Initializing GuitarBot...");
     // delay(5000); //Added delay for output reading
     pController = StrikerController::createInstance();
     LOG_LOG("Initializing Pressers and Striker...");
-    int err = pController->init(MotorSpec::EC45); //Sliders
+    int err = pController->init(MotorSpec::EC45_Slider); //Sliders
     if (err != 0) {
         LOG_ERROR("Controller Init failed");
         return;
@@ -61,6 +61,7 @@ void setup() {
     delay(2000);
     
     LOG_LOG("Listening for commands...");   // "in format (ascii characters) <mode><id code><midi velocity>"
+    pController->executePluckTest(0);
 }
 
 void loop() {
@@ -81,7 +82,7 @@ void loop() {
         // //Unpress
 
         if (err == kNoError) {
-          //pController->executeSlide(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
+          pController->executeSlide(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
           LOG_LOG("playcommand 1: %i, playcommand 2: %i, playcommand 3: %i, playcommand 4: %i, playcommand 5: %i, playcommand 6: %i", playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
           LOG_LOG("fret 1: %i, fret 2: %i, fret 3: %i, fret 4: %i, fret 5: %i, fret 6: %i", fret[0], fret[1], fret[2], fret[3], fret[4], fret[5]);
           LOG_LOG("pick 1: %i, pick 2: %i, pick 3: %i, pick 4: %i, pick 5: %i, pick 6: %i", pickings[0], pickings[1], pickings[2], pickings[3], pickings[4], pickings[5]);

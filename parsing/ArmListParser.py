@@ -268,5 +268,16 @@ class ArmListParser:
                 else:
                     justchords.append(b)
         print("jc", justchords)
+        pickings = []
+        for command in justchords:
+            pressings = command[1]
+            pickChord = []
+            for press in pressings:
+                if press == 3:
+                    pickChord.append(0)
+                else:
+                    pickChord.append(1)
+            pickings.append(pickChord)
+        print("pickings: ", pickings)
         # return left_arm, firstc, mtimings
-        return justchords, firstc, mtimings
+        return justchords, firstc, mtimings, pickings

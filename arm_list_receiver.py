@@ -20,6 +20,7 @@ socket.bind((udp_ip, udp_port))
 left_arm = None
 right_arm = None
 measure_time = None
+pickings = None
 
 # loop to recieve messages and send to robot controller
 # TODO run the message recieving/robot controller call on separate threads with a queue of messages
@@ -52,18 +53,19 @@ while True:
     # Check that all 3 components have been recieved
     if left_arm is not None and right_arm is not None and measure_time is not None:
         # parse arm lists
-        left_arm_info, first_c, m_timings = ArmListParser.parseleft_M(left_arm, measure_time)
+        left_arm_info, first_c, m_timings, pickings = ArmListParser.parseleft_M(left_arm, measure_time)
         right_arm_info, initial_strum, strum_onsets = ArmListParser.parseright_M(right_arm, measure_time)
 
         print("right_arm_info", right_arm_info)
         print("left_arm_info", left_arm_info)
+        print("picking_info", pickings)
         print("first_c: ", first_c)
         print("m_timings: ", m_timings)
         print("initial_strum: ", initial_strum)
         print("strum_onsets: ", strum_onsets)
 
         # send song data to robot controller
-        RobotControllerAmit.main(right_arm_info, left_arm_info, first_c, measure_time, m_timings, strum_onsets)
+        RobotControllerAmit.main(right_arm_info, left_arm_info, first_c, measure_time, m_timings, strum_onsets, pickings)
 
         # reset variables so that they're ready to accept new message
         left_arm, right_arm, measure_time = None, None, None

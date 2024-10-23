@@ -8,7 +8,7 @@ import RobotControllerAmit
 UI_Out_rightHand, UI_Out_leftHand, measure_time = UIGen.UI()
 print("UOrH: ", UI_Out_rightHand)
 ri, initStrum, strumOnsets = UIParse.parseright_M(UI_Out_rightHand, measure_time)
-li, firstc, mtimings = UIParse.parseleft_M(UI_Out_leftHand, measure_time)
+li, firstc, mtimings, pi = UIParse.parseleft_M(UI_Out_leftHand, measure_time)
 
 # To save strum
 save = False
@@ -21,6 +21,7 @@ ri_str = str(ri)
 li_str = str(li)
 firstc_str = str(firstc)
 measure_time_str = str(measure_time)
+
 if save:
     with open('savedPatterns.txt', 'w') as f:
         f.write("ri =  " + ri_str)
@@ -64,4 +65,4 @@ print("li", li)
 print("firstc: ", firstc)
 print("measure_time: ", measure_time)
 
-RobotControllerAmit.main(ri, li, firstc, measure_time, mtimings, strumOnsets)
+RobotControllerAmit.main(ri, li, firstc, measure_time, mtimings, strumOnsets, pi)

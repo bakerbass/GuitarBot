@@ -1,6 +1,8 @@
 import numpy as np
 import time
 from queue import Queue
+
+#from GuitarBot.arm_list_receiver import pickings
 from GuitarBotUDP import GuitarBotUDP
 # from xarm.wrapper import XArmAPI      TODO XARM
 import threading
@@ -29,6 +31,7 @@ rhythm = []
 
 firstc = []
 left_arm = []
+picking_information = []
 
 left_queue = Queue()
 robot_queue = Queue()
@@ -115,8 +118,7 @@ class GuitarRobotController():
         print("t: ", timings)
         print("firstc: ", firstc)
         #Test
-        self.guitarbot_udp.send_msg_left(iplaycommand=firstc[1], ifretnumber=firstc[0])
-        # self.guitarbot_udp.send_msg_arduino(iplaycommand=firstc[1], ifretnumber=firstc[0])
+        self.guitarbot_udp.send_msg_left(iplaycommand=firstc[1], ifretnumber=firstc[0], ipickcommand=picking_information[0])
 
         bpm = 60
         bps = bpm / 60
@@ -146,6 +148,7 @@ class GuitarRobotController():
             if chordindex > maxchords:
                 chordindex = maxchords
             chordtoplay = left_arm[chordindex]
+            chordToPick = picking_information[chordindex]
             # beat_duration = measure_time / 4
 
             while ts < tNextEvent:
@@ -172,16 +175,13 @@ class GuitarRobotController():
             else:  # TYPE 0 IS HERE AND IS PICKING
                 # print("array1", tNextEvent)
                 # Test
-                self.guitarbot_udp.send_msg_left(iplaycommand=chordtoplay[1], ifretnumber=chordtoplay[0])
-                # self.guitarbot_udp.send_msg_arduino(iplaycommand=chordtoplay[1], ifretnumber=chordtoplay[0])
+                self.guitarbot_udp.send_msg_left(iplaycommand=chordtoplay[1], ifretnumber=chordtoplay[0], ipickcommand=chordToPick)
                 chordindex += 1
                 # time.sleep(measure_time / 4)
 
         # Pass to tune
         time.sleep(2)
-        self.guitarbot_udp.send_msg_left(iplaycommand=[1, 1, 1, 1, 1, 1], ifretnumber=firstc[0])
-        # test
-        # self.guitarbot_udp.send_msg_arduino(iplaycommand=[1, 1, 1, 1, 1, 1], ifretnumber=firstc[0])
+        self.guitarbot_udp.send_msg_left(iplaycommand=[1, 1, 1, 1, 1, 1], ifretnumber=firstc[0], ipickcommand=[0, 0, 0, 0, 0, 0])
         print("done")
         return 0
 
@@ -293,7 +293,7 @@ class GuitarRobotController():
             strum_end = time.time()
 
 
-def main(ri, li, initStrum, mt, chord_change, strumO):
+def main(ri, li, initStrum, mt, chord_change, strumO, pi):
     global right_information
     global measure_time
     global firstc
@@ -302,6 +302,7 @@ def main(ri, li, initStrum, mt, chord_change, strumO):
     global strumOnsets
     global Events
     global strumchange
+    global picking_information
     strumOnsets = strumO
     Events = []
     strumchange = []
@@ -313,6 +314,7 @@ def main(ri, li, initStrum, mt, chord_change, strumO):
     print("strumOnsets", strumO)
     left_arm = li
     right_information = ri
+    picking_information = pi
     firstc = initStrum
     cc = chord_change
     for c in cc:

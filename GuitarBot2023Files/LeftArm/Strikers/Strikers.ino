@@ -1,4 +1,4 @@
-//
+// Github Version
 // Created by Raghavasimhan Sankaranarayanan on 03/30/22.
 // Modified for GuitarBot by Marcus Parker on 12/7/23
 // Modified to merge pluck and pick by Marcus Parker 10/17/24

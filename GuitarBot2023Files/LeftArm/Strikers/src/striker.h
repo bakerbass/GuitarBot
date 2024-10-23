@@ -96,6 +96,13 @@ public:
             //LOG_LOG("Passed");
             err = epos.setHomingMethod(HomingMethod::CurrentThresholdPositive);
         }
+        if(iNodeID > 12){
+            err = epos.setHomingMethod(HomingMethod::CurrentThresholdNegative);
+        }
+        //CHANGE ME
+        //err = epos.setHomingMethod(HomingMethod::CurrentThresholdPositive);
+
+
         if (err != 0) {
             LOG_ERROR("setOpMode");
             return kSetValueError;
@@ -121,7 +128,9 @@ public:
 //        if (err != 0) return kSetValueError;
 //        return prepToGoHome();
         // Added Homing compatible w/ epos
-        int err = epos.setOpMode(OpMode::Homing, HomingMethod::CurrentThresholdNegative);
+        //CHANGE ME
+        //int err = epos.setOpMode(OpMode::Homing, HomingMethod::CurrentThresholdNegative);
+        int err = epos.setOpMode(OpMode::Homing, HomingMethod::CurrentThresholdPositive);
         if( iNodeID == 2 || iNodeID == 3 || iNodeID == 6 || iNodeID > 6){
             //LOG_LOG("Passed");
             err = epos.setHomingMethod(HomingMethod::CurrentThresholdPositive);

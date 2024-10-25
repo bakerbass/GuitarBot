@@ -119,6 +119,7 @@ public:
         }
 
         LOG_LOG("Homing for sliders complete, starting pressers. ");
+        delay(500);
         for (int i = NUM_STRIKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + 1; ++i) {
             m_striker[i].startHome(i);
             }
@@ -135,7 +136,7 @@ public:
             if (ii++ > 200) break;
         }
         LOG_LOG("Homing for pressers complete, starting pluckers. ");
-        for (int i = NUM_STRIKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS + 1; ++i) {
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS + 1; ++i) {
             m_striker[i].startHome(i);
         }
         while (isHoming_all) {

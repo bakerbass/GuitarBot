@@ -31,7 +31,7 @@ class GuitarBotUDP:
         self.router_left = bytes('/lguitar', 'utf8')
         self.router_picker = bytes('/rguitar', 'utf8')
 
-    def send_msg_left(self, iplaycommand, ifretnumber, ipickcommand):
+    def send_msg(self, iplaycommand, ifretnumber, ipickcommand):
         data = (iplaycommand, ifretnumber, ipickcommand)
 
         arr = [0] * 18
@@ -125,7 +125,7 @@ def main():
 
     ifretnumber = [1, 2, 2, 1, 1, 1]
     iplaycommand = [1, 2, 2, 2, 1, 1]
-    guitarbot_udp.send_msg_left(iplaycommand, ifretnumber)
+    guitarbot_udp.send_msg(iplaycommand, ifretnumber)
     guitarbot_udp.send_msg_arduino(iplaycommand, ifretnumber)
 
     # example to control pick

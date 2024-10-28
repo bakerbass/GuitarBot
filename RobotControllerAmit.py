@@ -118,7 +118,7 @@ class GuitarRobotController():
         print("t: ", timings)
         print("firstc: ", firstc)
         #Test
-        self.guitarbot_udp.send_msg_left(iplaycommand=firstc[1], ifretnumber=firstc[0], ipickcommand=[0, 0, 0, 0, 0, 0])
+        self.guitarbot_udp.send_msg(iplaycommand=firstc[1], ifretnumber=firstc[0], ipickcommand=[0, 0, 0, 0, 0, 0])
 
         bpm = 60
         bps = bpm / 60
@@ -175,13 +175,13 @@ class GuitarRobotController():
             else:  # TYPE 0 IS HERE AND IS PICKING
                 # print("array1", tNextEvent)
                 # Test
-                self.guitarbot_udp.send_msg_left(iplaycommand=chordtoplay[1], ifretnumber=chordtoplay[0], ipickcommand=chordToPick)
+                self.guitarbot_udp.send_msg(iplaycommand=chordtoplay[1], ifretnumber=chordtoplay[0], ipickcommand=chordToPick)
                 chordindex += 1
                 # time.sleep(measure_time / 4)
 
         # Pass to tune
         time.sleep(2)
-        self.guitarbot_udp.send_msg_left(iplaycommand=[1, 1, 1, 1, 1, 1], ifretnumber=firstc[0], ipickcommand=[0, 0, 0, 0, 0, 0])
+        self.guitarbot_udp.send_msg(iplaycommand=[1, 1, 1, 1, 1, 1], ifretnumber=firstc[0], ipickcommand=[0, 0, 0, 0, 0, 0])
         print("done")
         return 0
 
@@ -320,7 +320,6 @@ def main(ri, li, initStrum, mt, chord_change, strumO, pi):
     for c in cc:
         Events.append([c, 0])
     Events.sort()
-
     measure_time = mt
     grc = GuitarRobotController()
     # osc_reader = OSCserver()

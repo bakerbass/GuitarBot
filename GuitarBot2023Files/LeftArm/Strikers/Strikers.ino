@@ -92,7 +92,7 @@ void loop() {
         LOG_LOG("press 1: %i, press 2: %i, press 3: %i, press 4: %i, press 5: %i, press 6: %i", playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
         LOG_LOG("slide 1: %i, slide 2: %i, slide 3: %i, slide 4: %i, slide 5: %i, slide 6: %i", fret[0], fret[1], fret[2], fret[3], fret[4], fret[5]);
         LOG_LOG("strummer: %i", strumAngle);
-        delay(10);
+        //delay(10);
     }
     //sendEthernet();
 }

@@ -1,7 +1,7 @@
 //
 // Created by Raghavasimhan Sankaranarayanan on 03/30/22.
 // Modified for GuitarBot by Marcus Parker on 12/7/23
-// Modified for left + right commands through Ethernet by Shayahn Mirfendereski 10/21/24
+// Modified for general send_msg + executeCommand by Shayahn Mirfendereski 10/30/24
 //Working Ethernet version
 #include "src/strikerController.h"
 #include "src/logger.h"
@@ -91,10 +91,10 @@ void loop() {
         // }
         LOG_LOG("press 1: %i, press 2: %i, press 3: %i, press 4: %i, press 5: %i, press 6: %i", playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
         LOG_LOG("slide 1: %i, slide 2: %i, slide 3: %i, slide 4: %i, slide 5: %i, slide 6: %i", fret[0], fret[1], fret[2], fret[3], fret[4], fret[5]);
+        LOG_LOG("pick 1: %i, pick 2: %i, pick 3: %i, pick 4: %i, pick 5: %i, pick 6: %i", pickings[0], pickings[1], pickings[2], pickings[3], pickings[4], pickings[5]);
         LOG_LOG("strummer: %i", strumAngle);
         //delay(10);
     }
-    //sendEthernet();
 }
 
 void ethernetEvent(int8_t commands[]) {
@@ -138,15 +138,14 @@ void ethernetEvent() {
         LOG_LOG("Strum event");
         strumAngle = packetBuffer[1];
       }
+      else if (event == 'P') {
+        LOG_LOG("Pick event");
+        for (int i = 1; i <= 6; i++) {
+          pickings[i - 1] = static_cast<uint8_t>(packetBuffer[i]);
+        }
+      }
       complete = true;
     }        
-}
-
-void sendEthernet()
-{
-  udp.beginPacket(ip,localPort);
-  udp.write("hello");
-  udp.endPacket();
 }
 
 // Format example to strike using motor 1 with velocity 80: s<SCH>P ... explanation s -> normal strike, <SCH> -> ascii of 0b00000001, P -> ascii of 80

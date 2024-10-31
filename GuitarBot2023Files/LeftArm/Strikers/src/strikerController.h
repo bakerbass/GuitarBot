@@ -786,12 +786,12 @@ private:
                     Serial.print("Current Point:");
                     for (int x = 0; x<NUM_MOTORS; x++)
                     {
-                        Serial.println(pInstance->m_currentPoint[x]);
+                        Serial.print(pInstance->m_currentPoint[x]);
                     }
                     Serial.print("Next Point:");
                     for (int x = 0; x<NUM_MOTORS; x++)
                     {
-                        Serial.println(pt[x]);
+                        Serial.print(pt[x]);
                     }
                     delay(10000);
 

@@ -408,9 +408,12 @@ public:
         for (int i = 0; i < 60; i++) {
             for(int x = 0; x < NUM_MOTORS; x++){
                 temp_point[x] = all_Trajs[x][i];
+                Serial.print(temp_point[x]);
             }
+            Serial.println();
             m_traj.push(temp_point);
         }
+
     }
     void executePluckTest(int pluckType) {
 //        LOG_LOG("EXECUTE_PLUCK");

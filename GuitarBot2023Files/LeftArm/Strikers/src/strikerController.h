@@ -407,9 +407,12 @@ public:
         for (int i = 0; i < 60; i++) {
             for(int x = 0; x < NUM_MOTORS; x++){
                 temp_point[x] = all_Trajs[x][i];
+                Serial.print(temp_point[x]);
             }
+            Serial.println();
             m_traj.push(temp_point);
         }
+
     }
     void executePluckTest(int pluckType) {
 //        LOG_LOG("EXECUTE_PLUCK");
@@ -463,8 +466,6 @@ public:
             m_traj.push(temp_point);
         }
 //        LOG_LOG("END_EXECUTE_PLUCK_TEST");
-
-
     }
 
 
@@ -782,6 +783,18 @@ private:
                 // If the point is not close to the previous point, generate transition trajectory
                 if (!pt.isClose(pInstance->m_currentPoint, DISCONTINUITY_THRESHOLD)) {
                     LOG_WARN("Trajectory discontinuous. Generating Transitions...");
+                    Serial.print("Current Point:");
+                    for (int x = 0; x<NUM_MOTORS; x++)
+                    {
+                        Serial.println(pInstance->m_currentPoint[x]);
+                    }
+                    Serial.print("Next Point:");
+                    for (int x = 0; x<NUM_MOTORS; x++)
+                    {
+                        Serial.println(pt[x]);
+                    }
+                    delay(10000);
+
                     // pInstance->m_traj.generateTransitions(pInstance->m_currentPoint, pt, TRANSITION_LENGTH);
                 }
                 // Pop from traj queue. If transition was added, this point is from the generated transition
@@ -805,7 +818,7 @@ private:
 //            }
 //        }
 
-        bool run_bot = true; //false turns off motor, true turns on
+        bool run_bot = false; //false turns off motor, true turns on
 //        Serial.print("Traj Point: ");
 //        Serial.println(point[3]);
         //Serial.print(idx);

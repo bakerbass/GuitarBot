@@ -87,5 +87,10 @@ def main(strum, LH):
         tElapsed = time.time() - start
         print("Elapsed time:", tElapsed)
 
-    print("done")
+    print("done, exiting song")
+    time.sleep(2)
+    lastLHidx = len(LH) - 1
+    lastLHCommand = LH[lastLHidx]
+    print("This is the last command: ", lastLHCommand)
+    send_msg(type='LH', command= [lastLHCommand[1][0], [1,1,1,1,1,1]])
     return 0

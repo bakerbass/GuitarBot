@@ -2,6 +2,7 @@ import socket
 from ast import literal_eval
 
 import RobotControllerAmit
+import RobotController
 from UI.messaging.udp_definitions import *
 from parsing.ArmListParser import ArmListParser
 
@@ -53,7 +54,7 @@ while True:
     # Check that all 3 components have been recieved
     if left_arm is not None and right_arm is not None and measure_time is not None:
         # parse arm lists
-        left_arm_info, first_c, m_timings, pickings = ArmListParser.parseleft_M(left_arm, measure_time)
+        left_arm_info, first_c, m_timings = ArmListParser.parseleft_M(left_arm, measure_time)
         right_arm_info, initial_strum, strum_onsets = ArmListParser.parseright_M(right_arm, measure_time)
 
         print("right_arm_info", right_arm_info)
@@ -65,7 +66,9 @@ while True:
         print("strum_onsets: ", strum_onsets)
 
         # send song data to robot controller
-        RobotControllerAmit.main(right_arm_info, left_arm_info, first_c, measure_time, m_timings, strum_onsets, pickings)
+        # TODO: once picking is a feature of UI, we will use pickings as well
+        # RobotControllerAmit.main(right_arm_info, left_arm_info, first_c, measure_time, m_timings, strum_onsets, pickings)
+        RobotController.main(right_arm_info, left_arm_info)
 
         # reset variables so that they're ready to accept new message
         left_arm, right_arm, measure_time = None, None, None

@@ -38,16 +38,16 @@ def main():
     #Add/remove any LH/strum/pick events as desired to test
     #Format of event is:
     # [event type (LH/strum/pick),
-    # properties (LH can be press, slide lists, strum can be pick angle--45==down strum, -45==up strum, pick can be pick/don't pick),
+    # properties (LH can be slide, press lists, strum can be pick angle--45==down strum, -45==up strum, pick can be pick/don't pick),
     # time]
     LH = [['LH', [[1, 2, 2, 1, 1, 1], [1, 2, 2, 1, 1, 1]], 0],
-          ['LH', [[3, 3, 1, 2, 2, 2], [1, 1, 1, 2, 3, 2]], 2.6086956521739126],
-          ['LH', [[3, 3, 2, 2, 2, 2], [1, 1, 5, 4, 3, 3]], 4.173913043478261],
-          ['LH', [[1, 1, 1, 1, 1, 1], [1, 1, 5, 4, 3, 3]], 8]]
-    strum = [['strum', -45, 1.0434782608695652],
-             ['strum', 45, 3.173913043478261]]
-    pick = [['pick', [1, 1, 1, 1, 1, 1], 5.217391304347825],
-            ['pick', [0, 1, 1, 0, 0, 1], 6.26086956521739]]
+          ['LH', [[1, 1, 1, 2, 3, 2], [3, 3, 1, 2, 2, 2]], 2.608],
+          ['LH', [[1, 1, 5, 4, 3, 3], [3, 3, 2, 2, 2, 2]], 4.173],
+          ['LH', [[1, 1, 5, 4, 3, 3], [1, 1, 1, 1, 1, 1]], 8]]
+    strum = [['strum', -45, 1.043],
+             ['strum', 45, 3.173]]
+    pick = [['pick', [1, 1, 1, 1, 1, 1], 5.217],
+            ['pick', [0, 1, 1, 0, 0, 1], 6.26]]
 
     Events = []
     for event in LH:
@@ -74,17 +74,6 @@ def main():
     for e in Events:
         tNextEvent = e[2]
         eventType = e[0]
-        # if eventType == 'LH':
-        #     send_msg(type= 'LH', command=e[1])
-        # elif eventType == 'strum':
-        #     send_msg(type= 'strum', command=e[1])
-        # elif eventType == 'pick':
-        #     send_msg(type= 'pick', command=e[1])
-        # tElapsed = time.time() - start
-        # print(tElapsed)
-        # while tElapsed < tNextEvent:
-        #     time.sleep(0.0001)
-        #     tElapsed = time.time() - start
 
         # Calculate the target time for the next event
         target_time = start + tNextEvent

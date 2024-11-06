@@ -79,7 +79,7 @@ def main(strum, LH):
             send_msg(type='LH', command=e[1])
         elif eventType == 'strum':
             continue
-            # send_msg(type='strum', command=e[1])
+            send_msg(type='strum', command=e[1])
         elif eventType == 'pick':
             send_msg(type='pick', command=e[1])
 

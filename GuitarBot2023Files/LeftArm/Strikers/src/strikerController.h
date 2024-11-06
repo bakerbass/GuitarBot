@@ -117,6 +117,7 @@ public:
 
             if (ii++ > 200) break;
         }
+        delay(500);
 
         LOG_LOG("Homing for sliders complete, starting pressers. ");
         for (int i = NUM_STRIKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + 1; ++i) {
@@ -132,7 +133,7 @@ public:
             isHoming_6 = m_striker[12].homingStatus();
             isHoming_all = isHoming_1 || isHoming_2 || isHoming_3 || isHoming_4 || isHoming_5 || isHoming_6;
 
-            if (ii++ > 200) break;
+            //if (ii++ > 200) break;
         }
         LOG_LOG("Homing for pressers complete, starting pluckers. ");
         for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS + 1; ++i) {
@@ -141,17 +142,19 @@ public:
         while (isHoming_all) {
             delay(50);
             //CHANGE ME
-            isHoming_1 = m_striker[13].homingStatus();
+//            isHoming_1 = m_striker[13].homingStatus();
 //            isHoming_2 = m_striker[14].homingStatus();
 //            isHoming_3 = m_striker[15].homingStatus();
 //            isHoming_4 = m_striker[16].homingStatus();
 //            isHoming_5 = m_striker[17].homingStatus();
 //            isHoming_6 = m_striker[18].homingStatus();
-            isHoming_all = isHoming_1; //|| isHoming_2 || isHoming_3 || isHoming_4 || isHoming_5 || isHoming_6;
+//            isHoming_all = isHoming_1; //|| isHoming_2 || isHoming_3 || isHoming_4 || isHoming_5 || isHoming_6;
 
             if (ii++ > 200) break;
         }
         Serial.println("finished initializing and homing all controllers.");
+        //delay(15000);
+        //to test everything up to homing
 
         return kNoError;
     }

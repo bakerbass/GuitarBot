@@ -12,6 +12,8 @@
 #include <ArduinoQueue.h>
 #include <ArduinoEigen.h>
 #include "networkHandler.h"
+#include <iostream>
+
 
 class StrikerController {
 public:
@@ -311,22 +313,77 @@ public:
             m_traj.push(temp_point);
         }
     }
-    void executeSlideDEMO(int string_1, int string_2, int string_3, int string_4, int string_5, int string_6, int frets_1, int frets_2, int frets_3, int frets_4,  int frets_5, int frets_6) {
+
+    /*
+        Function: Execute Event
+        Inputs: uint8_t playcommand[6], uint8_t fret[6], uint8_t pickings[6], int strumAngle
+        Outputs: Calls executeSlide(), executeStrum(), executePluckTest() which fills allTrajs with all trajectories
+    */
+    void executeEvent(char eventType,uint8_t *frets, uint8_t *playcommands, uint8_t *pickings, int strumAngle)
+    {//Add variable to check message type.
+       //Making sure we receive all necessary data properly
+//        for(int i = 0; i<6; i++)
+//        {
+//            LOG_LOG("fret: %i", frets[i]);
+//            LOG_LOG("playcommand: %i ", playcommands[i]);
+//            LOG_LOG("pickings: %i", pickings[i]);
+//        }
+//        LOG_LOG("strumAngle: %i", strumAngle);
+
+        if(eventType == 'L'){
+        //1
+            LOG_LOG("LH message resiceved.");
+            // 1a. Call executeSlide() to process LH events -- fills all_Trajs[0-12] with trajectories
+            //executeSlideDEMO(frets, playcommands); //(Rename to 'getSlideTraj' when this function no longer pushes to the queue.)
+            executeSlide(frets, playcommands);
+            // 1b. Fill other motors with current value
+        }
+        else if(eventType == 'S'){
+        //2
+            LOG_LOG("Strum message resiceved.");
+            //2a. Call getStrumTraj -- fills all_Trajs[14-15] (will eventually be all_Trajs[19-20] TODO: once we have a strummer prototype to test with
+            //2b. Call Fill_LH to fill LH with current value or 38 for pressing motors.
+        //
+        }
+        else if(eventType == 'P'){
+        //3
+            LOG_LOG("Pluck message resiceved.");
+            //3a. Call getPickTraj
+            //3b. Call Fill_LH to fill LH with current value or 38 for pressing motors.
+        }
+        else{
+            LOG_LOG("Message unhandled, skipping.");
+        }
+
+//        // 4. Append trajectories to super queue
+//        Trajectory<int32_t>::point_t temp_point;
+//        for (int i = 0; i < 60; i++) {
+//            for(int x = 0; x < NUM_MOTORS; x++){
+//                temp_point[x] = all_Trajs[x][i];
+//            }
+//            m_traj.push(temp_point);
+//        }
+
+    }
+
+
+    void executeSlideDEMO(uint8_t *frets, uint8_t *playcommands) {
         int mult = -1;
 
-        strings[1] = fminf(string_1, 9); // setting to max out at 9 for now
-        strings[2] = fminf(string_2, 9);
-        strings[3] = fminf(string_3, 9);
-        strings[4] = fminf(string_4, 9);
-        strings[5] = fminf(string_5, 9);
-        strings[6] = fminf(string_6, 9);
 
-        strings[7] = frets_1;
-        strings[8] = frets_2;
-        strings[9] = frets_3;
-        strings[10] = frets_4;
-        strings[11] = frets_5;
-        strings[12] = frets_6;
+        strings[1] = fminf(frets[0], 9); // setting to max out at 9 for now
+        strings[2] = fminf(frets[1], 9);
+        strings[3] = fminf(frets[2], 9);
+        strings[4] = fminf(frets[3], 9);
+        strings[5] = fminf(frets[4], 9);
+        strings[6] = fminf(frets[5], 9);
+
+        strings[7] = playcommands[0];
+        strings[8] = playcommands[1];
+        strings[9] = playcommands[2];
+        strings[10] = playcommands[3];
+        strings[11] = playcommands[4];
+        strings[12] = playcommands[5];
 
         strings[13] = 0;
         for(int i = 0; i < 6; i++){
@@ -336,7 +393,7 @@ public:
                     strings[i + 7] = -10;
                     break;
                 case 2:
-                    strings[i + 7] = 36;
+                    strings[i + 7] = 38;
                     break;
                 case 3:
                     strings[i + 7] = 23;
@@ -359,6 +416,11 @@ public:
         float hold_traj[20];
         float press_traj[20];
 
+        float sixty_traj[60];
+
+        int slideChanger[6]; //Check to see if the sliders change so we know when to press + unpress
+        Util::fill(slideChanger,6,0);
+
         for(int i = 1; i< NUM_MOTORS + 1; i++) {
             mult = -1;
             float fretLength = (SCALE_LENGTH - (SCALE_LENGTH / pow(2, (((strings[i])) / 12.f)))) - 20;
@@ -373,6 +435,10 @@ public:
                 qf = strings[i];
             }
             if (i < 7) { // SLIDERS: q0 for 20, Slide for 20, qf for 20
+                if(frets[i] != prev_frets[i])
+                {
+                    slideChanger[i] = 1;
+                }
                 Util::fill(q0_traj, 20, q0);
                 Util::interpWithBlend(q0, qf, 20, .05, move_traj);
                 Util::fill(qf_traj, 20, qf);
@@ -386,25 +452,37 @@ public:
                 for (int x = 0; x < 20; x++) {
                     all_Trajs[i - 1][index++] = qf_traj[x];
                 }
+
             } else if( i > 6 && i < 13) { //PRESSERS: Unpress for 20, hold for 20, press for 20;
-                Util::interpWithBlend(q0, -10, 20, .25, unpress_traj);
-                Util::fill(hold_traj, 20, -10);
-                Util::interpWithBlend(-10, qf, 20, .25, press_traj);
-                int index = 0;
-                for (int x = 0; x < 20; x++) {
-                    all_Trajs[i - 1][index++] = unpress_traj[x];
+                if(slideChanger[i-6] == 0)
+                {
+                    Util::fill(sixty_traj, 60, qf);
+                    int index = 0;
+                    for (int x = 0; x < 60; x++) {
+                        all_Trajs[i - 1][index++] = sixty_traj[x];
+                    }
                 }
-                for (int x = 0; x < 20; x++) {
-                    all_Trajs[i - 1][index++] = hold_traj[x];
-                }
-                for (int x = 0; x < 20; x++) {
-                    all_Trajs[i - 1][index++] = press_traj[x];
+                else
+                {
+                    Util::interpWithBlend(q0, -10, 20, .25, unpress_traj);
+                    Util::fill(hold_traj, 20, -10);
+                    Util::interpWithBlend(-10, qf, 20, .25, press_traj);
+                    int index = 0;
+                    for (int x = 0; x < 20; x++) {
+                        all_Trajs[i - 1][index++] = unpress_traj[x];
+                    }
+                    for (int x = 0; x < 20; x++) {
+                        all_Trajs[i - 1][index++] = hold_traj[x];
+                    }
+                    for (int x = 0; x < 20; x++) {
+                        all_Trajs[i - 1][index++] = press_traj[x];
+                    }
                 }
             } else {
-                Util::fill(hold_traj, 60, q0);
+                Util::fill(sixty_traj, 60, q0);
                 int index = 0;
                 for (int x = 0; x < 60; x++) {
-                    all_Trajs[i - 1][index++] = hold_traj[x];
+                    all_Trajs[i - 1][index++] = sixty_traj[x];
                 }
             }
         }
@@ -422,25 +500,31 @@ public:
             m_traj.push(temp_point);
         }
 
+        //Set previous trajectories
+        for(int i = 0; i<6; i++)
+        {
+            prev_frets[i] = frets[i];
+        }
+
     }
 
 
-        void executeSlide(int string_1, int string_2, int string_3, int string_4, int string_5, int string_6, int frets_1, int frets_2, int frets_3, int frets_4,  int frets_5, int frets_6) {
+        void executeSlide(uint8_t *frets, uint8_t *playcommands) {
         int mult = -1;
 
-        strings[1] = fminf(string_1, 9); // setting to max out at 9 for now
-        strings[2] = fminf(string_2, 9);
-        strings[3] = fminf(string_3, 9);
-        strings[4] = fminf(string_4, 9);
-        strings[5] = fminf(string_5, 9);
-        strings[6] = fminf(string_6, 9);
+        strings[1] = fminf(frets[0], 9); // setting to max out at 9 for now
+        strings[2] = fminf(frets[1], 9);
+        strings[3] = fminf(frets[2], 9);
+        strings[4] = fminf(frets[3], 9);
+        strings[5] = fminf(frets[4], 9);
+        strings[6] = fminf(frets[5], 9);
 
-        strings[7] = frets_1;
-        strings[8] = frets_2;
-        strings[9] = frets_3;
-        strings[10] = frets_4;
-        strings[11] = frets_5;
-        strings[12] = frets_6;
+        strings[7] = playcommands[0];
+        strings[8] = playcommands[1];
+        strings[9] = playcommands[2];
+        strings[10] = playcommands[3];
+        strings[11] = playcommands[4];
+        strings[12] = playcommands[5];
 
         strings[13] = 0;
         for(int i = 0; i < 6; i++){
@@ -525,6 +609,7 @@ public:
         }
 
     }
+
     void executePluckTest(int pluckType) {
 //        LOG_LOG("EXECUTE_PLUCK");
         // Make space for temporary trajs
@@ -578,6 +663,7 @@ public:
         }
 //        LOG_LOG("END_EXECUTE_PLUCK_TEST");
     }
+
 
 
     void executeCommand(uint8_t idCode, char mode, int midiVelocity, uint8_t channelPressure) {
@@ -796,6 +882,10 @@ private:
 
     float all_Trajs[13][60];
 
+    uint8_t prev_frets[6];
+    uint8_t prev_playcommands[6];
+
+
     //Serial.println(all_Trajs);
 
     float m_afTraj_string_1[60];
@@ -896,16 +986,20 @@ private:
                 // If the point is not close to the previous point, generate transition trajectory
                 if (!pt.isClose(pInstance->m_currentPoint, DISCONTINUITY_THRESHOLD)) {
                     LOG_WARN("Trajectory discontinuous. Generating Transitions...");
-                    Serial.print("Current Point:");
+                    Serial.print("Current Point: ");
                     for (int x = 0; x<NUM_MOTORS; x++)
                     {
                         Serial.print(pInstance->m_currentPoint[x]);
+                        Serial.print(" ");
                     }
-                    Serial.print("Next Point:");
+                    Serial.println();
+                    Serial.print("Next Point: ");
                     for (int x = 0; x<NUM_MOTORS; x++)
                     {
                         Serial.print(pt[x]);
+                        Serial.print(" ");
                     }
+                    Serial.println();
                     delay(10000);
 
                     // pInstance->m_traj.generateTransitions(pInstance->m_currentPoint, pt, TRANSITION_LENGTH);

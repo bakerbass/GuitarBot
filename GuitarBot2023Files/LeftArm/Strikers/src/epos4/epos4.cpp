@@ -1065,7 +1065,7 @@ int Epos4::setPositionControlParameters() {
 }
 int Epos4::setPositionControlParameters_EC20() {
     int n;
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 150000); // 92493
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 200000); // 92493
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;

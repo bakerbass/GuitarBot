@@ -43,6 +43,7 @@ def main(strum, LH):
         Events.append(event)
 
     for event in strum:
+        #print("rh event", event)
         Events.append(event)
 
     # TODO: When UI adds picking, uncomment code below
@@ -78,7 +79,6 @@ def main(strum, LH):
         if eventType == 'LH':
             send_msg(type='LH', command=e[1])
         elif eventType == 'strum':
-            continue
             send_msg(type='strum', command=e[1])
         elif eventType == 'pick':
             send_msg(type='pick', command=e[1])

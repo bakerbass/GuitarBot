@@ -2,7 +2,7 @@
 // Created by Raghavasimhan Sankaranarayanan on 03/30/22.
 // Modified for GuitarBot by Marcus Parker on 12/7/23
 // Modified for general send_msg + executeCommand by Shayahn Mirfendereski 10/30/24
-//Working Ethernet version
+// Modified for executeEvent()
 #include "src/strikerController.h"
 #include "src/logger.h"
 #include <Ethernet.h>
@@ -15,8 +15,8 @@ IPAddress ip(10, 2, 1, 177); //ip address
 unsigned int localPort = 8888; //udp port to listen for packets on
 
 char packetBuffer[1024];
-uint8_t playcommand[6];
-uint8_t fret[6];
+uint8_t playcommands[6];
+uint8_t frets[6];
 uint8_t pickings[6];
 int8_t strumAngle;
 char event;
@@ -71,12 +71,18 @@ void loop() {
 
         complete = false;
 
-        LOG_LOG("slide 1: %i, slide 2: %i, slide 3: %i, slide 4: %i, slide 5: %i, slide 6: %i", fret[0], fret[1], fret[2], fret[3], fret[4], fret[5]);
-        LOG_LOG("press 1: %i, press 2: %i, press 3: %i, press 4: %i, press 5: %i, press 6: %i", playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
+        LOG_LOG("slide 1: %i, slide 2: %i, slide 3: %i, slide 4: %i, slide 5: %i, slide 6: %i", frets[0], frets[1], frets[2], frets[3], frets[4], frets[5]);
+        LOG_LOG("press 1: %i, press 2: %i, press 3: %i, press 4: %i, press 5: %i, press 6: %i", playcommands[0], playcommands[1], playcommands[2], playcommands[3], playcommands[4], playcommands[5]);
         LOG_LOG("pick 1: %i, pick 2: %i, pick 3: %i, pick 4: %i, pick 5: %i, pick 6: %i", pickings[0], pickings[1], pickings[2], pickings[3], pickings[4], pickings[5]);
         LOG_LOG("strummer: %i", strumAngle);
-        //pController->executeSlide(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
-        pController->executeSlideDEMO(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
+        // To do:
+        // ExecuteEvent needs another variable to control which message is handled between LH, strum, and pick. Add in 'event' as a char/string variable.
+      
+        pController->executeEvent(event, frets, playcommands, pickings, strumAngle);
+        // pController->executeSlide(frets, playcommands);
+        // pController->executeSlideDEMO(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
+        
+
         //delay(10);
     }
 }
@@ -89,29 +95,34 @@ void ethernetEvent() {
       event = packetBuffer[0];
       if (event == 'L') {
         LOG_LOG("LH event");
-        fret[0] = static_cast<uint8_t>(packetBuffer[1]);
-        fret[1] = static_cast<uint8_t>(packetBuffer[2]);
-        fret[2] = static_cast<uint8_t>(packetBuffer[3]);
-        fret[3] = static_cast<uint8_t>(packetBuffer[4]);
-        fret[4] = static_cast<uint8_t>(packetBuffer[5]);
-        fret[5] = static_cast<uint8_t>(packetBuffer[6]);
-        playcommand[0] = static_cast<uint8_t>(packetBuffer[7]);
-        playcommand[1] = static_cast<uint8_t>(packetBuffer[8]);
-        playcommand[2] = static_cast<uint8_t>(packetBuffer[9]);
-        playcommand[3] = static_cast<uint8_t>(packetBuffer[10]);
-        playcommand[4] = static_cast<uint8_t>(packetBuffer[11]);
-        playcommand[5] = static_cast<uint8_t>(packetBuffer[12]);
+        frets[0] = static_cast<uint8_t>(packetBuffer[1]);
+        frets[1] = static_cast<uint8_t>(packetBuffer[2]);
+        frets[2] = static_cast<uint8_t>(packetBuffer[3]);
+        frets[3] = static_cast<uint8_t>(packetBuffer[4]);
+        frets[4] = static_cast<uint8_t>(packetBuffer[5]);
+        frets[5] = static_cast<uint8_t>(packetBuffer[6]);
+        playcommands[0] = static_cast<uint8_t>(packetBuffer[7]);
+        playcommands[1] = static_cast<uint8_t>(packetBuffer[8]);
+        playcommands[2] = static_cast<uint8_t>(packetBuffer[9]);
+        playcommands[3] = static_cast<uint8_t>(packetBuffer[10]);
+        playcommands[4] = static_cast<uint8_t>(packetBuffer[11]);
+        playcommands[5] = static_cast<uint8_t>(packetBuffer[12]);
+        
       }
       else if (event == 'S') {
         LOG_LOG("Strum event");
         strumAngle = packetBuffer[1];
+        
       }
       else if (event == 'P') {
         LOG_LOG("Pick event");
         for (int i = 1; i <= 6; i++) {
           pickings[i - 1] = static_cast<uint8_t>(packetBuffer[i]);
         }
+        
+        
       }
+      
       complete = true;
     }        
 }

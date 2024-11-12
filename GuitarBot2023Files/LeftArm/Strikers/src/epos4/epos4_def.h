@@ -157,6 +157,8 @@ enum HomingStatus {
 enum MotorSpec {
     EC20,
     EC45_Slider,
+    EC45_StrummerSlider,
+    EC45_StrummerPicker,
     EC45_Plucker,
     EC60
 };

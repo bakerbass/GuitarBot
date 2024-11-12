@@ -47,6 +47,7 @@ void setup() {
     pController = StrikerController::createInstance();
     LOG_LOG("Initializing Pressers and Striker...");
     int err = pController->init(MotorSpec::EC45_Slider); //Sliders
+   
     if (err != 0) {
         LOG_ERROR("Controller Init failed");
         return;
@@ -60,6 +61,19 @@ void setup() {
     LOG_LOG("Successfully Initialized! Controller Starting....");
     pController->start();
     delay(2000);
+    //pController->executeStrumTest('D', 50);
+    pController->executeSetPickerTest('U');
+    delay(2000);
+    pController->executeSetPickerTest('D');
+    delay(2000);
+    pController->executeSetPickerTest('U');
+    delay(2000);
+    pController->executeStrumTest('D', 50);
+    delay(2000);
+    pController->executeSetPickerTest('D');
+    delay(2000);
+    pController->executeStrumTest('D', 50);
+    delay(20000);
     
     LOG_LOG("Listening for commands...");   // "in format (ascii characters) <mode><id code><midi velocity>"
     //pController->executePluckTest(0);

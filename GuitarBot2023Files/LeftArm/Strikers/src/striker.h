@@ -96,7 +96,12 @@ public:
             //LOG_LOG("Passed");
             err = epos.setHomingMethod(HomingMethod::CurrentThresholdPositive);
         }
-        if(iNodeID > 12){
+        // CHANGE FOR PLUCKER --> NEGATIVE
+        if(iNodeID == 13){
+            err = epos.setHomingMethod(HomingMethod::CurrentThresholdNegative);
+        }
+
+        if(iNodeID == 14){
             err = epos.setHomingMethod(HomingMethod::CurrentThresholdNegative);
         }
         //CHANGE ME

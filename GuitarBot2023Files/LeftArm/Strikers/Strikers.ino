@@ -60,19 +60,40 @@ void setup() {
     delay(2000);
     LOG_LOG("Successfully Initialized! Controller Starting....");
     pController->start();
-    delay(2000);
-    //pController->executeStrumTest('D', 50);
+    delay(500);
+    uint8_t frets1[6] = {1, 2, 2, 1, 1, 1};
+    uint8_t playcommands1[6] = {1, 2, 2, 1, 1, 1};
+    pController->executeSlideDEMO(frets1, playcommands1);
+    delay(500);
     pController->executeSetPickerTest('U');
-    delay(2000);
+    delay(500);
+    pController->executeStrumTest('D', 30);
+    delay(500);
+    uint8_t frets2[6] = {1, 1, 2, 2, 1, 1};
+    uint8_t playcommands2[6] = {3, 1, 2, 2, 2, 1};
+    pController->executeSlideDEMO(frets2, playcommands2);
+    delay(500);
     pController->executeSetPickerTest('D');
-    delay(2000);
+    delay(500);
+    pController->executeStrumTest('U', 30);
+    delay(500);
+    uint8_t frets3[6] = {1, 1, 1, 2, 3, 2};
+    uint8_t playcommands3[6] = {3, 3, 1, 2, 2, 2};
+    pController->executeSlide(frets3, playcommands3);
+    delay(500);
     pController->executeSetPickerTest('U');
-    delay(2000);
-    pController->executeStrumTest('D', 50);
-    delay(2000);
+    delay(500);
+    pController->executeStrumTest('D', 30);
+    delay(500);
+    uint8_t frets4[6] = {1, 1, 5, 4, 3, 3};
+    uint8_t playcommands4[6] = {3, 3, 2, 2, 2, 2};
+    pController->executeSlideDEMO(frets4, playcommands4);
+    delay(500);
     pController->executeSetPickerTest('D');
-    delay(2000);
-    pController->executeStrumTest('D', 50);
+    delay(500);
+    pController->executeStrumTest('U', 30);
+    delay(500);
+    
     delay(20000);
     
     LOG_LOG("Listening for commands...");   // "in format (ascii characters) <mode><id code><midi velocity>"
@@ -94,7 +115,7 @@ void loop() {
       
         pController->executeEvent(event, frets, playcommands, pickings, strumAngle);
         // pController->executeSlide(frets, playcommands);
-        // pController->executeSlideDEMO(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
+        //pController->executeSlideDEMO(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
         
 
         //delay(10);

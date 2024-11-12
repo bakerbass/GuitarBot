@@ -213,7 +213,7 @@ public:
         }
 
         Serial.println("finished initializing and homing all controllers.");
-        //delay(15000);
+        //delay(45000);
         //to test everything up to homing
 
         return kNoError;
@@ -371,7 +371,7 @@ public:
         switch(position){
             case 'D':
                 //prepare for upstrum
-                picker_mm_qf = 7;
+                picker_mm_qf = 8;
                 break;
             case 'U':
                 //prepare for downstrum
@@ -1188,16 +1188,16 @@ private:
                 }
             }
         }
-        Serial.println("------------------");
-        Serial.print("Index: ");
-        Serial.println(idx);
-        Serial.print("Traj Point: ");
-        for (int i = 0; i < NUM_MOTORS; ++i) {
-
-                Serial.print(point[i]);
-                Serial.print(" ");
-        }
-        Serial.println(" ");
+//        Serial.println("------------------");
+//        Serial.print("Index: ");
+//        Serial.println(idx);
+//        Serial.print("Traj Point: ");
+//        for (int i = 0; i < NUM_MOTORS; ++i) {
+//
+//                Serial.print(point[i]);
+//                Serial.print(" ");
+//        }
+//        Serial.println(" ");
 
         bool run_bot = true; //false turns off motor, true turns on
 //        Serial.print("Traj Point: ");

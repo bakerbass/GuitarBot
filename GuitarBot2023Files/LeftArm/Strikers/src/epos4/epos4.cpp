@@ -716,11 +716,11 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
 //        if(m_uiNodeID == 7){
 //            n = setHomingCurrentThreshold(1500);; //-25
 //        }
-        if(m_uiNodeID == 13){
+        if(m_uiNodeID == 13){ //Slider
 //            n = setHomingCurrentThreshold(400); //PLUCKER
             n = setHomingCurrentThreshold(1000);
         }
-        if(m_uiNodeID == 14){
+        if(m_uiNodeID == 14){//Picker
             n = setHomingCurrentThreshold(500);
         }
         if (n != 0) {
@@ -1298,13 +1298,13 @@ int Epos4::setPositionControlParameters_StrummerPicker() {
         return -1;
     }
 
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_I_GAIN, 16699311);
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_I_GAIN, 12699311);
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;
     }
 
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 30000);
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 10000);
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;

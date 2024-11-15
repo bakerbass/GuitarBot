@@ -315,52 +315,112 @@ public:
             }
         }
     }
-    void executeStrumTest(char strumType, int speed) {
-        float temp_traj_1[speed];
+    void executeStrumTest(int strumType, int speed, int deflect) {
+        while(pInstance->m_traj.count() > 1) {
+            delay(10); //test with 1ms later
+            Serial.println("Waiting until event complete....");
+        }
+
+        //Slider
+        float strummerIdle[5];
+        float strummerMove[speed];
+        //Picker
+        float pickerMoving_1[5];
+        float pickerMoving_2[speed];
+        //Other motors
+        float non_strummerIdle[speed + 5];
         int strum_mm_qf = -90;
+        float picker_mm_qf_1 = 8;
+        float picker_mm_qf_2 = 10;
         switch(strumType){
-            case 'U':
-                //upstrum
+            case -45:
+                //upstrum, point picker down
+                picker_mm_qf_1 = 9;
+                picker_mm_qf_2 = 9;
                 strum_mm_qf = -90;
-                break;
-            case 'D':
-                //downstrum
+                Serial.println("Recieved Upstrum"); //passed, same result
+                if(deflect == 1){
+                    picker_mm_qf_1 = 4;
+                    picker_mm_qf_2 = 4;
+                }
+            break;
+
+            case 45:
+                //downstrum, point picker up
+                picker_mm_qf_1 = 10;
+                picker_mm_qf_2 = 10;
                 strum_mm_qf = 0;
+                Serial.println("Recieved Downstrum"); // passed, same result
+                if(deflect == 1){
+                    picker_mm_qf_1 = 4;
+                    picker_mm_qf_2 = 4;
+                }
                 break;
         }
+        //Check if elements exist in the queue here, set list of q0's.
 
         for(int i = 1; i < NUM_MOTORS + 1; i++) {
             float q0 = m_striker[i].getPosition_ticks();
-            if(i == 13){
+
+            if (i == 13) {
                 // Get initial position in position ticks
                 //Translate pluckType to position ticks and assign to qf
-                float pos2pulse = (strum_mm_qf * 2048) / 9.4;
-                float qf = pos2pulse;
+                float qf_strummerSlider = (strum_mm_qf * 2048) / 9.4;
                 //Interpolate Line
-                Util::interpWithBlend(q0, qf, speed, .05, temp_traj_1);
+                Util::fill(strummerIdle, 5, q0);
+                Util::interpWithBlend(q0, qf_strummerSlider, speed, .05, strummerMove);
                 // Put line into list of trajs
                 int index = 0;
+                for (int x = 0; x < 5; x++) {
+                    all_Trajs[i - 1][index++] = strummerIdle[x];
+                    //Serial.println(strummerIdle[x]); //doesn't get properly pushed to the queue... but values are correct
+                }
+                //was not supposed to be a 0 for x = _
                 for (int x = 0; x < speed; x++) {
-                    all_Trajs[i - 1][index++] = temp_traj_1[x];
+                    all_Trajs[i - 1][index++] = strummerMove[x];
+                    //Serial.println(strummerMove[x]);
                 }
 
-            } else {
-                Util::fill(temp_traj_1, speed, q0);
+            }
+            else if (i == 14) {
+                // Get initial position in position ticks
+                //
+                float pos2pulse = (picker_mm_qf_1 * 2048) / 9.4;
+                float qf_1 = pos2pulse;
+                pos2pulse  = (picker_mm_qf_2 * 2048) / 9.4;
+                float qf_2 = pos2pulse;
+                //Interpolate Line
+                Util::interpWithBlend(q0, qf_1, 5, .25, pickerMoving_1);
+                Util::interpWithBlend(qf_1, qf_2, speed, .05, pickerMoving_2);
+
+                // Put line into list of trajs
                 int index = 0;
+                for (int x = 0; x < 5; x++) {
+                    all_Trajs[i - 1][index++] = pickerMoving_1[x];
+                    //Serial.println(temp_traj_1[x]);
+                }
                 for (int x = 0; x < speed; x++) {
-                    all_Trajs[i - 1][index++] = temp_traj_1[x];
+                    all_Trajs[i - 1][index++] = pickerMoving_2[x];
+                    //Serial.println(temp_traj_1[x]);
+                }
+            } else {
+                    Util::fill(non_strummerIdle, speed + 5, q0);
+                    int index = 0;
+                    for (int x = 0; x < speed + 5; x++) {
+                        all_Trajs[i - 1][index++] = non_strummerIdle[x];
+                    }
                 }
             }
-        }
-
-        //TODO: add to picker queue
+        //TODO: add to queue
         //Make and push traj points to queue
         Trajectory<int32_t>::point_t temp_point;
-        for (int i = 0; i < speed; i++) {
+        for (int i = 0; i < speed + 5; i++) {
             for(int x = 0; x < NUM_MOTORS; x++){
-                //I'd like to seperate all_trajs between left and right hand at some point.
                 temp_point[x] = all_Trajs[x][i];
+                Serial.print(all_Trajs[x][i]);
+                Serial.print(" ");
             }
+            Serial.println("");
             m_traj.push(temp_point);
         }
 
@@ -375,7 +435,7 @@ public:
                 break;
             case 'U':
                 //prepare for downstrum
-                picker_mm_qf = 11;
+                picker_mm_qf = 10;
                 break;
         }
 
@@ -421,6 +481,7 @@ public:
 
 
     void executeSlideTest(int string_1, int string_2, int string_3, int string_4, int string_5, int string_6, int frets_1, int frets_2) {
+
         strings[1] = string_1;
         strings[2] = string_2;
         strings[3] = string_3;
@@ -493,6 +554,14 @@ public:
 //        }
 //        LOG_LOG("strumAngle: %i", strumAngle);
 
+
+
+        while(pInstance->m_traj.count() > 1) {
+            delay(10); //test with 1ms later
+            Serial.println("Waiting until event complete....");
+        }
+
+
         if(eventType == 'L'){
         //1
             LOG_LOG("LH message resiceved.");
@@ -504,8 +573,10 @@ public:
         else if(eventType == 'S'){
         //2
             LOG_LOG("Strum message resiceved.");
+            //executeStrumTest(strumAngle, 30); TODO: Add 3rd variable with deflect flag
             //2a. Call getStrumTraj -- fills all_Trajs[14-15] (will eventually be all_Trajs[19-20] TODO: once we have a strummer prototype to test with
             //2b. Call Fill_LH to fill LH with current value or 38 for pressing motors.
+            
         //
         }
         else if(eventType == 'P'){
@@ -547,6 +618,10 @@ public:
         strings[10] = playcommands[3];
         strings[11] = playcommands[4];
         strings[12] = playcommands[5];
+        while(pInstance->m_traj.count() > 1) {
+            delay(10); //test with 1ms later
+            Serial.println("Waiting until event complete....");
+        }
 
         strings[13] = 0;
         for(int i = 0; i < 6; i++){
@@ -574,6 +649,7 @@ public:
         float move_traj[20];
         float qf_traj[20];
 
+
         //Pressers:
         float unpress_traj[20];
         float hold_traj[20];
@@ -583,6 +659,7 @@ public:
 
         int slideChanger[6]; //Check to see if the sliders change so we know when to press + unpress
         Util::fill(slideChanger,6,0);
+
 
         for(int i = 1; i< NUM_MOTORS + 1; i++) {
             mult = -1;
@@ -656,10 +733,10 @@ public:
         Serial.print(": ");
             for(int x = 0; x < NUM_MOTORS; x++){
                 temp_point[x] = all_Trajs[x][i];
-                Serial.print(temp_point[x]);
-                Serial.print(" ");
+//                Serial.print(temp_point[x]);
+//                Serial.print(" ");
             }
-            Serial.println();
+//            Serial.println();
             m_traj.push(temp_point);
         }
 
@@ -764,10 +841,10 @@ public:
         Serial.print(": ");
             for(int x = 0; x < NUM_MOTORS; x++){
                 temp_point[x] = all_Trajs[x][i];
-                Serial.print(temp_point[x]);
-                Serial.print(" ");
+//                Serial.print(temp_point[x]);
+//                Serial.print(" ");
             }
-            Serial.println();
+//            Serial.println();
             m_traj.push(temp_point);
         }
 
@@ -895,7 +972,7 @@ public:
             float q0 = 0;
             float qf = pos2pulse;
 
-            if(i == 13){
+            if(i == 13){ //Strum Slider
                 pos2pulse = (start_state_SS * 2048) / 9.4;
                 qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;
@@ -908,11 +985,11 @@ public:
                 }
                 for (int x = 0; x < 50; x++) {
                     all_Trajs[i - 1][index++] = temp_traj_2[x];
-                    Serial.println(index);
-                    Serial.println(temp_traj_2[x]);
+//                    Serial.println(index);
+//                    Serial.println(temp_traj_2[x]);
                 }
             }
-            else if(i == 14){
+            else if(i == 14){ // Strum Picker
                 pos2pulse = (start_state_SP * 2048) / 9.4;
                 qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;
@@ -1054,7 +1131,8 @@ private:
     bool m_bSendDataRequest = true;
     bool m_bDataRequested = false;
 
-    float all_Trajs[14][100]; //CHANGE FOR MORE TRAJS
+
+    float all_Trajs[14][200]; //CHANGE FOR MORE TRAJS
 
     uint8_t prev_frets[6];
     uint8_t prev_playcommands[6];
@@ -1075,6 +1153,7 @@ private:
     float m_afTraj_fret_4[60];
     float m_afTraj_fret_5[60];
     float m_afTraj_fret_6[60];
+
 
     float m_afTraj_pluck_1[60];
 
@@ -1137,6 +1216,8 @@ private:
         static ulong idx = 0;
 
 
+
+
         if (pInstance == nullptr)
             return;
 
@@ -1150,6 +1231,7 @@ private:
             errorAtPop = false;
         } else {
             if (pInstance->m_traj.count() > 0) {
+
                 //slider array.count() == 0 && press
 
                 Trajectory<int32_t>::point_t pt { pInstance->m_currentPoint };
@@ -1188,21 +1270,19 @@ private:
                 }
             }
         }
-//        Serial.println("------------------");
-//        Serial.print("Index: ");
-//        Serial.println(idx);
-//        Serial.print("Traj Point: ");
-//        for (int i = 0; i < NUM_MOTORS; ++i) {
-//
-//                Serial.print(point[i]);
-//                Serial.print(" ");
-//        }
-//        Serial.println(" ");
+        Serial.println("------------------");
+        Serial.print("Index: ");
+        Serial.println(idx);
+        Serial.print("Traj Point: ");
+        for (int i = 0; i < NUM_MOTORS; ++i) {
+
+                Serial.print(point[i]);
+                Serial.print(" ");
+        }
+        Serial.println(" ");
+
 
         bool run_bot = true; //false turns off motor, true turns on
-//        Serial.print("Traj Point: ");
-//        Serial.println(point[3]);
-        //Serial.print(idx);
 
 
         idx += 1;

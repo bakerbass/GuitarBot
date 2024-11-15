@@ -3,6 +3,7 @@
 // Modified for GuitarBot by Marcus Parker on 12/7/23
 // Modified for general send_msg + executeCommand by Shayahn Mirfendereski 10/30/24
 // Modified for executeEvent()
+// Modified by Derrick 11/14/2024 at 5:49pm
 #include "src/strikerController.h"
 #include "src/logger.h"
 #include <Ethernet.h>
@@ -64,38 +65,70 @@ void setup() {
     uint8_t frets1[6] = {1, 2, 2, 1, 1, 1};
     uint8_t playcommands1[6] = {1, 2, 2, 1, 1, 1};
     pController->executeSlideDEMO(frets1, playcommands1);
+    pController->executeStrumTest(45, 100, 0);
     delay(500);
-    pController->executeSetPickerTest('U');
+    
+    pController->executeStrumTest(-45, 100, 0);
     delay(500);
-    pController->executeStrumTest('D', 30);
+    
+    pController->executeStrumTest(45, 100, 0);
     delay(500);
+    
+    pController->executeStrumTest(-45, 100, 1);
+    delay(500);
+    
+    pController->executeStrumTest(45, 100, 0);
+    delay(500);
+    
+    pController->executeStrumTest(-45, 100, 1);
+    delay(500);
+    
+    pController->executeStrumTest(45, 100, 1);
+    delay(500);
+
+    
+
+//    pController->executeSetPickerTest('U');
+//    delay(500);
+//    pController->executeStrumTest('D', 50);
+//    delay(500);
     uint8_t frets2[6] = {1, 1, 2, 2, 1, 1};
     uint8_t playcommands2[6] = {3, 1, 2, 2, 2, 1};
     pController->executeSlideDEMO(frets2, playcommands2);
-    delay(500);
-    pController->executeSetPickerTest('D');
-    delay(500);
-    pController->executeStrumTest('U', 30);
-    delay(500);
-    uint8_t frets3[6] = {1, 1, 1, 2, 3, 2};
-    uint8_t playcommands3[6] = {3, 3, 1, 2, 2, 2};
-    pController->executeSlide(frets3, playcommands3);
-    delay(500);
-    pController->executeSetPickerTest('U');
-    delay(500);
-    pController->executeStrumTest('D', 30);
-    delay(500);
-    uint8_t frets4[6] = {1, 1, 5, 4, 3, 3};
-    uint8_t playcommands4[6] = {3, 3, 2, 2, 2, 2};
-    pController->executeSlideDEMO(frets4, playcommands4);
-    delay(500);
-    pController->executeSetPickerTest('D');
-    delay(500);
-    pController->executeStrumTest('U', 30);
-    delay(500);
+
+    pController->executeStrumTest(-45, 100, 0);
+
+    // pController->executeStrumTest('U', 50);
+    // delay(5000);
+    // pController->executeStrumTest('D', 50);
+    // pController->executeStrumTest('U', 50);
+    //Next time I'm gonna see if it's possible to output to this terminal so you can see output
+
+    //At some point I want to test just adding to all_trajs in the traj functions and all queue pushing in executeEvent
+
+    // delay(500);
+    // pController->executeSetPickerTest('D');
+    // delay(500);
+    // pController->executeStrumTest('U', 30);
+    // delay(500);
+    // uint8_t frets3[6] = {1, 1, 1, 2, 3, 2};
+    // uint8_t playcommands3[6] = {3, 3, 1, 2, 2, 2};
+    // pController->executeSlide(frets3, playcommands3);
+    // delay(500);
+    // pController->executeSetPickerTest('U');
+    // delay(500);
+    // pController->executeStrumTest('D', 30);
+    // delay(500);
+    // uint8_t frets4[6] = {1, 1, 5, 4, 3, 3};
+    // uint8_t playcommands4[6] = {3, 3, 2, 2, 2, 2};
+    // pController->executeSlideDEMO(frets4, playcommands4);
+    // delay(500);
+    // pController->executeSetPickerTest('D');
+    // delay(500);
+    // pController->executeStrumTest('U', 30);
+    // delay(500);
     
-    delay(20000);
-    
+
     LOG_LOG("Listening for commands...");   // "in format (ascii characters) <mode><id code><midi velocity>"
     //pController->executePluckTest(0);
 }
@@ -142,7 +175,7 @@ void ethernetEvent() {
         playcommands[3] = static_cast<uint8_t>(packetBuffer[10]);
         playcommands[4] = static_cast<uint8_t>(packetBuffer[11]);
         playcommands[5] = static_cast<uint8_t>(packetBuffer[12]);
-        
+
       }
       else if (event == 'S') {
         LOG_LOG("Strum event");

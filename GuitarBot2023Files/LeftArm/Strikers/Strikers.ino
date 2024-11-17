@@ -61,15 +61,15 @@ void setup() {
     delay(2000);
     LOG_LOG("Successfully Initialized! Controller Starting....");
     pController->start();
-    delay(500);
-    uint8_t frets1[6] = {1, 2, 2, 1, 1, 1};
-    uint8_t playcommands1[6] = {1, 2, 2, 1, 1, 1};
-    pController->executeSlideDEMO(frets1, playcommands1);
+    delay(3000);
+    //uint8_t frets1[6] = {1, 2, 2, 1, 1, 1};
+    //uint8_t playcommands1[6] = {1, 2, 2, 1, 1, 1};
+    //pController->executeSlideDEMO(frets1, playcommands1);
     pController->executeStrumTest(45, 100, 0);
-    delay(500);
+    delay(2000);
     
     pController->executeStrumTest(-45, 100, 0);
-    delay(500);
+    delay(20000);
     
     pController->executeStrumTest(45, 100, 0);
     delay(500);

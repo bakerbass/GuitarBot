@@ -329,7 +329,7 @@ public:
         float pickerMoving_2[speed];
         //Other motors
         float non_strummerIdle[speed + 5];
-        int strum_mm_qf = -90;
+        int strum_mm_qf = -110;
         float picker_mm_qf_1 = 8;
         float picker_mm_qf_2 = 10;
         switch(strumType){
@@ -337,7 +337,7 @@ public:
                 //upstrum, point picker down
                 picker_mm_qf_1 = 9;
                 picker_mm_qf_2 = 9;
-                strum_mm_qf = -90;
+                strum_mm_qf = -100;
                 Serial.println("Recieved Upstrum"); //passed, same result
                 if(deflect == 1){
                     picker_mm_qf_1 = 4;
@@ -349,7 +349,7 @@ public:
                 //downstrum, point picker up
                 picker_mm_qf_1 = 10;
                 picker_mm_qf_2 = 10;
-                strum_mm_qf = 0;
+                strum_mm_qf = -15;
                 Serial.println("Recieved Downstrum"); // passed, same result
                 if(deflect == 1){
                     picker_mm_qf_1 = 4;
@@ -955,7 +955,7 @@ public:
     }
     //TODO: picker queue?
     void start() {
-        float start_state_SS = -90;
+        float start_state_SS = -110;
         float start_state_SP = 9;
         float pos2pulse = 0;
 

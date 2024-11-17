@@ -690,7 +690,7 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
             n = SetHomeOffset(29500);
         }
         if(m_uiNodeID == 14){
-            n = SetHomeOffset(700);
+            n = SetHomeOffset(100);
         }
 
         if(n != 0 ) {

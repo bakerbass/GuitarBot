@@ -19,10 +19,10 @@ def send_msg(type, command):
         flattened = [i for list in command for i in list]
     elif type == 'strum':
         message = strum
-        flattened.append(command)
+        flattened = [i for i in command]
     elif type == 'pick':
         message = pick
-        flattened = [i for i in command]
+        flattened = [i for list in command for i in list]
 
     print(type, ": ", flattened)
     pCommand = struct.pack(f'<{len(flattened)}b', *flattened)
@@ -38,17 +38,13 @@ def main():
     #Add/remove any LH/strum/pick events as desired to test
     #Format of event is:
     # [event type (LH/strum/pick),
-    # properties (LH can be slide, press lists, strum can be pick angle--45==down strum, -45==up strum, pick can be pick/don't pick),
+    # properties (LH can be slide, press lists, strum can be pick angle--45==down strum, -45==up strum, pick can be don't pick (0), pick (1), tremolo (2) + length of a quarter note IN TRAJ POINTS + speed of tremolo IN TRAJ POINTS),
     # time]
-    LH = [['LH', [[1, 2, 2, 1, 1, 1], [1, 2, 2, 1, 1, 1]], 0],
-          ['LH', [[1, 1, 1, 2, 3, 2], [3, 3, 1, 2, 2, 2]], 2.608],
-          ['LH', [[1, 1, 5, 4, 3, 3], [3, 3, 2, 2, 2, 2]], 4.173],
-          ['LH', [[1, 1, 5, 4, 3, 3], [1, 1, 1, 1, 1, 1]], 8]]
-    strum = [['strum', -45, 1.043],
-             ['strum', 45, 3.173]]
-    pick = [['pick', [1, 1, 1, 1, 1, 1], 5.217],
-            ['pick', [0, 1, 1, 0, 0, 1], 6.26]]
-
+    LH = [['LH', [[1, 3, 2, 1, 1, 1], [3, 2, 2, 1, 2, 3]], 0], ['LH', [[1, 3, 4, 1, 1, 1], [3, 2, 2, 1, 2, 3]], 1], ['LH', [[1, 1, 1, 2, 3, 2], [3, 3, 1, 2, 2, 2]], 2], ['LH', [[1, 1, 1, 2, 3, 2], [3, 3, 1, 2, 2, 2]], 3], ['LH', [[1, 1, 1, 2, 1, 2], [3, 3, 1, 2, 2, 2]], 4], ['LH', [[1, 2, 4, 4, 3, 1], [3, 2, 2, 2, 2, 3]], 5], ['LH', [[1, 2, 4, 2, 5, 2], [3, 2, 2, 2, 2, 2]], 6], ['LH', [[1, 2, 2, 1, 3, 2], [1, 2, 2, 1, 2, 2]], 7], ['LH', [[1, 1, 5, 4, 7, 3], [1, 3, 2, 2, 2, 2]], 8], ['LH', [[1, 1, 5, 4, 7, 3], [1, 1, 1, 1, 1, 1]], 9]]
+    strum = [['strum', [45, 75, 0], 0], ['strum', [-45, 75, 0], 1], ['strum', [45, 75, 0], 2], ['strum', [-45, 75, 0], 3], ['strum', [45, 75, 0], 4], ['strum', [-45, 75, 0], 5], ['strum', [45, 75, 0], 6], ['strum', [-45, 75, 0], 7], ['strum', [45, 75, 0], 8], ['strum', [-45, 75, 1], 9]]
+    #strum = []
+    # pick = [['pick', [[1, 1, 1, 1, 1, 1], [5, 0]], 1], ['pick', [[1, 1, 1, 1, 1, 1], [5, 0]], 1.5], ['pick', [[1, 1, 1, 2, 1, 1], [120, 10]], 2], ['pick', [[1, 1, 1, 2, 1, 1], [100, 20]], 3.5], ['pick', [[1, 1, 1, 2, 1, 1], [120, 15]], 4], ['pick', [[1, 1, 1, 2, 1, 1], [120, 5]], 5]]
+    pick = []
     Events = []
     for event in LH:
         Events.append(event)

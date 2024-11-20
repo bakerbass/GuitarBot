@@ -20,6 +20,8 @@ uint8_t playcommands[6];
 uint8_t frets[6];
 uint8_t pickings[6];
 int8_t strumAngle;
+uint8_t strumSpeed;
+uint8_t deflect; 
 char event;
 
 EthernetUDP udp;
@@ -58,79 +60,40 @@ void setup() {
         LOG_ERROR("Controller Init failed");
         return;
     }
-    delay(2000);
+    delay(1000);
     LOG_LOG("Successfully Initialized! Controller Starting....");
     pController->start();
-    delay(3000);
+    delay(1000);
     //uint8_t frets1[6] = {1, 2, 2, 1, 1, 1};
     //uint8_t playcommands1[6] = {1, 2, 2, 1, 1, 1};
     //pController->executeSlideDEMO(frets1, playcommands1);
-    pController->executeStrumTest(45, 100, 0);
-    delay(2000);
+    // pController->executeStrumTest(45, 100, 0);
+    // delay(2000);
     
-    pController->executeStrumTest(-45, 100, 0);
-    delay(20000);
+    // pController->executeStrumTest(-45, 100, 0);
+    // delay(20000);
     
-    pController->executeStrumTest(45, 100, 0);
-    delay(500);
+    // pController->executeStrumTest(45, 100, 0);
+    // delay(500);
     
-    pController->executeStrumTest(-45, 100, 1);
-    delay(500);
+    // pController->executeStrumTest(-45, 100, 1);
+    // delay(500);
     
-    pController->executeStrumTest(45, 100, 0);
-    delay(500);
+    // pController->executeStrumTest(45, 100, 0);
+    // delay(500);
     
-    pController->executeStrumTest(-45, 100, 1);
-    delay(500);
+    // pController->executeStrumTest(-45, 100, 1);
+    // delay(500);
     
-    pController->executeStrumTest(45, 100, 1);
-    delay(500);
-
-    
-
+    // pController->executeStrumTest(45, 100, 1);
+    // delay(500);
 //    pController->executeSetPickerTest('U');
 //    delay(500);
 //    pController->executeStrumTest('D', 50);
 //    delay(500);
-    uint8_t frets2[6] = {1, 1, 2, 2, 1, 1};
-    uint8_t playcommands2[6] = {3, 1, 2, 2, 2, 1};
-    pController->executeSlideDEMO(frets2, playcommands2);
-
-    pController->executeStrumTest(-45, 100, 0);
-
-    // pController->executeStrumTest('U', 50);
-    // delay(5000);
-    // pController->executeStrumTest('D', 50);
-    // pController->executeStrumTest('U', 50);
-    //Next time I'm gonna see if it's possible to output to this terminal so you can see output
-
-    //At some point I want to test just adding to all_trajs in the traj functions and all queue pushing in executeEvent
-
-    // delay(500);
-    // pController->executeSetPickerTest('D');
-    // delay(500);
-    // pController->executeStrumTest('U', 30);
-    // delay(500);
-    // uint8_t frets3[6] = {1, 1, 1, 2, 3, 2};
-    // uint8_t playcommands3[6] = {3, 3, 1, 2, 2, 2};
-    // pController->executeSlide(frets3, playcommands3);
-    // delay(500);
-    // pController->executeSetPickerTest('U');
-    // delay(500);
-    // pController->executeStrumTest('D', 30);
-    // delay(500);
-    // uint8_t frets4[6] = {1, 1, 5, 4, 3, 3};
-    // uint8_t playcommands4[6] = {3, 3, 2, 2, 2, 2};
-    // pController->executeSlideDEMO(frets4, playcommands4);
-    // delay(500);
-    // pController->executeSetPickerTest('D');
-    // delay(500);
-    // pController->executeStrumTest('U', 30);
-    // delay(500);
     
 
-    LOG_LOG("Listening for commands...");   // "in format (ascii characters) <mode><id code><midi velocity>"
-    //pController->executePluckTest(0);
+    LOG_LOG("Listening for commands...");
 }
 
 void loop() {
@@ -143,10 +106,12 @@ void loop() {
         LOG_LOG("press 1: %i, press 2: %i, press 3: %i, press 4: %i, press 5: %i, press 6: %i", playcommands[0], playcommands[1], playcommands[2], playcommands[3], playcommands[4], playcommands[5]);
         LOG_LOG("pick 1: %i, pick 2: %i, pick 3: %i, pick 4: %i, pick 5: %i, pick 6: %i", pickings[0], pickings[1], pickings[2], pickings[3], pickings[4], pickings[5]);
         LOG_LOG("strummer: %i", strumAngle);
+        LOG_LOG("Strum Speed: %i", strumSpeed);
+        LOG_LOG("Deflect: %i", deflect);
         // To do:
         // ExecuteEvent needs another variable to control which message is handled between LH, strum, and pick. Add in 'event' as a char/string variable.
       
-        pController->executeEvent(event, frets, playcommands, pickings, strumAngle);
+        pController->executeEvent(event, frets, playcommands, pickings, strumAngle, strumSpeed, deflect);
         // pController->executeSlide(frets, playcommands);
         //pController->executeSlideDEMO(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
         
@@ -180,6 +145,8 @@ void ethernetEvent() {
       else if (event == 'S') {
         LOG_LOG("Strum event");
         strumAngle = packetBuffer[1];
+        strumSpeed =  packetBuffer[2];
+        deflect = packetBuffer[3];
         
       }
       else if (event == 'P') {

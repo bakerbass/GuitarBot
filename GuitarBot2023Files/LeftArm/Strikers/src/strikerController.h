@@ -316,10 +316,10 @@ public:
         }
     }
     void executeStrumTest(int strumType, int speed, int deflect) {
-        while(pInstance->m_traj.count() > 1) {
-            delay(10); //test with 1ms later
-            Serial.println("Waiting until event complete....");
-        }
+//        while(pInstance->m_traj.count() > 1) {
+//            delay(10); //test with 1ms later
+//            Serial.println("Waiting until event complete....");
+//        }
 
         //Slider
         float strummerIdle[5];
@@ -329,7 +329,7 @@ public:
         float pickerMoving_2[speed];
         //Other motors
         float non_strummerIdle[speed + 5];
-        int strum_mm_qf = -110;
+        int strum_mm_qf = -115;
         float picker_mm_qf_1 = 8;
         float picker_mm_qf_2 = 10;
         switch(strumType){
@@ -337,7 +337,7 @@ public:
                 //upstrum, point picker down
                 picker_mm_qf_1 = 9;
                 picker_mm_qf_2 = 9;
-                strum_mm_qf = -100;
+                strum_mm_qf = -115;
                 Serial.println("Recieved Upstrum"); //passed, same result
                 if(deflect == 1){
                     picker_mm_qf_1 = 4;
@@ -417,10 +417,10 @@ public:
         for (int i = 0; i < speed + 5; i++) {
             for(int x = 0; x < NUM_MOTORS; x++){
                 temp_point[x] = all_Trajs[x][i];
-                Serial.print(all_Trajs[x][i]);
-                Serial.print(" ");
+//                Serial.print(all_Trajs[x][i]);
+//                Serial.print(" ");
             }
-            Serial.println("");
+//            Serial.println("");
             m_traj.push(temp_point);
         }
 
@@ -543,7 +543,7 @@ public:
         Inputs: uint8_t playcommand[6], uint8_t fret[6], uint8_t pickings[6], int strumAngle
         Outputs: Calls executeSlide(), executeStrum(), executePluckTest() which fills allTrajs with all trajectories
     */
-    void executeEvent(char eventType,uint8_t *frets, uint8_t *playcommands, uint8_t *pickings, int strumAngle)
+    void executeEvent(char eventType,uint8_t *frets, uint8_t *playcommands, uint8_t *pickings, int strumAngle, int strumSpeed, int deflect)
     {//Add variable to check message type.
        //Making sure we receive all necessary data properly
 //        for(int i = 0; i<6; i++)
@@ -564,24 +564,22 @@ public:
 
         if(eventType == 'L'){
         //1
-            LOG_LOG("LH message resiceved.");
+            LOG_LOG("LH message received.");
             // 1a. Call executeSlide() to process LH events -- fills all_Trajs[0-12] with trajectories
             //executeSlideDEMO(frets, playcommands); //(Rename to 'getSlideTraj' when this function no longer pushes to the queue.)
-            executeSlide(frets, playcommands);
+            executeSlideDEMO(frets, playcommands);
             // 1b. Fill other motors with current value
         }
         else if(eventType == 'S'){
         //2
-            LOG_LOG("Strum message resiceved.");
-            //executeStrumTest(strumAngle, 30); TODO: Add 3rd variable with deflect flag
-            //2a. Call getStrumTraj -- fills all_Trajs[14-15] (will eventually be all_Trajs[19-20] TODO: once we have a strummer prototype to test with
-            //2b. Call Fill_LH to fill LH with current value or 38 for pressing motors.
+            LOG_LOG("Strum message received.");
+            executeStrumTest(strumAngle, strumSpeed, deflect);
             
         //
         }
         else if(eventType == 'P'){
         //3
-            LOG_LOG("Pluck message resiceved.");
+            LOG_LOG("Pluck message received.");
             //3a. Call getPickTraj
             //3b. Call Fill_LH to fill LH with current value or 38 for pressing motors.
         }
@@ -837,8 +835,8 @@ public:
 
         Trajectory<int32_t>::point_t temp_point;
         for (int i = 0; i < 60; i++) {
-        Serial.print(i);
-        Serial.print(": ");
+//        Serial.print(i);
+//        Serial.print(": ");
             for(int x = 0; x < NUM_MOTORS; x++){
                 temp_point[x] = all_Trajs[x][i];
 //                Serial.print(temp_point[x]);
@@ -1270,16 +1268,16 @@ private:
                 }
             }
         }
-        Serial.println("------------------");
-        Serial.print("Index: ");
-        Serial.println(idx);
-        Serial.print("Traj Point: ");
-        for (int i = 0; i < NUM_MOTORS; ++i) {
-
-                Serial.print(point[i]);
-                Serial.print(" ");
-        }
-        Serial.println(" ");
+//        Serial.println("------------------");
+//        Serial.print("Index: ");
+//        Serial.println(idx);
+//        Serial.print("Traj Point: ");
+//        for (int i = 0; i < NUM_MOTORS; ++i) {
+//
+//                Serial.print(point[i]);
+//                Serial.print(" ");
+//        }
+//        Serial.println(" ");
 
 
         bool run_bot = true; //false turns off motor, true turns on

@@ -677,7 +677,7 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
         n = SetHomeOffset(52000); //52000
 
         //CHANGE THIS PLUCKER
-        if(m_uiNodeID > 12){
+        if(m_uiNodeID == 13){
             n = SetHomeOffset(0);
         }
         if(m_uiNodeID > 6 && m_uiNodeID < 13){
@@ -686,10 +686,10 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
         if(m_uiNodeID == 7){
             n = SetHomeOffset(0); //-25
         }
-        if(m_uiNodeID == 13){
+        if(m_uiNodeID == 14){   // Strummer slider
             n = SetHomeOffset(29500);
         }
-        if(m_uiNodeID == 14){
+        if(m_uiNodeID == 15){   // Strummer picker
             n = SetHomeOffset(100);
         }
 
@@ -716,11 +716,11 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
 //        if(m_uiNodeID == 7){
 //            n = setHomingCurrentThreshold(1500);; //-25
 //        }
-        if(m_uiNodeID == 13){ //Slider
+        if(m_uiNodeID == 14){ //Slider
 //            n = setHomingCurrentThreshold(400); //PLUCKER
             n = setHomingCurrentThreshold(1000);
         }
-        if(m_uiNodeID == 14){//Picker
+        if(m_uiNodeID == 15){//Picker
             n = setHomingCurrentThreshold(500);
         }
         if (n != 0) {
@@ -1304,7 +1304,7 @@ int Epos4::setPositionControlParameters_StrummerPicker() {
         return -1;
     }
 
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 10000);
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 20000);
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;

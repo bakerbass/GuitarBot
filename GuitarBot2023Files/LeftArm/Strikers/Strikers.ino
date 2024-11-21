@@ -19,6 +19,8 @@ char packetBuffer[1024];
 uint8_t playcommands[6];
 uint8_t frets[6];
 uint8_t pickings[6];
+int8_t tremLength;
+int8_t tremSpeed;
 int8_t strumAngle;
 uint8_t strumSpeed;
 uint8_t deflect; 
@@ -64,34 +66,6 @@ void setup() {
     LOG_LOG("Successfully Initialized! Controller Starting....");
     pController->start();
     delay(1000);
-    //uint8_t frets1[6] = {1, 2, 2, 1, 1, 1};
-    //uint8_t playcommands1[6] = {1, 2, 2, 1, 1, 1};
-    //pController->executeSlideDEMO(frets1, playcommands1);
-    // pController->executeStrumTest(45, 100, 0);
-    // delay(2000);
-    
-    // pController->executeStrumTest(-45, 100, 0);
-    // delay(20000);
-    
-    // pController->executeStrumTest(45, 100, 0);
-    // delay(500);
-    
-    // pController->executeStrumTest(-45, 100, 1);
-    // delay(500);
-    
-    // pController->executeStrumTest(45, 100, 0);
-    // delay(500);
-    
-    // pController->executeStrumTest(-45, 100, 1);
-    // delay(500);
-    
-    // pController->executeStrumTest(45, 100, 1);
-    // delay(500);
-//    pController->executeSetPickerTest('U');
-//    delay(500);
-//    pController->executeStrumTest('D', 50);
-//    delay(500);
-    
 
     LOG_LOG("Listening for commands...");
 }
@@ -105,13 +79,12 @@ void loop() {
         LOG_LOG("slide 1: %i, slide 2: %i, slide 3: %i, slide 4: %i, slide 5: %i, slide 6: %i", frets[0], frets[1], frets[2], frets[3], frets[4], frets[5]);
         LOG_LOG("press 1: %i, press 2: %i, press 3: %i, press 4: %i, press 5: %i, press 6: %i", playcommands[0], playcommands[1], playcommands[2], playcommands[3], playcommands[4], playcommands[5]);
         LOG_LOG("pick 1: %i, pick 2: %i, pick 3: %i, pick 4: %i, pick 5: %i, pick 6: %i", pickings[0], pickings[1], pickings[2], pickings[3], pickings[4], pickings[5]);
-        LOG_LOG("strummer: %i", strumAngle);
-        LOG_LOG("Strum Speed: %i", strumSpeed);
-        LOG_LOG("Deflect: %i", deflect);
+        LOG_LOG("tremolo length: %i, tremolo speed: %i", tremLength, tremSpeed);
+        LOG_LOG("strummer: %i, strum speed: %i, Deflect: %i", strumAngle, strumSpeed, deflect);
         // To do:
         // ExecuteEvent needs another variable to control which message is handled between LH, strum, and pick. Add in 'event' as a char/string variable.
       
-        pController->executeEvent(event, frets, playcommands, pickings, strumAngle, strumSpeed, deflect);
+        pController->executeEvent(event, frets, playcommands, pickings, tremLength, tremSpeed, strumAngle, strumSpeed, deflect);
         // pController->executeSlide(frets, playcommands);
         //pController->executeSlideDEMO(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
         
@@ -154,8 +127,8 @@ void ethernetEvent() {
         for (int i = 1; i <= 6; i++) {
           pickings[i - 1] = static_cast<uint8_t>(packetBuffer[i]);
         }
-        
-        
+        tremLength = packetBuffer[7];
+        tremSpeed = packetBuffer[8];
       }
       
       complete = true;

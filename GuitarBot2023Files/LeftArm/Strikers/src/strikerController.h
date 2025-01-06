@@ -847,8 +847,15 @@ public:
 //        LOG_LOG("EXECUTE_PLUCK");
         // Make space for temporary trajs
         int tremTraj;
-        if (pluckType == 1) tremTraj = 5;
-        else if (pluckType == 2) tremTraj = (tremSpeed * 2) + 10;
+        if (pluckType == 1)
+        {
+            tremLength = 5;
+            tremTraj = 5;
+        }
+        else if (pluckType == 2)
+        {
+            tremTraj = (tremSpeed * 2) + 10;
+        }
         float temp_traj_1[tremTraj];
         float pluckLength = -1;
 
@@ -871,6 +878,7 @@ public:
                 float pos2pulse = (pluckLength * 1024) / 9.4;
                 float qf = pos2pulse;
                 //Interpolate Line
+
                 Util::interpWithBlend(q0, qf, 5, .25, temp_traj_1);
                 pickerStates[0] = !pickerStates[0];
                 // Put line into list of trajs

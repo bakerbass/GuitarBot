@@ -41,6 +41,8 @@ def main():
     # properties (LH can be slide, press lists, strum can be pick angle--45==down strum, -45==up strum, pick can be don't pick (0), pick (1), tremolo (2) + length of a quarter note IN TRAJ POINTS + speed of tremolo IN TRAJ POINTS),
     # time]
 
+    # [command type, [[Slide list], [press list]], timestamp]
+
     # Base Demo
     # LH = [['LH', [[1, 3, 2, 1, 1, 1], [3, 2, 2, 1, 2, 1]], 0], ['LH', [[3, 2, 2, 1, 1, 3], [2, 2, 1, 1, 1, 2]], 3], ['LH', [[1, 1, 2, 2, 1, 1], [3, 1, 2, 2, 2, 1]], 6], ['LH', [[1, 1, 3, 2, 1, 1], [3, 3, 2, 2, 2, 2]], 9], ['LH', [[1, 3, 2, 1, 1, 1], [1, 1, 1, 1, 1, 1]], 12]]
     # strum = [['strum', [45, 75, 0], 0], ['strum', [-45, 75, 0], 3], ['strum', [45, 75, 0], 6], ['strum', [-45, 75, 0], 9]] # 0, 3, 6, 9
@@ -97,6 +99,11 @@ def main():
     #         ['pick', [[1, 1, 1, 2, 1, 1], [20, 5]], 11], ['pick', [[1, 1, 1, 2, 1, 1], [120, 5]], 11.5]]
     # strum = [['strum', [45, 75, 0], 0], ['strum', [-45, 75, 0], 2.5], ['strum', [45, 75, 0], 3], ['strum', [-45, 75, 0], 5.5], ['strum', [45, 75, 0], 9]]
 
+
+    # Slide Testing
+    LH = [['LH', [[1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]], 0], ['LH', [[5, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]], 2], ['LH', [[3, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]], 4], ['LH', [[1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]], 6], ['LH', [[6, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]], 8], ['LH', [[7, 5, 5, 1, 1, 1], [1, 1, 1, 1, 1, 1]], 10]]
+    strum = []
+    pick = []
     Events = []
     for event in LH:
         Events.append(event)

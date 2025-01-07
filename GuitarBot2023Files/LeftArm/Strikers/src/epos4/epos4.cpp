@@ -26,11 +26,19 @@ int Epos4::init(int iNodeID, MotorSpec spec, bool inverted, unsigned long timeou
         m_iEncoderResolution = EC20_ENC_RES;
         err = configEC20();
         break;
+    case EC45_StrummerSlider:
+        m_iEncoderResolution = EC45_ENC_RES_SLIDER;
+        err = configEC45Strummer_Slider();
+        break;
 
     case EC45_Slider:
         m_iEncoderResolution = EC45_ENC_RES_SLIDER;
         err = configEC45();
         break;
+    case EC45_StrummerPicker:
+            m_iEncoderResolution = EC45_ENC_RES_SLIDER;
+            err = configEC45Strummer_Picker();
+            break;
     case EC45_Plucker:
         m_iEncoderResolution = EC45_ENC_RES_PLUCKER;
         err = configEC45();
@@ -257,6 +265,130 @@ int Epos4::configEC60() {
     }
 
     err = setPositionControlParameters_EC60();
+    if (err != 0) {
+        LOG_ERROR("setPositionControlParameters");
+        return err;
+    }
+
+    return 0;
+}
+
+int Epos4::configEC45Strummer_Slider() {
+    int err;
+    // LOG_LOG("Configuring EC45");
+
+    err = setNominalCurrent(3210);
+    if (err != 0) {
+        LOG_ERROR("setNominalCurrent");
+        return err;
+    }
+
+    err = setOutputCurrentLimit(5000);
+    if (err != 0) {
+        LOG_ERROR("setOutputCurrentLimit");
+        return err;
+    }
+
+    err = setMotorTorqueConstant(36900); // uNm/A
+    if (err != 0) {
+        LOG_ERROR("setMotorTorqueConstant");
+        return err;
+    }
+
+    err = setThermalTimeConstantWinding(296); // x 0.1 s
+    if (err != 0) {
+        LOG_ERROR("setThermalTimeConstantWinding");
+        return err;
+    }
+
+    err = setNumPolePairs(8);
+    if (err != 0) {
+        LOG_ERROR("setNumPolePairs");
+        return err;
+    }
+
+    // Encoder
+    err = setEncoderNumPulses(m_iEncoderResolution);
+    if (err != 0) {
+        LOG_ERROR("setEncoderNumPulses");
+        return err;
+    }
+    // refer FW Spec 6.2.56.2 for type
+    err = setEncoderType(0x0);
+    if (err != 0) {
+        LOG_ERROR("setEncoderType");
+        return err;
+    }
+
+    err = setCurrentControlParameters_StrummerSlider();
+    if (err != 0) {
+        LOG_ERROR("setCurrentControlParameters");
+        return err;
+    }
+
+    err = setPositionControlParameters_StrummerSlider();
+    if (err != 0) {
+        LOG_ERROR("setPositionControlParameters");
+        return err;
+    }
+
+    return 0;
+}
+
+int Epos4::configEC45Strummer_Picker() {
+    int err;
+    // LOG_LOG("Configuring EC45");
+
+    err = setNominalCurrent(3210);
+    if (err != 0) {
+        LOG_ERROR("setNominalCurrent");
+        return err;
+    }
+
+    err = setOutputCurrentLimit(5000);
+    if (err != 0) {
+        LOG_ERROR("setOutputCurrentLimit");
+        return err;
+    }
+
+    err = setMotorTorqueConstant(36900); // uNm/A
+    if (err != 0) {
+        LOG_ERROR("setMotorTorqueConstant");
+        return err;
+    }
+
+    err = setThermalTimeConstantWinding(296); // x 0.1 s
+    if (err != 0) {
+        LOG_ERROR("setThermalTimeConstantWinding");
+        return err;
+    }
+
+    err = setNumPolePairs(8);
+    if (err != 0) {
+        LOG_ERROR("setNumPolePairs");
+        return err;
+    }
+
+    // Encoder
+    err = setEncoderNumPulses(m_iEncoderResolution);
+    if (err != 0) {
+        LOG_ERROR("setEncoderNumPulses");
+        return err;
+    }
+    // refer FW Spec 6.2.56.2 for type
+    err = setEncoderType(0x0);
+    if (err != 0) {
+        LOG_ERROR("setEncoderType");
+        return err;
+    }
+
+    err = setCurrentControlParameters_StrummerPicker();
+    if (err != 0) {
+        LOG_ERROR("setCurrentControlParameters");
+        return err;
+    }
+
+    err = setPositionControlParameters_StrummerPicker();
     if (err != 0) {
         LOG_ERROR("setPositionControlParameters");
         return err;
@@ -542,12 +674,23 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
             return -1;
         }
         //CHANGE ME
-        n = SetHomeOffset(52000);
-        if(m_uiNodeID > 12){
+        n = SetHomeOffset(52000); //52000
+
+        //CHANGE THIS PLUCKER
+        if(m_uiNodeID == 13){
             n = SetHomeOffset(0);
         }
         if(m_uiNodeID > 6 && m_uiNodeID < 13){
-            n = SetHomeOffset(-25);
+            n = SetHomeOffset(-25); //-25
+        }
+        if(m_uiNodeID == 7){
+            n = SetHomeOffset(0); //-25
+        }
+        if(m_uiNodeID == 14){   // Strummer slider
+            n = SetHomeOffset(29500);
+        }
+        if(m_uiNodeID == 15){   // Strummer picker
+            n = SetHomeOffset(100);
         }
         if(m_uiNodeID == 7){
             n = SetHomeOffset(0); //-25
@@ -573,8 +716,15 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
         if(m_uiNodeID > 6 && m_uiNodeID < 13){
             n = setHomingCurrentThreshold(500);
         }
-        if(m_uiNodeID > 12){
-            n = setHomingCurrentThreshold(400);
+//        if(m_uiNodeID == 7){
+//            n = setHomingCurrentThreshold(1500);; //-25
+//        }
+        if(m_uiNodeID == 14){ //Slider
+//            n = setHomingCurrentThreshold(400); //PLUCKER
+            n = setHomingCurrentThreshold(1000);
+        }
+        if(m_uiNodeID == 15){//Picker
+            n = setHomingCurrentThreshold(500);
         }
         if (n != 0) {
             LOG_ERROR("setHomingCurrentThreshold");
@@ -985,6 +1135,40 @@ int Epos4::setCurrentControlParameters() {
 
     return 0;
 }
+int Epos4::setCurrentControlParameters_StrummerPicker() {
+    int n;
+    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 970589);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_I_GAIN, 1952164);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    return 0;
+}
+
+int Epos4::setCurrentControlParameters_StrummerSlider() {
+    int n;
+    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 952440);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_I_GAIN, 2186907);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    return 0;
+}
+
 int Epos4::setCurrentControlParameters_EC20() {
     int n;
     n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 3456649);
@@ -1060,9 +1244,10 @@ int Epos4::setPositionControlParameters() {
     }
     return 0;
 }
-int Epos4::setPositionControlParameters_EC20() {
+
+int Epos4::setPositionControlParameters_StrummerSlider() {
     int n;
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 92493); // 1012500
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 9348336);
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;
@@ -1075,13 +1260,95 @@ int Epos4::setPositionControlParameters_EC20() {
         return -1;
     }
 
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_I_GAIN, 905480); //2551500
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_I_GAIN, 2186907);
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;
     }
 
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 2643); //90000
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 98967);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_V_GAIN, 22758);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_A_GAIN, 528);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+    return 0;
+}
+
+int Epos4::setPositionControlParameters_StrummerPicker() {
+    int n;
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 5172512);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    _DWORD ans;
+    n = readObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, &ans);
+    if (n != 0) {
+        LOG_ERROR("Read Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_I_GAIN, 12699311);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 20000);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_V_GAIN, 47393);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_A_GAIN, 870);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+    return 0;
+}
+
+int Epos4::setPositionControlParameters_EC20() {
+    int n;
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 200000); // 92493
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    _DWORD ans;
+    n = readObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, &ans);
+    if (n != 0) {
+        LOG_ERROR("Read Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_I_GAIN, 905480); //905480
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 2643); //2643
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;

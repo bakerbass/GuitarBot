@@ -51,6 +51,8 @@ public:
     int configEC20();
     int configEC45();
     int configEC60();
+    int configEC45Strummer_Slider();
+    int configEC45Strummer_Picker();
 
     // Checks
     _WORD firmwareVersion();
@@ -99,9 +101,13 @@ public:
     int clearFault();
 
     int setCurrentControlParameters();
+    int setCurrentControlParameters_StrummerSlider();
+    int setCurrentControlParameters_StrummerPicker();
     int setCurrentControlParameters_EC20();
     int setCurrentControlParameters_EC60();
     int setPositionControlParameters();
+    int setPositionControlParameters_StrummerSlider();
+    int setPositionControlParameters_StrummerPicker();
     int setPositionControlParameters_EC20();
     int setPositionControlParameters_EC60();
     // Motor Data

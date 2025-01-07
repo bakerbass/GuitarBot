@@ -12,6 +12,8 @@
 #include <ArduinoQueue.h>
 #include <ArduinoEigen.h>
 #include "networkHandler.h"
+#include <iostream>
+
 
 class StrikerController {
 public:
@@ -92,7 +94,37 @@ public:
             }
 
         }
-        delay(500);
+        MotorSpec spec4 = EC45_StrummerSlider;
+        err = kNoError;
+        for (int i = NUM_STRIKERS + NUM_PRESSERS +NUM_PLUCKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS +NUM_STRUMMER_SLIDERS + 1; ++i) {
+            LOG_LOG("plucker %i", i);
+            err = m_striker[i].init(i, spec4);
+            delay(100);
+            if (err != kNoError) {
+                LOG_ERROR("Cannot initialize strummer-slider with id %i. Error: %i", i, err);
+            }
+            else {
+                LOG_LOG("Successfully initialized strummer-slider with id %i", i);
+            }
+
+        }
+
+        MotorSpec spec5 = EC45_StrummerPicker;
+        err = kNoError;
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_PLUCKERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS +NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
+            LOG_LOG("plucker %i", i);
+            err = m_striker[i].init(i, spec5);
+            delay(100);
+            if (err != kNoError) {
+                LOG_ERROR("Cannot initialize strummer-picker with id %i. Error: %i", i, err);
+            }
+            else {
+                LOG_LOG("Successfully initialized strummer-picker with id %i", i);
+            }
+
+        }
+
+//        delay(20000);
         for (int i = 1; i < NUM_STRIKERS + 1; ++i) {
             m_striker[i].startHome(i);
             }
@@ -117,9 +149,9 @@ public:
 
             if (ii++ > 200) break;
         }
+        delay(500);
 
         LOG_LOG("Homing for sliders complete, starting pressers. ");
-        delay(500);
         for (int i = NUM_STRIKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + 1; ++i) {
             m_striker[i].startHome(i);
             }
@@ -133,7 +165,7 @@ public:
             isHoming_6 = m_striker[12].homingStatus();
             isHoming_all = isHoming_1 || isHoming_2 || isHoming_3 || isHoming_4 || isHoming_5 || isHoming_6;
 
-            if (ii++ > 200) break;
+            //if (ii++ > 200) break;
         }
         LOG_LOG("Homing for pressers complete, starting pluckers. ");
         for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS + 1; ++i) {
@@ -143,17 +175,41 @@ public:
             delay(50);
             //CHANGE ME
             isHoming_1 = m_striker[13].homingStatus();
-//            isHoming_2 = m_striker[14].homingStatus();
-//            isHoming_3 = m_striker[15].homingStatus();
-//            isHoming_4 = m_striker[16].homingStatus();
-//            isHoming_5 = m_striker[17].homingStatus();
-//            isHoming_6 = m_striker[18].homingStatus();
-            isHoming_all = isHoming_1; //|| isHoming_2 || isHoming_3 || isHoming_4 || isHoming_5 || isHoming_6;
+            isHoming_all = isHoming_1;
+            if (ii++ > 200) break;
+        }
+        LOG_LOG("Homing for pluckers complete, starting strummer. ");
+//        delay(20000);
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_PLUCKERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS + NUM_STRUMMER_SLIDERS +NUM_STRUMMER_PICKERS + 1; ++i) {
+            m_striker[i].startHome(i);
+
+        }
+        bool checkHome = false;
+        isHoming_2 = true;
+        isHoming_all = isHoming_1 || isHoming_2;
+        while (isHoming_all) {
+            delay(50);
+            isHoming_1 = m_striker[15].homingStatus();
+            if(!checkHome && !isHoming_1){
+                checkHome = true;
+                m_striker[14].startHome(14);
+            }
+
+            if(checkHome){
+                isHoming_2 = m_striker[14].homingStatus();
+            }
+
+            isHoming_all = isHoming_1 || isHoming_2;
+
+            //Serial.println(ii);
 
             if (ii++ > 200) break;
         }
-        Serial.println("finished initializing and homing all controllers.");
 
+        Serial.println("finished initializing and homing all controllers.");
+//        delay(45000);
+        //to test everything up to homing
+        Util::fill(pickerStates, NUM_PLUCKERS, 0); // Initializes picker states to be 0 (pickers start at the up state)
         return kNoError;
     }
 
@@ -253,7 +309,173 @@ public:
             }
         }
     }
+    void executeStrumTest(int strumType, int speed, int deflect) {
+//        while(pInstance->m_traj.count() > 1) {
+//            delay(10); //test with 1ms later
+//            Serial.println("Waiting until event complete....");
+//        }
+
+        //Slider
+        float strummerIdle[5];
+        float strummerMove[speed];
+        //Picker
+        float pickerMoving_1[5];
+        float pickerMoving_2[speed];
+        //Other motors
+        float non_strummerIdle[speed + 5];
+        int strum_mm_qf = -115;
+        float picker_mm_qf_1 = 8;
+        float picker_mm_qf_2 = 10;
+        switch(strumType){
+            case -45:
+                //upstrum, point picker down
+                picker_mm_qf_1 = 9;
+                picker_mm_qf_2 = 9;
+                strum_mm_qf = -115;
+                Serial.println("Recieved Upstrum"); //passed, same result
+                if(deflect == 1){
+                    picker_mm_qf_1 = 4;
+                    picker_mm_qf_2 = 4;
+                }
+            break;
+
+            case 45:
+                //downstrum, point picker up
+                picker_mm_qf_1 = 9;
+                picker_mm_qf_2 = 9;
+                strum_mm_qf = -15;
+                Serial.println("Recieved Downstrum"); // passed, same result
+                if(deflect == 1){
+                    picker_mm_qf_1 = 4;
+                    picker_mm_qf_2 = 4;
+                }
+                break;
+        }
+        //Check if elements exist in the queue here, set list of q0's.
+
+        for(int i = 1; i < NUM_MOTORS + 1; i++) {
+            float q0 = m_striker[i].getPosition_ticks();
+
+            if (i == 14) {
+                // Get initial position in position ticks
+                //Translate pluckType to position ticks and assign to qf
+                float qf_strummerSlider = (strum_mm_qf * 2048) / 9.4;
+                //Interpolate Line
+                Util::fill(strummerIdle, 5, q0);
+                Util::interpWithBlend(q0, qf_strummerSlider, speed, .05, strummerMove);
+                // Put line into list of trajs
+                int index = 0;
+                for (int x = 0; x < 5; x++) {
+                    all_Trajs[i - 1][index++] = strummerIdle[x];
+                    //Serial.println(strummerIdle[x]); //doesn't get properly pushed to the queue... but values are correct
+                }
+                //was not supposed to be a 0 for x = _
+                for (int x = 0; x < speed; x++) {
+                    all_Trajs[i - 1][index++] = strummerMove[x];
+                    //Serial.println(strummerMove[x]);
+                }
+
+            }
+            else if (i == 15) {
+                // Get initial position in position ticks
+                //
+                float pos2pulse = (picker_mm_qf_1 * 2048) / 9.4;
+                float qf_1 = pos2pulse;
+                pos2pulse  = (picker_mm_qf_2 * 2048) / 9.4;
+                float qf_2 = pos2pulse;
+                //Interpolate Line
+                Util::interpWithBlend(q0, qf_1, 5, .25, pickerMoving_1);
+                Util::interpWithBlend(qf_1, qf_2, speed, .05, pickerMoving_2);
+
+                // Put line into list of trajs
+                int index = 0;
+                for (int x = 0; x < 5; x++) {
+                    all_Trajs[i - 1][index++] = pickerMoving_1[x];
+                    //Serial.println(temp_traj_1[x]);
+                }
+                for (int x = 0; x < speed; x++) {
+                    all_Trajs[i - 1][index++] = pickerMoving_2[x];
+                    //Serial.println(temp_traj_1[x]);
+                }
+            } else {
+                    Util::fill(non_strummerIdle, speed + 5, q0);
+                    int index = 0;
+                    for (int x = 0; x < speed + 5; x++) {
+                        all_Trajs[i - 1][index++] = non_strummerIdle[x];
+                    }
+                }
+            }
+        //TODO: add to queue
+        //Make and push traj points to queue
+        Trajectory<int32_t>::point_t temp_point;
+        for (int i = 0; i < speed + 5; i++) {
+            for(int x = 0; x < NUM_MOTORS; x++){
+                temp_point[x] = all_Trajs[x][i];
+//                Serial.print(all_Trajs[x][i]);
+//                Serial.print(" ");
+            }
+//            Serial.println("");
+            m_traj.push(temp_point);
+        }
+
+    }
+    void executeSetPickerTest(char position){
+        float temp_traj_1[5];
+        int picker_mm_qf = 9;
+        switch(position){
+            case 'D':
+                //prepare for upstrum
+                picker_mm_qf = 8;
+                break;
+            case 'U':
+                //prepare for downstrum
+                picker_mm_qf = 10;
+                break;
+        }
+
+        for(int i = 1; i < NUM_MOTORS + 1; i++) {
+            float q0 = m_striker[i].getPosition_ticks();
+            if(i == 15){
+                // Get initial position in position ticks
+
+                float pos2pulse = (picker_mm_qf * 2048) / 9.4;
+                float qf = pos2pulse;
+                //Interpolate Line
+                Util::interpWithBlend(q0, qf, 5, .25, temp_traj_1);
+                // Put line into list of trajs
+                int index = 0;
+                for (int x = 0; x < 5; x++) {
+                    all_Trajs[i - 1][index++] = temp_traj_1[x];
+                    //Serial.println(temp_traj_1[x]);
+                }
+
+            } else {
+                Util::fill(temp_traj_1, 5, q0);
+                int index = 0;
+                for (int x = 0; x < 5; x++) {
+                    all_Trajs[i - 1][index++] = temp_traj_1[x];
+                }
+            }
+        }
+
+        //TODO: add to picker queue
+        //Make and push traj points to queue
+        Trajectory<int32_t>::point_t temp_point;
+        for (int i = 0; i < 5; i++) {
+            for(int x = 0; x < NUM_MOTORS; x++){
+                //I'd like to seperate all_trajs between left and right hand at some point.
+                temp_point[x] = all_Trajs[x][i];
+            }
+            m_traj.push(temp_point);
+        }
+
+    }
+
+
+
+
     void executeSlideTest(int string_1, int string_2, int string_3, int string_4, int string_5, int string_6, int frets_1, int frets_2) {
+
         strings[1] = string_1;
         strings[2] = string_2;
         strings[3] = string_3;
@@ -309,31 +531,233 @@ public:
             m_traj.push(temp_point);
         }
     }
-//    void executeSlide(int string_1, int string_2, int string_3, int string_4, int string_5, int string_6, int frets_1, int frets_2, int frets_3, int frets_4,  int frets_5, int frets_6) {
-//
-//
-//
-//
-//
-//    }
+
+    /*
+        Function: Execute Event
+        Inputs: uint8_t playcommand[6], uint8_t fret[6], uint8_t pickings[6], int strumAngle
+        Outputs: Calls executeSlide(), executeStrum(), executePluckTest() which fills allTrajs with all trajectories
+    */
+    void executeEvent(char eventType,uint8_t *frets, uint8_t *playcommands, uint8_t *pickings, int tremLength, int tremSpeed, int strumAngle, int strumSpeed, int deflect)
+    {//Add variable to check message type.
+       //Making sure we receive all necessary data properly
+//        for(int i = 0; i<6; i++)
+//        {
+//            LOG_LOG("fret: %i", frets[i]);
+//            LOG_LOG("playcommand: %i ", playcommands[i]);
+//            LOG_LOG("pickings: %i", pickings[i]);
+//        }
+//        LOG_LOG("strumAngle: %i", strumAngle);
 
 
-        void executeSlide(int string_1, int string_2, int string_3, int string_4, int string_5, int string_6, int frets_1, int frets_2, int frets_3, int frets_4,  int frets_5, int frets_6) {
+
+        while(pInstance->m_traj.count() > 1) {
+            delay(10); //test with 1ms later
+            Serial.println("Waiting until event complete....");
+        }
+
+
+        if(eventType == 'L'){
+        //1
+            LOG_LOG("LH message received.");
+            // 1a. Call executeSlide() to process LH events -- fills all_Trajs[0-12] with trajectories
+            //executeSlideDEMO(frets, playcommands); //(Rename to 'getSlideTraj' when this function no longer pushes to the queue.)
+            executeSlideDEMO(frets, playcommands);
+            // 1b. Fill other motors with current value
+        }
+        else if(eventType == 'S'){
+        //2
+            LOG_LOG("Strum message received.");
+            executeStrumTest(strumAngle, strumSpeed, deflect);
+            
+        //
+        }
+        else if(eventType == 'P'){
+        //3
+            LOG_LOG("Pluck message received.");
+            executePluckTest(pickings[3], tremLength, tremSpeed);
+            //3a. Call getPickTraj
+            //3b. Call Fill_LH to fill LH with current value or 38 for pressing motors.
+        }
+        else{
+            LOG_LOG("Message unhandled, skipping.");
+        }
+
+//        // 4. Append trajectories to super queue
+//        Trajectory<int32_t>::point_t temp_point;
+//        for (int i = 0; i < 60; i++) {
+//            for(int x = 0; x < NUM_MOTORS; x++){
+//                temp_point[x] = all_Trajs[x][i];
+//            }
+//            m_traj.push(temp_point);
+//        }
+
+    }
+
+
+    void executeSlideDEMO(uint8_t *frets, uint8_t *playcommands) {
         int mult = -1;
 
-        strings[1] = fminf(string_1, 9); // setting to max out at 9 for now
-        strings[2] = fminf(string_2, 9);
-        strings[3] = fminf(string_3, 9);
-        strings[4] = fminf(string_4, 9);
-        strings[5] = fminf(string_5, 9);
-        strings[6] = fminf(string_6, 9);
 
-        strings[7] = frets_1;
-        strings[8] = frets_2;
-        strings[9] = frets_3;
-        strings[10] = frets_4;
-        strings[11] = frets_5;
-        strings[12] = frets_6;
+        strings[1] = fminf(frets[0], 9); // setting to max out at 9 for now
+        strings[2] = fminf(frets[1], 9);
+        strings[3] = fminf(frets[2], 9);
+        strings[4] = fminf(frets[3], 9);
+        strings[5] = fminf(frets[4], 9);
+        strings[6] = fminf(frets[5], 9);
+
+        strings[7] = playcommands[0];
+        strings[8] = playcommands[1];
+        strings[9] = playcommands[2];
+        strings[10] = playcommands[3];
+        strings[11] = playcommands[4];
+        strings[12] = playcommands[5];
+        while(pInstance->m_traj.count() > 1) {
+            delay(10); //test with 1ms later
+            Serial.println("Waiting until event complete....");
+        }
+
+        strings[13] = 0;
+        for(int i = 0; i < 6; i++){
+            //Serial.println(strings[i+7]);
+            switch (strings[i + 7]) {
+                case 1:
+                    strings[i + 7] = -10;
+                    break;
+                case 2:
+                    strings[i + 7] = 38;
+                    break;
+                case 3:
+                    strings[i + 7] = 23;
+                    break;
+                default:
+                    strings[i + 7] = -10;
+                    break;
+            }
+            //Serial.println(strings[i+7]);
+        }
+
+        //Unpress -> Slide -> Press
+        //Sliders:
+        float q0_traj[20];
+        float move_traj[20];
+        float qf_traj[20];
+
+
+        //Pressers:
+        float unpress_traj[20];
+        float hold_traj[20];
+        float press_traj[20];
+
+        float sixty_traj[60];
+
+        int slideChanger[6]; //Check to see if the sliders change so we know when to press + unpress
+        Util::fill(slideChanger,6,0);
+
+
+        for(int i = 1; i< NUM_MOTORS + 1; i++) {
+            mult = -1;
+            float fretLength = (SCALE_LENGTH - (SCALE_LENGTH / pow(2, (((strings[i])) / 12.f)))) - 20;
+            float pos2pulse = (fretLength * 2048) / 9.4;
+            if (i == 2 || i == 3 || i == 6) {
+                mult = 1;
+            }
+            pos2pulse = mult * pos2pulse;
+            float q0 = m_striker[i].getPosition_ticks();
+            float qf = pos2pulse;
+            if (i > 6) {
+                qf = strings[i];
+            }
+            if (i < 7) { // SLIDERS: q0 for 20, Slide for 20, qf for 20
+                if(frets[i] != prev_frets[i])
+                {
+                    slideChanger[i] = 1;
+                }
+                Util::fill(q0_traj, 20, q0);
+                Util::interpWithBlend(q0, qf, 20, .05, move_traj);
+                Util::fill(qf_traj, 20, qf);
+                int index = 0;
+                for (int x = 0; x < 20; x++) {
+                    all_Trajs[i - 1][index++] = q0_traj[x];
+                }
+                for (int x = 0; x < 20; x++) {
+                    all_Trajs[i - 1][index++] = move_traj[x];
+                }
+                for (int x = 0; x < 20; x++) {
+                    all_Trajs[i - 1][index++] = qf_traj[x];
+                }
+
+            } else if( i > 6 && i < 13) { //PRESSERS: Unpress for 20, hold for 20, press for 20;
+                if(slideChanger[i-6] == 0)
+                {
+                    Util::fill(sixty_traj, 60, qf);
+                    int index = 0;
+                    for (int x = 0; x < 60; x++) {
+                        all_Trajs[i - 1][index++] = sixty_traj[x];
+                    }
+                }
+                else
+                {
+                    Util::interpWithBlend(q0, -10, 20, .25, unpress_traj);
+                    Util::fill(hold_traj, 20, -10);
+                    Util::interpWithBlend(-10, qf, 20, .25, press_traj);
+                    int index = 0;
+                    for (int x = 0; x < 20; x++) {
+                        all_Trajs[i - 1][index++] = unpress_traj[x];
+                    }
+                    for (int x = 0; x < 20; x++) {
+                        all_Trajs[i - 1][index++] = hold_traj[x];
+                    }
+                    for (int x = 0; x < 20; x++) {
+                        all_Trajs[i - 1][index++] = press_traj[x];
+                    }
+                }
+            } else {
+                Util::fill(sixty_traj, 60, q0);
+                int index = 0;
+                for (int x = 0; x < 60; x++) {
+                    all_Trajs[i - 1][index++] = sixty_traj[x];
+                }
+            }
+        }
+
+        Trajectory<int32_t>::point_t temp_point;
+        for (int i = 0; i < 60; i++) {
+        Serial.print(i);
+        Serial.print(": ");
+            for(int x = 0; x < NUM_MOTORS; x++){
+                temp_point[x] = all_Trajs[x][i];
+//                Serial.print(temp_point[x]);
+//                Serial.print(" ");
+            }
+//            Serial.println();
+            m_traj.push(temp_point);
+        }
+
+        //Set previous trajectories
+        for(int i = 0; i<6; i++)
+        {
+            prev_frets[i] = frets[i];
+        }
+
+    }
+
+
+        void executeSlide(uint8_t *frets, uint8_t *playcommands) {
+        int mult = -1;
+
+        strings[1] = fminf(frets[0], 9); // setting to max out at 9 for now
+        strings[2] = fminf(frets[1], 9);
+        strings[3] = fminf(frets[2], 9);
+        strings[4] = fminf(frets[3], 9);
+        strings[5] = fminf(frets[4], 9);
+        strings[6] = fminf(frets[5], 9);
+
+        strings[7] = playcommands[0];
+        strings[8] = playcommands[1];
+        strings[9] = playcommands[2];
+        strings[10] = playcommands[3];
+        strings[11] = playcommands[4];
+        strings[12] = playcommands[5];
 
         strings[13] = 0;
         for(int i = 0; i < 6; i++){
@@ -406,31 +830,46 @@ public:
 
         Trajectory<int32_t>::point_t temp_point;
         for (int i = 0; i < 60; i++) {
+//        Serial.print(i);
+//        Serial.print(": ");
             for(int x = 0; x < NUM_MOTORS; x++){
                 temp_point[x] = all_Trajs[x][i];
-                Serial.print(temp_point[x]);
+//                Serial.print(temp_point[x]);
+//                Serial.print(" ");
             }
-            Serial.println();
+//            Serial.println();
             m_traj.push(temp_point);
         }
 
     }
-    void executePluckTest(int pluckType) {
+
+    void executePluckTest(int pluckType, int tremLength, int tremSpeed) {
 //        LOG_LOG("EXECUTE_PLUCK");
         // Make space for temporary trajs
-        float temp_traj_1[5];
-        float pluckLength = -1;
-        //handle diretion
-        switch(pluckType){
-            case 0:
-                //downstrum
-                pluckLength = 3;
-                break;
-            case 1:
-                //upstrum
-                pluckLength = 7;
-                break;
+        int tremTraj;
+        if (pluckType == 1)
+        {
+            tremLength = 5;
+            tremTraj = 5;
         }
+        else if (pluckType == 2)
+        {
+            tremTraj = (tremSpeed * 2) + 10;
+        }
+        float temp_traj_1[tremTraj];
+        float pluckLength = -1;
+
+        //handle direction
+        if (pluckType == 1 || pluckType == 2){  //If command is pick/tremolo
+            if (!pickerStates[0]){
+                pluckLength = 3;    //downstrum
+            } else {
+                pluckLength = 7;    //upstrum
+            }
+        } else {
+            return;
+        }
+        //TODO: change for picker
         for(int i = 1; i < NUM_MOTORS + 1; i++) {
             float q0 = m_striker[i].getPosition_ticks();
             if(i == 13){
@@ -439,36 +878,60 @@ public:
                 float pos2pulse = (pluckLength * 1024) / 9.4;
                 float qf = pos2pulse;
                 //Interpolate Line
+
                 Util::interpWithBlend(q0, qf, 5, .25, temp_traj_1);
+                pickerStates[0] = !pickerStates[0];
                 // Put line into list of trajs
                 int index = 0;
                 for (int x = 0; x < 5; x++) {
                     all_Trajs[i - 1][index++] = temp_traj_1[x];
                 }
 
+                if (pluckType == 2) {
+                    Util::fill(temp_traj_1, tremSpeed, qf);
+                    for (int x = 0; x < tremSpeed; x++) {
+                        all_Trajs[i - 1][index++] = temp_traj_1[x];
+                    }
+
+                    Util::interpWithBlend(qf, q0, 5, .25, temp_traj_1);
+                    pickerStates[0] = !pickerStates[0];
+                    // Put line into list of trajs
+                    for (int x = 0; x < 5; x++) {
+                        all_Trajs[i - 1][index++] = temp_traj_1[x];
+                    }
+
+                    Util::fill(temp_traj_1, tremSpeed, q0);
+                    for (int x = 0; x < tremSpeed; x++) {
+                        all_Trajs[i - 1][index++] = temp_traj_1[x];
+                    }
+                }
             } else {
-                Util::fill(temp_traj_1, 5, q0);
+                Util::fill(temp_traj_1, tremTraj, q0);
                 int index = 0;
-                for (int x = 0; x < 5; x++) {
+                for (int x = 0; x < tremTraj; x++) {
                     all_Trajs[i - 1][index++] = temp_traj_1[x];
                 }
             }
         }
 
-
+        //TODO: add to picker queue
         //Make and push traj points to queue
         Trajectory<int32_t>::point_t temp_point;
-        for (int i = 0; i < 5; i++) {
-            for(int x = 0; x < NUM_MOTORS; x++){
-                //I'd like to seperate all_trajs between left and right hand at some point.
-                temp_point[x] = all_Trajs[x][i];
+        for (int t = 0; t < tremLength/tremTraj; t++){
+            for (int i = 0; i < tremTraj; i++) {
+                for(int x = 0; x < NUM_MOTORS; x++){
+                    //I'd like to seperate all_trajs between left and right hand at some point.
+                    temp_point[x] = all_Trajs[x][i];
+                    Serial.print(temp_point[x]);
+                    Serial.print(" ");
+                }
+                Serial.println();
+                m_traj.push(temp_point);
             }
-            m_traj.push(temp_point);
         }
 //        LOG_LOG("END_EXECUTE_PLUCK_TEST");
-
-
     }
+
 
 
     void executeCommand(uint8_t idCode, char mode, int midiVelocity, uint8_t channelPressure) {
@@ -518,21 +981,98 @@ public:
         //strike(uiStrike);
 
     }
-
+    //TODO: picker queue?
     void start() {
-        float offset = 7; //MINIMUM needed to go from home to top of string!
-        float pos2pulse = (offset * 1024) / 9.4;
+        float start_state_SS = -110;
+        float start_state_SP = 9;
+        float start_state_PICK = 7;
+        float pos2pulse = 0;
+
+        float temp_traj_1[50];
+        float temp_traj_2[50];
+        float temp_traj_3[100];
+        float temp_traj_4[5];
+        float temp_traj_5[95];
 
         Trajectory<int32_t>::point_t temp_point;
+
         for(int i = 1;i < NUM_MOTORS + 1 ;i++) {
             temp_point[i - 1] = 0;
             kInitials[i - 1] = 0;
-            if(i == 13){
+
+            float q0 = 0;
+            float qf = pos2pulse;
+
+            if(i == 13){ //Picker
+                pos2pulse = (start_state_PICK * 1024) / 9.4;
+                qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;
-                kInitials[i - 1] = pos2pulse;
+                //Interpolate Line
+                Util::interpWithBlend(q0, qf, 50, .25, temp_traj_1);
+                Util::fill(temp_traj_2, 50, qf);
+                // Put line into list of trajs
+                int index = 0;
+                for (int x = 0; x < 50; x++) {
+                    all_Trajs[i - 1][index++] = temp_traj_1[x];
+                }
+                for (int x = 0; x < 50; x++) {
+                    all_Trajs[i - 1][index++] = temp_traj_2[x];
+                }
             }
+            else if(i == 14){ //Strum Slider
+                pos2pulse = (start_state_SS * 2048) / 9.4;
+                qf = pos2pulse;
+                temp_point[i - 1] = pos2pulse;
+
+                Util::interpWithBlend(q0, qf, 50, .05, temp_traj_1);
+                Util::fill(temp_traj_2, 50, qf);
+                int index = 0;
+                for (int x = 0; x < 50; x++) {
+                    all_Trajs[i - 1][index++] = temp_traj_1[x];
+                }
+                for (int x = 0; x < 50; x++) {
+                    all_Trajs[i - 1][index++] = temp_traj_2[x];
+//                    Serial.println(index);
+//                    Serial.println(temp_traj_2[x]);
+                }
+            }
+            else if(i == 15){ // Strum Picker
+                pos2pulse = (start_state_SP * 2048) / 9.4;
+                qf = pos2pulse;
+                temp_point[i - 1] = pos2pulse;
+                Util::fill(temp_traj_1, 50, q0);
+                Util::interpWithBlend(q0, qf, 50, .05, temp_traj_2);
+
+                int index = 0;
+                for (int x = 0; x < 50; x++) {
+                    all_Trajs[i - 1][index++] = temp_traj_1[x];
+                }
+                for (int x = 0; x < 50; x++) {
+                    all_Trajs[i - 1][index++] = temp_traj_2[x];
+                }
+            }
+            else
+            {
+                Util::fill(temp_traj_3, 100, q0);
+                int index = 0;
+                for (int x = 0; x < 100; x++) {
+                    all_Trajs[i - 1][index++] = temp_traj_3[x];
+                }
+            }
+
             m_currentPoint[i - 1] = kInitials[i - 1];
         }
+
+
+        //Trajectory<int32_t>::point_t temp_point;
+        for (int i = 0; i < 100; i++) {
+            for(int x = 0; x < NUM_MOTORS; x++){
+                temp_point[x] = all_Trajs[x][i];
+            }
+            m_traj.push(temp_point);
+        }
+
+
 
             //PLUCKER PROTOTYPE:
 //        float offset = 7; //MINIMUM needed to go from home to top of string!
@@ -543,9 +1083,7 @@ public:
 //            m_currentPoint[i - 1] = kInitials[i - 1];
 //        }
 
-        m_traj.push(temp_point);
-
-
+        //m_traj.push(temp_point);
 
         Error_t err = enablePDO();
         if (err != kNoError) {
@@ -557,35 +1095,13 @@ public:
             LOG_ERROR("cannot enable Strikers");
             return;
         }
-//        Serial.println("Enabled Testing pluck in 3 seconds...");
-//        delay(15000);
-//        m_striker[1].testMove(50);
-//        delay(15000);
-//        delay(1000);
-//        m_striker[2].testMove(0);
-//        delay(1000);
-//        m_striker[3].testMove(0);
-//        delay(1000);
-//        m_striker[4].testMove(0);
-//        delay(1000);
-//        m_striker[5].testMove(0);
-//        delay(1000);
-//        m_striker[6].testMove(0);
-//        delay(1000);
-        //m_striker[7].testMove(50);
-//        delay(1000);
-//        m_striker[8].testMove(24);
-//        delay(4000);
-//        m_striker[8].testMove(-5);
-        //m_striker[9].testMove(25);
-
-//        Serial.println(m_striker[1].getPosition());
-//        Serial.println(m_striker[1].getPosition_ticks());
 
         m_bPlaying = true;
         RPDOTimer.start();
         // faultClearTimer.start();
     }
+
+
 
     void stop() {
         Error_t err;
@@ -608,36 +1124,16 @@ public:
 
     Error_t enablePDO(bool bEnable = true) {
         Error_t err;
-        for (int i = 1; i < NUM_STRIKERS + 1; ++i) {
+        for (int i = 1; i < NUM_MOTORS + 1; ++i) {
             err = m_striker[i].enablePDO(bEnable);
-            LOG_LOG("Enabling PDO for slider %i", i);
+            LOG_LOG("Enabling PDO for motor %i", i);
             delay(100);
             if (err != kNoError) {
                 LOG_ERROR("EnablePDO failed. Error Code %i", err);
                 return err;
             }
-            //m_striker[0].testMove(0);
-        }
-        for (int i = NUM_STRIKERS + 1; i < NUM_STRIKERS + NUM_PRESSERS + 1; ++i) {
-            err = m_striker[i].enablePDOEC20(bEnable);
-            LOG_LOG("Enabling PDO for presser %i", i);
-            delay(100);
-            if (err != kNoError) {
-                LOG_ERROR("EnablePDO failed. Error Code %i", err);
-                return err;
-            }
-        }
-        // Enable pdoPressers here
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_STRIKERS + NUM_PRESSERS + NUM_PLUCKERS + 1; ++i) {
-            err = m_striker[i].enablePDO(bEnable);
-            LOG_LOG("Enabling PDO for presser %i", i);
-            delay(100);
-            if (err != kNoError) {
-                LOG_ERROR("EnablePDO failed. Error Code %i", err);
-                return err;
-            }
-        }
 
+        }
         return kNoError;
     }
 
@@ -674,6 +1170,7 @@ public:
 private:
     //NetworkHandler m_socket;
     Striker m_striker[NUM_MOTORS + 1]; // 0 is dummy
+    int pickerStates[NUM_PLUCKERS]; // Array to hold state of each picker (0=up state, 1=down state)
     static StrikerController* pInstance;
     volatile bool m_bPlaying = false;
     MotorSpec m_motorSpec = MotorSpec::EC45_Slider;
@@ -682,7 +1179,12 @@ private:
     bool m_bSendDataRequest = true;
     bool m_bDataRequested = false;
 
-    float all_Trajs[13][60];
+
+    float all_Trajs[15][200]; //CHANGE FOR MORE TRAJS
+
+    uint8_t prev_frets[6];
+    uint8_t prev_playcommands[6];
+
 
     //Serial.println(all_Trajs);
 
@@ -699,6 +1201,7 @@ private:
     float m_afTraj_fret_4[60];
     float m_afTraj_fret_5[60];
     float m_afTraj_fret_6[60];
+
 
     float m_afTraj_pluck_1[60];
 
@@ -761,6 +1264,8 @@ private:
         static ulong idx = 0;
 
 
+
+
         if (pInstance == nullptr)
             return;
 
@@ -774,6 +1279,7 @@ private:
             errorAtPop = false;
         } else {
             if (pInstance->m_traj.count() > 0) {
+
                 //slider array.count() == 0 && press
 
                 Trajectory<int32_t>::point_t pt { pInstance->m_currentPoint };
@@ -784,6 +1290,22 @@ private:
                 // If the point is not close to the previous point, generate transition trajectory
                 if (!pt.isClose(pInstance->m_currentPoint, DISCONTINUITY_THRESHOLD)) {
                     LOG_WARN("Trajectory discontinuous. Generating Transitions...");
+                    Serial.print("Current Point: ");
+                    for (int x = 0; x<NUM_MOTORS; x++)
+                    {
+                        Serial.print(pInstance->m_currentPoint[x]);
+                        Serial.print(" ");
+                    }
+                    Serial.println();
+                    Serial.print("Next Point: ");
+                    for (int x = 0; x<NUM_MOTORS; x++)
+                    {
+                        Serial.print(pt[x]);
+                        Serial.print(" ");
+                    }
+                    Serial.println();
+                    delay(30000);
+
                     // pInstance->m_traj.generateTransitions(pInstance->m_currentPoint, pt, TRANSITION_LENGTH);
                 }
                 // Pop from traj queue. If transition was added, this point is from the generated transition
@@ -796,21 +1318,19 @@ private:
                 }
             }
         }
-
+//        Serial.println("------------------");
+//        Serial.print("Index: ");
+//        Serial.println(idx);
+//        Serial.print("Traj Point: ");
 //        for (int i = 0; i < NUM_MOTORS; ++i) {
-//            if(i == 7){
-//                Serial.print("Index: ");
-//                Serial.println(idx);
-//                Serial.print("Traj Point: ");
-//                Serial.println(point[i]);
-//                //Serial.print(idx);
-//            }
+//
+//                Serial.print(point[i]);
+//                Serial.print(" ");
 //        }
+//        Serial.println(" ");
+
 
         bool run_bot = true; //false turns off motor, true turns on
-//        Serial.print("Traj Point: ");
-//        Serial.println(point[3]);
-        //Serial.print(idx);
 
 
         idx += 1;

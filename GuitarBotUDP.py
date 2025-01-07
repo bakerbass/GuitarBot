@@ -31,49 +31,15 @@ class GuitarBotUDP:
         self.router_left = bytes('/lguitar', 'utf8')
         self.router_picker = bytes('/rguitar', 'utf8')
 
-    def send_msg_left(self, iplaycommand, ifretnumber):
-        # stringCount = 6
-        # iplaycommand_byte = [b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00']
-        # ifretnumber_byte = [b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00']
-        # # tnotelen_byte = [b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00']
-        # for i in range(stringCount):
-        #     # print('ifrenumber[i]', ifretnumber[i])
-        #     # print('ifrenumber[i] type', type(ifretnumber[i]))
-        #     ifretnumber_byte[i] = int(ifretnumber[i]).to_bytes(1, 'little')
-        #     iplaycommand_byte[i] = int(iplaycommand[i]).to_bytes(1, 'little')
-        #     # tnotelen_byte[i] = tnotelen[i].to_bytes(2, 'little')
-        # print(ifretnumber)
-        # router = self.router_left
-        #
-        # ifretnumber_merge = ifretnumber_byte[0]
-        # iplaycommand_merge = iplaycommand_byte[0]
-        # # tnotelen_merge = tnotelen_byte[0]
-        #
-        # for i in range(stringCount - 1):
-        #     ifretnumber_merge += ifretnumber_byte[i + 1]
-        #     iplaycommand_merge += iplaycommand_byte[i + 1]
-        #     # tnotelen_merge += tnotelen_byte[i + 1]
-        #
-        # message = router
-        # message += iplaycommand_merge
-        # message += ifretnumber_merge
-        #
-        # # message += tnotelen_merge
-        # message += b'\x00'
-        # time.sleep(0.005)
-        # self.sock.sendto(message, (self.udp_ip, self.udp_port))
-        # time.sleep(0.001)
-        # return 0
+    def send_msg(self, iplaycommand, ifretnumber, ipickcommand):
+        data = (iplaycommand, ifretnumber, ipickcommand)
 
-        data = (iplaycommand, ifretnumber)
-
-        arr = [0] * 12
+        arr = [0] * 18
         index = 0
         for d in data:
             for i in d:
                 arr[index] = i
                 index += 1
-
         packed_data = struct.pack(f'<{len(arr)}b',*arr)
         time.sleep(0.005)
         # self.sock.sendto(bytes(msg, 'utf8'), (self.udp_ip, self.udp_port))
@@ -159,7 +125,7 @@ def main():
 
     ifretnumber = [1, 2, 2, 1, 1, 1]
     iplaycommand = [1, 2, 2, 2, 1, 1]
-    guitarbot_udp.send_msg_left(iplaycommand, ifretnumber)
+    guitarbot_udp.send_msg(iplaycommand, ifretnumber)
     guitarbot_udp.send_msg_arduino(iplaycommand, ifretnumber)
 
     # example to control pick

@@ -287,18 +287,25 @@ class ArmListParser:
         # For each event, we want to send n x [[m], timestamp] where n is the number of points for an event and m are the 18 motor values.
         # STEP 1: convert to encoder tick positions.
         # For events in lh_events
-        slider_positions = []
-        presser_positions = []
+        motor_positions = []
+        slider_encoder_values = [43, 74, 105, 131, 163, 187, 210, 233, 255]
+        presser_encoder_values = [-10, 38, 23]
         for events in lh_events:
             # for lh_events[1][0] AND for lh_events[1][1]
             # convert from fret position/finger position to encoder tick position respectively
-            for slider_values in events[1][0]:
-
-            for presser_values in events[1][1]:
+            temp = [[]]
+            for i, slider_value in enumerate(events[1][0]):
+                if 1 <= slider_value <= 9:
+                    temp[0].append(slider_encoder_values[slider_value - 1])
+            for i, presser_value in enumerate(events[1][1]):
+                if 1 <= presser_value <= 3:
+                    temp[0].append(presser_encoder_values[presser_value - 1])
+            temp.append(events[2])
+            motor_positions.append(temp)
 
         # STEP 2: For every event, create a new list of points that interpolates between events.
         #
 
-
+        print("These are the encoder tick slider/presser positions: ", motor_positions)
         # return left_arm, firstc, mtimings
         return lh_events, firstc, mtimings

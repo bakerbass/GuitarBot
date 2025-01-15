@@ -283,6 +283,22 @@ class ArmListParser:
         print("These are the chord change onsets: ", mtimings)
         print("These are the LH Events: ", lh_events)
         #Note, lh_events is the new list we'd like to return.
+        # Plan for LH Conversions to points
+        # For each event, we want to send n x [[m], timestamp] where n is the number of points for an event and m are the 18 motor values.
+        # STEP 1: convert to encoder tick positions.
+        # For events in lh_events
+        slider_positions = []
+        presser_positions = []
+        for events in lh_events:
+            # for lh_events[1][0] AND for lh_events[1][1]
+            # convert from fret position/finger position to encoder tick position respectively
+            for slider_values in events[1][0]:
+
+            for presser_values in events[1][1]:
+
+        # STEP 2: For every event, create a new list of points that interpolates between events.
+        #
+
 
         # return left_arm, firstc, mtimings
         return lh_events, firstc, mtimings

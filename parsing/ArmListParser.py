@@ -305,22 +305,6 @@ class ArmListParser:
 
         # STEP 2: For every event, create a new list of points that interpolates between events.
         #
-        # Example motor_positions input
-
-        # Generate the interpolated list
-        # interpolated_list = ArmListParser.generate_interpolated_positions(motor_positions)
-        #
-        # # Print the result
-        # for entry in interpolated_list:
-        #     print(f"Interpolated Points: {entry[0]}")
-        #     print(f"Timestamp: {entry[1]}\n")
-        # plt.plot(curve, label='Interpolated Curve')
-        # plt.title('Interpolation with Blend')
-        # plt.xlabel('Index')
-        # plt.ylabel('Value')
-        # plt.legend()
-        # plt.grid()
-        # plt.show()
 
         # Generate the interpolated list
         interpolated_list = ArmListParser.generate_interpolated_positions(motor_positions, plot=True)

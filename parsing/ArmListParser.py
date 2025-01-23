@@ -303,16 +303,17 @@ class ArmListParser:
             temp.append(events[2])
             motor_positions.append(temp)
 
-        # STEP 2: For every event, create a new list of points that interpolates between events.
+        # STEP 2: For every event, create a new list of points that interpolates the events into 60 points.
         #
 
         # Generate the interpolated list
         interpolated_list = ArmListParser.generate_interpolated_positions(motor_positions, plot=True)
 
-        # Print the result
-        for entry in interpolated_list:
-            print(f"Interpolated Points: {entry[0]}")
-            print(f"Timestamp: {entry[1]}\n")
+        # Debugging
+        # for entry in interpolated_list:
+        #     for x in entry[0]:
+        #         print(x)
+        #     print(f"Timestamp: {entry[1]}\n")
 
         print("These are the encoder tick slider/presser positions: ", motor_positions)
         # return left_arm, firstc, mtimings
@@ -341,39 +342,88 @@ class ArmListParser:
 
     @staticmethod
     def generate_interpolated_positions(motor_positions, num_points=20, tb_cent=0.2, plot=False):
-        current_position = [43, 43, 43, 43, 43, 43]  # Initial position, remember to make dynamic later.
+        current_position = [43, 43, 43, 43, 43, 43,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
         result = []
 
         for event_index, event in enumerate(motor_positions):
-            target_positions = event[0][:6]  # First 6 values of the nested list
+            points = []
+            target_positions_slider = event[0][:6]  # First 6 values of the nested list
+            target_positions_presser = event[0][6:12]
             timestamp = event[1]
-
-            interpolated_values = [
-                ArmListParser.interp_with_blend(current_position[i], target_positions[i], num_points, tb_cent)
-                for i in range(len(current_position))
+            # First 20 points
+            interpolated_values_1 = [
+                ArmListParser.interp_with_blend(current_position[i], current_position[i], num_points, tb_cent) #Change to fill later
+                for i in range(len(target_positions_slider))
             ]
+            interpolated_points_1 = list(map(list, zip(*interpolated_values_1)))
+            interpolated_values_2 = [
+                ArmListParser.interp_with_blend(current_position[i+6], -10, num_points, tb_cent)
+                for i in range(len(target_positions_presser))
+            ]
+            interpolated_points_2 = list(map(list, zip(*interpolated_values_2)))
 
-            interpolated_points = list(map(list, zip(*interpolated_values)))
+            f_20 = [points1 + points2 for points1, points2 in zip(interpolated_points_1, interpolated_points_2)]
+            points.extend(f_20)
 
-            result.append([interpolated_points, timestamp])
+            # Second 20 points
+            interpolated_values_3 = [
+                ArmListParser.interp_with_blend(current_position[i], target_positions_slider[i], num_points, tb_cent)
+                for i in range(len(target_positions_slider))
+            ]
+            interpolated_points_3 = list(map(list, zip(*interpolated_values_3)))
+            interpolated_values_4 = [
+                ArmListParser.interp_with_blend(-10, -10, num_points, tb_cent) #Change to fill later
+                for i in range(len(target_positions_presser))
+            ]
+            interpolated_points_4 = list(map(list, zip(*interpolated_values_4)))
 
-            if plot:
-                ArmListParser.plot_interpolation(interpolated_values, event_index, timestamp)
+            s_20 = [points1 + points2 for points1, points2 in zip(interpolated_points_3, interpolated_points_4)]
+            points.extend(s_20)
 
-            current_position = target_positions
+            # Third 20 points
+            interpolated_values_5 = [
+                ArmListParser.interp_with_blend(target_positions_slider[i], target_positions_slider[i], num_points, tb_cent) # Change to fill later
+                for i in range(len(target_positions_slider))
+            ]
+            interpolated_points_5 = list(map(list, zip(*interpolated_values_5)))
+            interpolated_values_6 = [
+                ArmListParser.interp_with_blend(-10, target_positions_presser[i], num_points, tb_cent)
+                for i in range(len(target_positions_presser))
+            ]
+            interpolated_points_6 = list(map(list, zip(*interpolated_values_6)))
 
+            t_20 = [points1 + points2 for points1, points2 in zip(interpolated_points_5, interpolated_points_6)]
+            points.extend(t_20)
+            result.append([points, timestamp])
+            print("debug_1", points)
+            print("debug_2", len(result))
+
+
+
+
+            current_position = event[0]
+        if plot:
+            ArmListParser.plot_interpolation(result)
         return result
+
     @staticmethod
-    def plot_interpolation(interpolated_values, event_index, timestamp):
-        plt.figure(figsize=(12, 8))
-        for i, values in enumerate(interpolated_values):
-            plt.plot(values, label=f'Point {i + 1}')
+    def plot_interpolation(data):
+        fig, axs = plt.subplots(4, 3, figsize=(20, 24))  # 4 rows, 3 columns of subplots
+        fig.suptitle('Graph of 12 Motors Over Time', fontsize=16)
+        axs = axs.flatten()
 
-        plt.title(f'Interpolation for Event {event_index} (Timestamp: {timestamp})')
-        plt.xlabel('Interpolation Step')
-        plt.ylabel('Value')
-        plt.legend()
-        plt.grid(True)
+        for i in range(12):
+            for event in data:
+                points, timestamp = event
+                points = np.array(points)
+                time_values = np.arange(len(points)) * 0.005 + timestamp  # 5ms per point
+
+                axs[i].plot(time_values, points[:, i])
+
+            axs[i].set_title(f'Motor {i + 1}')
+            axs[i].set_xlabel('Time (seconds)')
+            axs[i].set_ylabel('Encoder Tick Value')
+            axs[i].grid(True)
+
+        plt.tight_layout()
         plt.show()
-
-

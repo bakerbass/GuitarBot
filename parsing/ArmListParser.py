@@ -1,4 +1,5 @@
-import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 from parsing.chord_selector import find_lowest_cost_chord
 
 
@@ -123,7 +124,7 @@ class ArmListParser:
         rh_events = []
         for x in strumOnsets:
             pos = 45
-            if(x[1] == 'U'):
+            if (x[1] == 'U'):
                 pos = -45
             rh_events.append(['strum', pos, round(x[0], 3)])
         # print("ri", right_information, initialStrum)
@@ -168,7 +169,7 @@ class ArmListParser:
                                 type = "MINOR"
                                 # print("MINOR CHORD")
 
-                            #TODO: split these into individual chords once chords library is updated
+                            # TODO: split these into individual chords once chords library is updated
                             elif remaining_input == '7' or remaining_input == '9' or remaining_input == '13':
                                 type = "DOMINANT"
                                 # print("DOMINANT CHORD")
@@ -221,7 +222,7 @@ class ArmListParser:
                                 type = "SUS2"
                                 # print("SUS2 CHORD")
 
-                            #TODO: split these into individual chords once chords library is updated
+                            # TODO: split these into individual chords once chords library is updated
                             elif remaining_input == "dim" or remaining_input == "dim7":
                                 type = "DIMINISHED"
                                 # print("DIMINISHED CHORD")
@@ -252,10 +253,9 @@ class ArmListParser:
                                 type = "TEST7"
                                 print("test 7 accepted")
 
-
                     # read chord from csv
                     note = str.upper(chords[0])
-                    #frets, command, dtraj, utraj = ArmListParser._get_chords_M("Chords - Chords.csv", note + key, type)
+                    # frets, command, dtraj, utraj = ArmListParser._get_chords_M("Chords - Chords.csv", note + key, type)
                     frets, command, dtraj, utraj = ArmListParser._get_chords_M("Alternate_Chords.csv", note + key, type)
                     left_arm[mcount][bcount] = [frets, command]
                     mtimings.append(time)
@@ -278,11 +278,11 @@ class ArmListParser:
                 else:
                     justchords.append(b)
                     lh_events.append(["LH", b, round(mtimings[i], 3)])
-                    i+=1
+                    i += 1
         # print("jc", justchords)
         print("These are the chord change onsets: ", mtimings)
         print("These are the LH Events: ", lh_events)
-        #Note, lh_events is the new list we'd like to return.
+        # Note, lh_events is the new list we'd like to return.
         # Plan for LH Conversions to points
         # For each event, we want to send n x [[m], timestamp] where n is the number of points for an event and m are the 18 motor values.
         # STEP 1: convert to encoder tick positions.
@@ -305,7 +305,91 @@ class ArmListParser:
 
         # STEP 2: For every event, create a new list of points that interpolates between events.
         #
+        # Example motor_positions input
+
+        # Generate the interpolated list
+        # interpolated_list = ArmListParser.generate_interpolated_positions(motor_positions)
+        #
+        # # Print the result
+        # for entry in interpolated_list:
+        #     print(f"Interpolated Points: {entry[0]}")
+        #     print(f"Timestamp: {entry[1]}\n")
+        # plt.plot(curve, label='Interpolated Curve')
+        # plt.title('Interpolation with Blend')
+        # plt.xlabel('Index')
+        # plt.ylabel('Value')
+        # plt.legend()
+        # plt.grid()
+        # plt.show()
+
+        # Generate the interpolated list
+        interpolated_list = ArmListParser.generate_interpolated_positions(motor_positions, plot=True)
+
+        # Print the result
+        for entry in interpolated_list:
+            print(f"Interpolated Points: {entry[0]}")
+            print(f"Timestamp: {entry[1]}\n")
 
         print("These are the encoder tick slider/presser positions: ", motor_positions)
         # return left_arm, firstc, mtimings
         return lh_events, firstc, mtimings
+
+    @staticmethod
+    def interp_with_blend(q0, qf, N, tb_cent):
+        curve = np.zeros(N)
+        if curve is None:
+            return
+        nb = int(tb_cent * N)
+        a_2 = 0.5 * (qf - q0) / (nb * (N - nb))
+
+        for i in range(nb):
+            tmp = a_2 * (i ** 2)
+            curve[i] = q0 + tmp
+            curve[N - i - 1] = qf - tmp
+
+        tmp = a_2 * (nb ** 2)
+        qa = q0 + tmp
+        qb = qf - tmp
+
+        curve[nb:N - nb] = np.linspace(qa, qb, N - (2 * nb))
+
+        return curve
+
+    @staticmethod
+    def generate_interpolated_positions(motor_positions, num_points=20, tb_cent=0.2, plot=False):
+        current_position = [43, 43, 43, 43, 43, 43]  # Initial position, remember to make dynamic later.
+        result = []
+
+        for event_index, event in enumerate(motor_positions):
+            target_positions = event[0][:6]  # First 6 values of the nested list
+            timestamp = event[1]
+
+            interpolated_values = [
+                ArmListParser.interp_with_blend(current_position[i], target_positions[i], num_points, tb_cent)
+                for i in range(len(current_position))
+            ]
+
+            interpolated_points = list(map(list, zip(*interpolated_values)))
+
+            result.append([interpolated_points, timestamp])
+
+            if plot:
+                ArmListParser.plot_interpolation(interpolated_values, event_index, timestamp)
+
+            current_position = target_positions
+
+        return result
+    @staticmethod
+    def plot_interpolation(interpolated_values, event_index, timestamp):
+        plt.figure(figsize=(12, 8))
+        for i, values in enumerate(interpolated_values):
+            plt.plot(values, label=f'Point {i + 1}')
+
+        plt.title(f'Interpolation for Event {event_index} (Timestamp: {timestamp})')
+        plt.xlabel('Interpolation Step')
+        plt.ylabel('Value')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+

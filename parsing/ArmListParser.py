@@ -126,10 +126,13 @@ class ArmListParser:
             pos = 45
             if (x[1] == 'U'):
                 pos = -45
-            rh_events.append(['strum', pos, round(x[0], 3)])
+            rh_events.append(['strum', [pos, 75, 0], round(x[0], 3)]) # Later, 75 is default speed, 0 is default no deflect, change later
         # print("ri", right_information, initialStrum)
-        print("These are the strumOnsets: ", strumOnsets)
-        print("These are the right hand events: ", rh_events)
+        #print("These are the strumOnsets: ", strumOnsets)
+        #print("These are the right hand events: ", rh_events)
+        print("RH EVENTS LIST: ")
+        ArmListParser.print_Events(rh_events)
+
         return rh_events, initialStrum, strumOnsets
 
     # parse left arm (chords) input
@@ -280,14 +283,14 @@ class ArmListParser:
                     lh_events.append(["LH", b, round(mtimings[i], 3)])
                     i += 1
         # print("jc", justchords)
-        print("These are the chord change onsets: ", mtimings)
-        print("These are the LH Events: ", lh_events)
+        #print("These are the chord change onsets: ", mtimings)
+        #print("These are the LH Events: ", lh_events)
         # Note, lh_events is the new list we'd like to return.
         # Plan for LH Conversions to points
         # For each event, we want to send n x [[m], timestamp] where n is the number of points for an event and m are the 18 motor values.
         # STEP 1: convert to encoder tick positions.
         # For events in lh_events
-        motor_positions = []
+        lh_motor_positions = []
         slider_encoder_values = [43, 74, 105, 131, 163, 187, 210, 233, 255]
         presser_encoder_values = [-10, 38, 23]
         for events in lh_events:
@@ -301,13 +304,17 @@ class ArmListParser:
                 if 1 <= presser_value <= 3:
                     temp[0].append(presser_encoder_values[presser_value - 1])
             temp.append(events[2])
-            motor_positions.append(temp)
+            lh_motor_positions.append(temp)
 
         # STEP 2: For every event, create a new list of points that interpolates the events into 60 points.
         #
 
         # Generate the interpolated list
-        interpolated_list = ArmListParser.generate_interpolated_positions(motor_positions, plot=True)
+        #print("LH EVENTS LIST: ")
+        #ArmListParser.print_Events(lh_motor_positions)
+        #print("\n")
+        #interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
+        #ArmListParser.print_Trajs(interpolated_list)
 
         # Debugging
         # for entry in interpolated_list:
@@ -315,7 +322,7 @@ class ArmListParser:
         #         print(x)
         #     print(f"Timestamp: {entry[1]}\n")
 
-        print("These are the encoder tick slider/presser positions: ", motor_positions)
+        #print("These are the encoder tick slider/presser positions: ", lh_motor_positions)
         # return left_arm, firstc, mtimings
         return lh_events, firstc, mtimings
 
@@ -341,9 +348,10 @@ class ArmListParser:
         return curve
 
     @staticmethod
-    def generate_interpolated_positions(motor_positions, num_points=20, tb_cent=0.2, plot=False):
+    def lh_interpolate(motor_positions, num_points=20, tb_cent=0.2, plot=False):
         current_position = [43, 43, 43, 43, 43, 43,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
         result = []
+        points_only = []
 
         for event_index, event in enumerate(motor_positions):
             points = []
@@ -395,16 +403,15 @@ class ArmListParser:
             t_20 = [points1 + points2 for points1, points2 in zip(interpolated_points_5, interpolated_points_6)]
             points.extend(t_20)
             result.append([points, timestamp])
-            print("debug_1", points)
-            print("debug_2", len(result))
-
-
-
+            points_only.append([points])
+            #print("\n")
+            #print("debug_1", points)
+            #print("debug_2", len(result))
 
             current_position = event[0]
         if plot:
             ArmListParser.plot_interpolation(result)
-        return result
+        return points_only #result
 
     @staticmethod
     def plot_interpolation(data):
@@ -427,3 +434,21 @@ class ArmListParser:
 
         plt.tight_layout()
         plt.show()
+
+    @staticmethod
+    def print_Events(motor_positions):
+        for event in motor_positions:
+            print(event)
+
+    @staticmethod
+    def print_Trajs(interpolated_list):
+        print("INTERPOLATED LIST:")
+        for e, event in enumerate(interpolated_list):
+            print("Event: ", e)
+            for traj in event:
+                for i, points in enumerate(traj):
+                    print(i, points)
+                print("\n")
+
+
+

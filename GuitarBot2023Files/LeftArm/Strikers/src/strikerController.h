@@ -324,7 +324,7 @@ public:
         //Other motors
         float non_strummerIdle[speed + 5];
         int strum_mm_qf = -115;
-        float picker_mm_qf_1 = 8;
+        float picker_mm_qf_1 = 8; //UPSTRUM: 8 -> 9, DOWNSTRUM: 10 -> 9
         float picker_mm_qf_2 = 10;
         switch(strumType){
             case -45:

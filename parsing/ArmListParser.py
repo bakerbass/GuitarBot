@@ -133,6 +133,30 @@ class ArmListParser:
         print("RH EVENTS LIST: ")
         ArmListParser.print_Events(rh_events)
 
+        strummer_dict = {
+            -45: [-115, 8], #US
+            45: [-15, 10] # DS
+        }
+
+        rh_motor_positions = []
+
+        for event in rh_events:
+            strumType = event[1][0] # 45 or -45
+            speed = event[1][1] # 75
+            deflect = event[1][2] # 0 or 1
+            time_stamp = event[2]
+            strum_mm_qf = strummer_dict.get(strumType)[0] # -115 or -15
+            picker_mm_qf = strummer_dict.get(strumType)[1]
+            if deflect == 1:
+                picker_mm_qf= 14
+
+            rh_motor_positions.append([[strum_mm_qf, picker_mm_qf], time_stamp])
+
+        print("\nRH MM:")
+        ArmListParser.print_Events(rh_motor_positions)
+        ArmListParser.rh_interpolate(rh_motor_positions)
+
+
         return rh_events, initialStrum, strumOnsets
 
     # parse left arm (chords) input
@@ -313,7 +337,7 @@ class ArmListParser:
         #print("LH EVENTS LIST: ")
         #ArmListParser.print_Events(lh_motor_positions)
         #print("\n")
-        #interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
+        interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=True)
         #ArmListParser.print_Trajs(interpolated_list)
 
         # Debugging
@@ -348,12 +372,12 @@ class ArmListParser:
         return curve
 
     @staticmethod
-    def lh_interpolate(motor_positions, num_points=20, tb_cent=0.2, plot=False):
-        current_position = [43, 43, 43, 43, 43, 43,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
+    def lh_interpolate(lh_motor_positions, num_points=20, tb_cent=0.2, plot=False):
+        current_position = [43, 43, 43, 43, 43, 43 ,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
         result = []
         points_only = []
 
-        for event_index, event in enumerate(motor_positions):
+        for event_index, event in enumerate(lh_motor_positions):
             points = []
             target_positions_slider = event[0][:6]  # First 6 values of the nested list
             target_positions_presser = event[0][6:12]
@@ -401,6 +425,7 @@ class ArmListParser:
             interpolated_points_6 = list(map(list, zip(*interpolated_values_6)))
 
             t_20 = [points1 + points2 for points1, points2 in zip(interpolated_points_5, interpolated_points_6)]
+
             points.extend(t_20)
             result.append([points, timestamp])
             points_only.append([points])
@@ -410,18 +435,69 @@ class ArmListParser:
 
             current_position = event[0]
         if plot:
-            ArmListParser.plot_interpolation(result)
+            ArmListParser.plot_interpolation(result, 12)
         return points_only #result
 
     @staticmethod
-    def plot_interpolation(data):
+    def rh_interpolate(rh_motor_positions, tb_cent = 0.2):
+        currentRH_position = [-110, 9]
+        strummer_slider_q0 = -110 # mm, CURRENT POINTS
+        strummer_picker_q0 = 9
+        rh_points = []
+
+        for event_index, event in enumerate(rh_motor_positions):
+            strummer_slider_qf = event[0][0]
+            strummer_picker_qf = event[0][1]
+            timestamp = event[1]
+            speed = 75
+            #1. Strummer slider hold 5 points
+            strummer_slider_interp1 = ArmListParser.interp_with_blend(strummer_slider_q0, strummer_slider_q0, 5, tb_cent)  # Change to fill later
+            #2. Strummer slider move "speed" points
+            strummer_slider_interp2 = ArmListParser.interp_with_blend(strummer_slider_q0, strummer_slider_qf, speed, tb_cent)
+            #3. Strummer Picker move 5 points
+            strummer_picker_interp1 = ArmListParser.interp_with_blend(strummer_picker_q0, strummer_picker_qf, 5, tb_cent)
+            #4. Strummer Picker hold "speed" points
+            strummer_picker_interp2 = ArmListParser.interp_with_blend(strummer_picker_qf, strummer_picker_qf, speed, tb_cent)
+            #5. Combine strummer_slider_interp1 with strummer_picker_interp1
+            #picker_moving = [points1 + points2 for points1, points2 in zip(strummer_slider_interp1, strummer_picker_interp1)]
+            interp_points_1 = [list(pair) for pair in zip(strummer_slider_interp1, strummer_picker_interp1)]
+            interp_points_2 = [list(pair) for pair in zip(strummer_slider_interp2, strummer_picker_interp2)]
+            interp_points_1.extend(interp_points_2)
+            rh_points.append([interp_points_1, timestamp])
+
+
+            strummer_slider_q0 = event[0][0]
+            strummer_picker_q0 = event[0][1]
+
+        # ArmListParser.print_Trajs(temp)
+        print("len is: ", len(rh_points))
+
+        ArmListParser.plot_interpolation(rh_points, 2)
+
+            # print("PICKER MOVING: ", x, "\n")
+
+        return rh_points
+
+
+
+
+
+
+
+
+
+
+    @staticmethod
+    def plot_interpolation(data, points):
         fig, axs = plt.subplots(4, 3, figsize=(20, 24))  # 4 rows, 3 columns of subplots
-        fig.suptitle('Graph of 12 Motors Over Time', fontsize=16)
+        fig.suptitle('Graph of 12 Motors Over Time', fontsize=6)
         axs = axs.flatten()
 
-        for i in range(12):
+        for i in range(points):
             for event in data:
                 points, timestamp = event
+                print("debug, ", points)
+                print("debug, ", timestamp)
                 points = np.array(points)
                 time_values = np.arange(len(points)) * 0.005 + timestamp  # 5ms per point
 
@@ -437,6 +513,7 @@ class ArmListParser:
 
     @staticmethod
     def print_Events(motor_positions):
+        print("PRINTING EVENTS: ")
         for event in motor_positions:
             print(event)
 

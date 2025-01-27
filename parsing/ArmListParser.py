@@ -122,11 +122,18 @@ class ArmListParser:
             except:
                 break
         rh_events = []
+        prev_strum = 'N'
         for x in strumOnsets:
             pos = 45
-            if (x[1] == 'U'):
+            deflect = 0
+            if x[1] == 'U':
                 pos = -45
-            rh_events.append(['strum', [pos, 75, 0], round(x[0], 3)]) # Later, 75 is default speed, 0 is default no deflect, change later
+            if prev_strum == x[1]:
+                deflect = 1
+            timestamp = round(x[0] * 200) / 200 # Rounding to nearest 0.005 = PDO_RATE
+            rh_events.append(['strum', [pos, 75, deflect], timestamp]) # Later, 75 is default speed, change later
+            prev_strum = x[1] #For detecting deflects
+        print("LEN RH: ", len(rh_events))
         # print("ri", right_information, initialStrum)
         #print("These are the strumOnsets: ", strumOnsets)
         #print("These are the right hand events: ", rh_events)
@@ -139,6 +146,7 @@ class ArmListParser:
         }
 
         rh_motor_positions = []
+        deflections = []
 
         for event in rh_events:
             strumType = event[1][0] # 45 or -45
@@ -148,14 +156,17 @@ class ArmListParser:
             strum_mm_qf = strummer_dict.get(strumType)[0] # -115 or -15
             picker_mm_qf = strummer_dict.get(strumType)[1]
             if deflect == 1:
-                picker_mm_qf= 14
-
+                deflections.append(1)
+            else:
+                deflections.append(0)
             rh_motor_positions.append([[strum_mm_qf, picker_mm_qf], time_stamp])
 
         print("\nRH MM:")
         ArmListParser.print_Events(rh_motor_positions)
-        ArmListParser.rh_interpolate(rh_motor_positions)
-
+        print("DEFLECTIONS LIST: ", deflections)
+        rh_interpolated_list = ArmListParser.rh_interpolate(rh_motor_positions, deflections)
+        #print(rh_interpolated_list)
+        #ArmListParser.print_Trajs(rh_interpolated_list)
 
         return rh_events, initialStrum, strumOnsets
 
@@ -304,7 +315,8 @@ class ArmListParser:
                     continue
                 else:
                     justchords.append(b)
-                    lh_events.append(["LH", b, round(mtimings[i], 3)])
+                    timestamp = round(mtimings[i] * 200) /200 # Rounding to nearest 0.005 = PDO_RATE
+                    lh_events.append(["LH", b, timestamp])
                     i += 1
         # print("jc", justchords)
         #print("These are the chord change onsets: ", mtimings)
@@ -335,10 +347,12 @@ class ArmListParser:
 
         # Generate the interpolated list
         #print("LH EVENTS LIST: ")
-        #ArmListParser.print_Events(lh_motor_positions)
+        ArmListParser.print_Events(lh_motor_positions)
         #print("\n")
-        interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=True)
-        #ArmListParser.print_Trajs(interpolated_list)
+        lh_interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=True)
+        #ArmListParser.print_Trajs(lh_interpolated_list)
+
+
 
         # Debugging
         # for entry in interpolated_list:
@@ -376,6 +390,11 @@ class ArmListParser:
         current_position = [43, 43, 43, 43, 43, 43 ,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
         result = []
         points_only = []
+
+        #1. Check to make sure no syncrhonous LH Events
+        print("LH UPDATED EVENTS LIST (NO SYNC LH EVENTS): ")
+        lh_motor_positions = ArmListParser.checkSyncEvents("LH", lh_motor_positions)
+        ArmListParser.print_Events(lh_motor_positions)
 
         for event_index, event in enumerate(lh_motor_positions):
             points = []
@@ -432,24 +451,39 @@ class ArmListParser:
             #print("\n")
             #print("debug_1", points)
             #print("debug_2", len(result))
-
             current_position = event[0]
+
+        print("\nLH FULL MATRIX")
+        ArmListParser.getFullMatrix(result)
         if plot:
             ArmListParser.plot_interpolation(result, 12)
         return points_only #result
 
     @staticmethod
-    def rh_interpolate(rh_motor_positions, tb_cent = 0.2):
+    def rh_interpolate(rh_motor_positions, deflections, tb_cent = 0.2):
         currentRH_position = [-110, 9]
         strummer_slider_q0 = -110 # mm, CURRENT POINTS
         strummer_picker_q0 = 9
         rh_points = []
+        rh_points_only = []
+        prev_timestamp = 0
+        speed = 40
+
+        #1. Check for any deflections
+        rh_motor_positions = ArmListParser.checkDeflect(rh_motor_positions, deflections)
+        print("RH UPDATED EVENTS LIST (WITH DEFLECTIONS): ")
+        ArmListParser.print_Events(rh_motor_positions)
+
+        #2. Check for any syncrhonous RH events
+        rh_motor_positions = ArmListParser.checkSyncEvents("strum", rh_motor_positions)
+        print("RH UPDATED EVENTS LIST (NO SYNC RH EVENTS): ")
+        ArmListParser.print_Events(rh_motor_positions)
 
         for event_index, event in enumerate(rh_motor_positions):
             strummer_slider_qf = event[0][0]
             strummer_picker_qf = event[0][1]
             timestamp = event[1]
-            speed = 75
+
             #1. Strummer slider hold 5 points
             strummer_slider_interp1 = ArmListParser.interp_with_blend(strummer_slider_q0, strummer_slider_q0, 5, tb_cent)  # Change to fill later
             #2. Strummer slider move "speed" points
@@ -464,24 +498,21 @@ class ArmListParser:
             interp_points_2 = [list(pair) for pair in zip(strummer_slider_interp2, strummer_picker_interp2)]
             interp_points_1.extend(interp_points_2)
             rh_points.append([interp_points_1, timestamp])
-
+            rh_points_only.append([interp_points_1])
 
             strummer_slider_q0 = event[0][0]
             strummer_picker_q0 = event[0][1]
 
-        # ArmListParser.print_Trajs(temp)
-        print("len is: ", len(rh_points))
+        #ArmListParser.print_Trajs(temp)
+        #print("len is: ", len(rh_points))
 
         ArmListParser.plot_interpolation(rh_points, 2)
+        print("\nRH FULL MATRIX")
+        ArmListParser.getFullMatrix(rh_points)
 
-            # print("PICKER MOVING: ", x, "\n")
+            # print("PICKER MhOVING: ", x, "\n")
 
-        return rh_points
-
-
-
-
-
+        return rh_points_only
 
 
 
@@ -496,8 +527,9 @@ class ArmListParser:
         for i in range(points):
             for event in data:
                 points, timestamp = event
-                print("debug, ", points)
-                print("debug, ", timestamp)
+                # Round to nearest 0.005
+                #print("debug, ", points)
+                #print("debug, ", timestamp)
                 points = np.array(points)
                 time_values = np.arange(len(points)) * 0.005 + timestamp  # 5ms per point
 
@@ -526,6 +558,106 @@ class ArmListParser:
                 for i, points in enumerate(traj):
                     print(i, points)
                 print("\n")
+
+    @staticmethod
+    def getFullMatrix(events_list):
+
+        full_matrix = {}
+        for event in events_list:
+            points, timestamp = event
+            # print("debug, ", points)
+            # print("debug, ", timestamp)
+            points = np.array(points)
+            time_values = np.arange(len(points)) * 0.005 + timestamp  # 5ms per point
+            for time, point in zip(time_values, points):
+                full_matrix[round(time,3)] = point.tolist()
+
+        #print resulting dictionary
+        i = 0
+        for key, value in full_matrix.items():
+            print(f"{i}| {key} : {value}")
+            i+=1
+        return full_matrix
+
+    # Will dynamically add deflect messages between events if there is enough space
+    @staticmethod
+    def checkDeflect(rh_motor_positions, deflections):
+        prev_timestamp = -1000 # dummy initial value
+        new_rh_motor_positions = []
+        idx = 0
+        num_deflections = 0
+        total_strum_speed = 45 # 40 points for SS, 5 points for SP # CHANGE LATER
+        buffer_time = 0.005 #seconds
+        for event in rh_motor_positions:
+            new_rh_motor_positions.append(event)
+        for event_index, event in enumerate(rh_motor_positions):
+            strummer_slider_qf = event[0][0]
+            strummer_picker_qf = event[0][1]
+            timestamp = event[1]
+            if deflections[event_index] == 1:  # DEFLECT NEEDED BEFORE THIS EVENT
+                # 1. Check to see if there's enough time for a deflect message before this event (speed + 5ms picker + 5ms buffer = 230ms)
+                # There is enough space if time between events is > 2 * 230ms because 230ms to do first event, then another 230ms to deflect
+                strum_time = (total_strum_speed * 0.005) + buffer_time #ms
+                delta = round(timestamp - prev_timestamp, 3)
+                required_delta = 2 * strum_time
+                print(f"{timestamp} - {prev_timestamp} = {delta}")
+
+                if delta > required_delta:  # Insert deflect message, TODO: ELSE, ignore the message because there's not enough time to deflect
+                    num_deflections += 1
+                    if strummer_slider_qf == -15: # if coming from a down strum, insert an upstrum
+                        deflect_SS_qf = -115
+                        deflect_SP_qf = 14
+                    else:
+                        deflect_SS_qf = -15
+                        deflect_SP_qf = 14
+                    # If deflection, add a deflect event right after the previous event
+                    #print("INSERTING DEFLECTION BEFORE EVENT: ", idx)
+                    new_rh_motor_positions.insert(idx, [[deflect_SS_qf, deflect_SP_qf], prev_timestamp + strum_time]) # add deflect event after first event finishes
+                    idx+=1 # Because inserting into new list, need to increment properly to stay on track (double increment only when inserting)
+                else: # NOT ENOUGH SPACE IN BETWEEN EVENTS TO DEFLECT SO IGNORE SECOND EVENT
+                    print("Not enough space to deflect, ignoring event:", idx)
+                    new_rh_motor_positions.pop(idx)
+                    idx-=1
+
+            idx+=1
+            prev_timestamp = timestamp
+        print("NUMBER OF DEFLECTIONS ADDED: ", num_deflections)
+
+        return new_rh_motor_positions
+
+    # This function checks if any SAME TYPE EVENTS are called too close together (RH/LH sync is handled elsewhere)
+    @staticmethod
+    def checkSyncEvents(event_type, motor_positions):
+        prev_timestamp = -10000 # dummy initial value
+        new_motor_positions = []
+        for event in motor_positions:
+            new_motor_positions.append(event)
+
+        event_trajs = {
+            "LH" : 60,
+            "strum" : 45,
+            "pick" : 5
+        }
+        idx = 0
+        for event_index, event in enumerate(motor_positions):
+            points, timestamp = event
+            delta = round(timestamp - prev_timestamp, 3)
+            required_delta = event_trajs.get(event_type) * 0.005 # The amount of time to complete the trajectory based on event type
+            if delta < required_delta:
+                new_motor_positions.pop(idx)
+                print("Not enough space between events, ignoring event: ", idx)
+                print("REQUIRED DELTA: ", required_delta)
+                print(f"RESULTING DELTA: {timestamp} - {prev_timestamp} = {delta}")
+                idx-=1
+
+            idx+=1
+            prev_timestamp = timestamp
+
+
+        return new_motor_positions
+
+
+
 
 
 

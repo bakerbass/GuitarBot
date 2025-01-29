@@ -329,8 +329,8 @@ public:
         switch(strumType){
             case -45:
                 //upstrum, point picker down
-                picker_mm_qf_1 = 7;
-                picker_mm_qf_2 = 7;
+                picker_mm_qf_1 = 8;
+                picker_mm_qf_2 = 8;
                 strum_mm_qf = -115;
                 Serial.println("Recieved Upstrum"); //passed, same result
                 if(deflect == 1){
@@ -341,8 +341,8 @@ public:
 
             case 45:
                 //downstrum, point picker up
-                picker_mm_qf_1 = 11;
-                picker_mm_qf_2 = 11;
+                picker_mm_qf_1 = 10;
+                picker_mm_qf_2 = 10;
                 strum_mm_qf = -15;
                 Serial.println("Recieved Downstrum"); // passed, same result
                 if(deflect == 1){

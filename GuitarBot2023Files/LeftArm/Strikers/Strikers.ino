@@ -15,7 +15,7 @@ IPAddress ip(10, 2, 1, 177); //ip address
 
 unsigned int localPort = 8888; //udp port to listen for packets on
 
-char packetBuffer[1024];
+char packetBuffer[2048];
 uint8_t playcommands[6];
 uint8_t frets[6];
 uint8_t pickings[6];
@@ -25,6 +25,7 @@ int8_t strumAngle;
 uint8_t strumSpeed;
 uint8_t deflect; 
 char event;
+
 
 EthernetUDP udp;
 
@@ -49,23 +50,23 @@ void setup() {
 
     delay(2000); //Added delay for output reading
     LOG_LOG("Initializing GuitarBot...");
-    pController = StrikerController::createInstance();
-    LOG_LOG("Initializing Pressers and Striker...");
-    int err = pController->init(MotorSpec::EC45_Slider); //Sliders
+//     pController = StrikerController::createInstance();               //Uncomment commented block to use bot
+//     LOG_LOG("Initializing Pressers and Striker...");
+//     int err = pController->init(MotorSpec::EC45_Slider); //Sliders
    
-    if (err != 0) {
-        LOG_ERROR("Controller Init failed");
-        return;
-    }
-//  int err = PController->init(MotorSpec::EC20); //Pressers
-    if (err != 0) {
-        LOG_ERROR("Controller Init failed");
-        return;
-    }
-    delay(1000);
-    LOG_LOG("Successfully Initialized! Controller Starting....");
-    pController->start();
-    delay(1000);
+//     if (err != 0) {
+//         LOG_ERROR("Controller Init failed");
+//         return;
+//     }
+// //  int err = PController->init(MotorSpec::EC20); //Pressers
+//     if (err != 0) {
+//         LOG_ERROR("Controller Init failed");
+//         return;
+//     }
+//     delay(1000);
+//     LOG_LOG("Successfully Initialized! Controller Starting....");
+//     pController->start();
+//     delay(1000);
 
     LOG_LOG("Listening for commands...");
 }
@@ -93,44 +94,59 @@ void loop() {
     }
 }
 
+// void ethernetEvent() {
+//     int packetSize = udp.parsePacket();
+//     if (packetSize) {
+//       udp.read(packetBuffer, 1024);
+//       //Convert each byte in packet_buffer to a uint8_t
+//       event = packetBuffer[0];
+//       if (event == 'L') {
+//         LOG_LOG("LH event");
+//         frets[0] = static_cast<uint8_t>(packetBuffer[1]);
+//         frets[1] = static_cast<uint8_t>(packetBuffer[2]);
+//         frets[2] = static_cast<uint8_t>(packetBuffer[3]);
+//         frets[3] = static_cast<uint8_t>(packetBuffer[4]);
+//         frets[4] = static_cast<uint8_t>(packetBuffer[5]);
+//         frets[5] = static_cast<uint8_t>(packetBuffer[6]);
+//         playcommands[0] = static_cast<uint8_t>(packetBuffer[7]);
+//         playcommands[1] = static_cast<uint8_t>(packetBuffer[8]);
+//         playcommands[2] = static_cast<uint8_t>(packetBuffer[9]);
+//         playcommands[3] = static_cast<uint8_t>(packetBuffer[10]);
+//         playcommands[4] = static_cast<uint8_t>(packetBuffer[11]);
+//         playcommands[5] = static_cast<uint8_t>(packetBuffer[12]);
+
+//       }
+//       else if (event == 'S') {
+//         LOG_LOG("Strum event");
+//         strumAngle = packetBuffer[1];
+//         strumSpeed =  packetBuffer[2];
+//         deflect = packetBuffer[3];
+        
+//       }
+//       else if (event == 'P') {
+//         LOG_LOG("Pick event");
+//         for (int i = 1; i <= 6; i++) {
+//           pickings[i - 1] = static_cast<uint8_t>(packetBuffer[i]);
+//         }
+//         tremLength = packetBuffer[7];
+//         tremSpeed = packetBuffer[8];
+//       }
+      
+//       complete = true;
+//     }        
+// }
+
 void ethernetEvent() {
     int packetSize = udp.parsePacket();
     if (packetSize) {
-      udp.read(packetBuffer, 1024);
-      //Convert each byte in packet_buffer to a uint8_t
-      event = packetBuffer[0];
-      if (event == 'L') {
-        LOG_LOG("LH event");
-        frets[0] = static_cast<uint8_t>(packetBuffer[1]);
-        frets[1] = static_cast<uint8_t>(packetBuffer[2]);
-        frets[2] = static_cast<uint8_t>(packetBuffer[3]);
-        frets[3] = static_cast<uint8_t>(packetBuffer[4]);
-        frets[4] = static_cast<uint8_t>(packetBuffer[5]);
-        frets[5] = static_cast<uint8_t>(packetBuffer[6]);
-        playcommands[0] = static_cast<uint8_t>(packetBuffer[7]);
-        playcommands[1] = static_cast<uint8_t>(packetBuffer[8]);
-        playcommands[2] = static_cast<uint8_t>(packetBuffer[9]);
-        playcommands[3] = static_cast<uint8_t>(packetBuffer[10]);
-        playcommands[4] = static_cast<uint8_t>(packetBuffer[11]);
-        playcommands[5] = static_cast<uint8_t>(packetBuffer[12]);
+      udp.read(packetBuffer, packetSize);
 
-      }
-      else if (event == 'S') {
-        LOG_LOG("Strum event");
-        strumAngle = packetBuffer[1];
-        strumSpeed =  packetBuffer[2];
-        deflect = packetBuffer[3];
-        
-      }
-      else if (event == 'P') {
-        LOG_LOG("Pick event");
-        for (int i = 1; i <= 6; i++) {
-          pickings[i - 1] = static_cast<uint8_t>(packetBuffer[i]);
+        // Assuming each packet has 12 floats (48 bytes)
+        for (int i = 0; i < packetSize / sizeof(float); i++) {
+            float* floatPtr = (float*)(packetBuffer + i * sizeof(float));
+            Serial.print(*floatPtr);
+            Serial.print(" ");
         }
-        tremLength = packetBuffer[7];
-        tremSpeed = packetBuffer[8];
-      }
-      
-      complete = true;
+        Serial.println();
     }        
 }

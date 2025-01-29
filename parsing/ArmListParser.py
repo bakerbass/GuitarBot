@@ -168,7 +168,8 @@ class ArmListParser:
         #print(rh_interpolated_list)
         #ArmListParser.print_Trajs(rh_interpolated_list)
 
-        return rh_events, initialStrum, strumOnsets
+        # return rh_events, initialStrum, strumOnsets
+        return rh_interpolated_list
 
     # parse left arm (chords) input
     @staticmethod
@@ -349,7 +350,7 @@ class ArmListParser:
         #print("LH EVENTS LIST: ")
         ArmListParser.print_Events(lh_motor_positions)
         #print("\n")
-        lh_interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=True)
+        lh_interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
         #ArmListParser.print_Trajs(lh_interpolated_list)
 
 
@@ -362,7 +363,8 @@ class ArmListParser:
 
         #print("These are the encoder tick slider/presser positions: ", lh_motor_positions)
         # return left_arm, firstc, mtimings
-        return lh_events, firstc, mtimings
+        # return lh_events, firstc, mtimings
+        return lh_interpolated_list
 
     @staticmethod
     def interp_with_blend(q0, qf, N, tb_cent):
@@ -513,7 +515,6 @@ class ArmListParser:
             # print("PICKER MhOVING: ", x, "\n")
 
         return rh_points_only
-
 
 
 

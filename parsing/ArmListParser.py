@@ -328,7 +328,7 @@ class ArmListParser:
         # STEP 1: convert to encoder tick positions.
         # For events in lh_events
         lh_motor_positions = []
-        slider_mm_values = [43, 74, 105, 131, 163, 187, 210, 233, 255]
+        slider_mm_values = [23, 56, 87, 114, 143, 167, 190, 214, 236]
         slider_encoder_values = []
         for value in slider_mm_values:
             encoder_tick = (value * 2048) / 9.4;
@@ -394,7 +394,7 @@ class ArmListParser:
 
     @staticmethod
     def lh_interpolate(lh_motor_positions, num_points=20, tb_cent=0.2, plot=False):
-        current_mm_position = [43, 43, 43, 43, 43, 43 ,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
+        current_mm_position = [23, 23, 23, 23, 23, 23 ,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
         current_encoder_position = []
         for i, value in enumerate(current_mm_position):
             if i < 6:

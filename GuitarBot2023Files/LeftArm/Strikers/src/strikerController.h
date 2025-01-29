@@ -656,7 +656,7 @@ public:
 
         for(int i = 1; i< NUM_MOTORS + 1; i++) {
             mult = -1;
-            float fretLength = (SCALE_LENGTH - (SCALE_LENGTH / pow(2, (((strings[i])) / 12.f)))) - 20;
+            float fretLength = FRET_LENGTHS[strings[i]] - 20;
             float pos2pulse = (fretLength * 2048) / 9.4;
             if (i == 2 || i == 3 || i == 6) {
                 mult = 1;

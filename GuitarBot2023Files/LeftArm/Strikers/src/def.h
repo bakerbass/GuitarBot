@@ -24,7 +24,7 @@
 
 
 const int kStrikerDirection[13] = { 0, 0, 1, 0, 0, 1, 1, 1, 0,0,0,0,0 }; // 0 is normal, 1 is flipped, idx 0 is dummy
-const int FRET_LENGTHS[10] = {0, 43, 74, 105, 131, 163, 187, 210, 233, 255};
+const int FRET_LENGTHS[10] = {0, 43, 76, 107, 134, 163, 187, 210, 234, 256};
 
 #define HOME_POSITION 25 // Deg
 #define P2P_MULT 100.f

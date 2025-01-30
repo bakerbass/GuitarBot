@@ -330,6 +330,7 @@ class ArmListParser:
         lh_motor_positions = []
         slider_mm_values = [23, 56, 87, 114, 143, 167, 190, 214, 236]
         slider_encoder_values = []
+        mult = -1
         for value in slider_mm_values:
             encoder_tick = (value * 2048) / 9.4;
             slider_encoder_values.append(encoder_tick)
@@ -339,9 +340,14 @@ class ArmListParser:
             # for lh_events[1][0] AND for lh_events[1][1]
             # convert from fret position/finger position to encoder tick position respectively
             temp = [[]]
+            # make motors 1,4,5 negative
+
             for i, slider_value in enumerate(events[1][0]):
+                mult = -1
+                if i == 1 or i == 2 or i == 5:
+                    mult = 1
                 if 1 <= slider_value <= 9:
-                    temp[0].append(slider_encoder_values[slider_value - 1])
+                    temp[0].append(slider_encoder_values[slider_value - 1] * mult)
             for i, presser_value in enumerate(events[1][1]):
                 if 1 <= presser_value <= 3:
                     temp[0].append(presser_encoder_values[presser_value - 1])
@@ -355,7 +361,8 @@ class ArmListParser:
         #print("LH EVENTS LIST: ")
         ArmListParser.print_Events(lh_motor_positions)
         #print("\n")
-        lh_interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
+        lh_interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=True)
+
         #ArmListParser.print_Trajs(lh_interpolated_list)
 
 
@@ -389,6 +396,7 @@ class ArmListParser:
         qb = qf - tmp
 
         curve[nb:N - nb] = np.linspace(qa, qb, N - (2 * nb))
+        curve = curve.astype(int)
 
         return curve
 
@@ -421,6 +429,7 @@ class ArmListParser:
                 ArmListParser.interp_with_blend(current_encoder_position[i], current_encoder_position[i], num_points, tb_cent) #Change to fill later
                 for i in range(len(target_positions_slider))
             ]
+
             interpolated_points_1 = list(map(list, zip(*interpolated_values_1)))
             interpolated_values_2 = [
                 ArmListParser.interp_with_blend(current_encoder_position[i+6], -10, num_points, tb_cent)
@@ -521,7 +530,7 @@ class ArmListParser:
         #ArmListParser.print_Trajs(temp)
         #print("len is: ", len(rh_points))
 
-        ArmListParser.plot_interpolation(rh_points, 2)
+        # ArmListParser.plot_interpolation(rh_points, 2)
         print("\nRH FULL MATRIX")
         ArmListParser.getFullMatrix(rh_points)
 

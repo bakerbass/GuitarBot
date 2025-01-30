@@ -108,7 +108,7 @@ def send_msg(pos):
     return 0
 
 def main(RH, LH):
-    left = [y for event in LH for x in event for y in x]
+    left = [x for pos in LH for x in pos]
     print("left: ", len(left))
     print(left)
 
@@ -121,8 +121,11 @@ def main(RH, LH):
     print("1")
     time.sleep(1)
 
-    for pos in left:
+    size = 360
+    toSend = [left[i:i+size] for i in range(0, len(left), size)]
+    for pos in toSend:
         send_msg(pos)
+
 
     print("done, exiting song")
     return 0

@@ -478,10 +478,10 @@ class ArmListParser:
             current_encoder_position = event[0]
 
         print("\nLH FULL MATRIX")
-        ArmListParser.getFullMatrix(result, initial_point)
+        matrix = ArmListParser.getFullMatrix(result, initial_point)
         if plot:
             ArmListParser.plot_interpolation(result, 12)
-        return points_only #result
+        return matrix #result
 
     @staticmethod
     def rh_interpolate(rh_motor_positions, deflections, tb_cent = 0.2):
@@ -533,11 +533,11 @@ class ArmListParser:
 
         # ArmListParser.plot_interpolation(rh_points, 2)
         print("\nRH FULL MATRIX")
-        ArmListParser.getFullMatrix(rh_points, initial_point)
+        matrix = ArmListParser.getFullMatrix(rh_points, initial_point)
 
             # print("PICKER MOVING: ", x, "\n")
 
-        return rh_points_only
+        return matrix
 
 
 

@@ -139,13 +139,14 @@ void loop() {
 void ethernetEvent() {
     int packetSize = udp.parsePacket();
     if (packetSize) {
+      Serial.println(packetSize);
       udp.read(packetBuffer, packetSize);
 
         // Assuming each packet has 12 floats (48 bytes)
         for (int i = 0; i < packetSize / sizeof(float); i++) {
             float* floatPtr = (float*)(packetBuffer + i * sizeof(float));
             Serial.print(*floatPtr);
-            Serial.print(" ");
+            Serial.print(", ");
         }
         Serial.println();
     }        

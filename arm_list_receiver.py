@@ -66,14 +66,23 @@ while True:
         # print("m_timings: ", m_timings)
         #print("initial_strum: ", initial_strum)
         #print("strum_onsets: ", strum_onsets)
-        print("lh info: ", lh_info)
+
+        left = []
+        right = []
+
+        for key, value in lh_info.items():
+            left.append(value)
+        for key, value in rh_info.items():
+            right.append(value)
+
+        print("lh info: ", left)
         print("")
-        print("rh info: ", rh_info)
+        print("rh info: ", right)
 
         # send song data to robot controller
         # TODO: once picking is a feature of UI, we will use pickings as well
         #RobotController.main(right_arm_info, left_arm_info)
-        RobotController.main(rh_info, lh_info)
+        RobotController.main(right, left)
 
         # reset variables so that they're ready to accept new message
         left_arm, right_arm, measure_time = None, None, None

@@ -164,12 +164,12 @@ class ArmListParser:
         print("\nRH MM:")
         ArmListParser.print_Events(rh_motor_positions)
         print("DEFLECTIONS LIST: ", deflections)
-        rh_interpolated_list = ArmListParser.rh_interpolate(rh_motor_positions, deflections)
+        rh_interpolated_dictionary = ArmListParser.rh_interpolate(rh_motor_positions, deflections)
         #print(rh_interpolated_list)
         #ArmListParser.print_Trajs(rh_interpolated_list)
 
         # return rh_events, initialStrum, strumOnsets
-        return rh_interpolated_list
+        return rh_interpolated_dictionary
 
     # parse left arm (chords) input
     @staticmethod
@@ -361,7 +361,7 @@ class ArmListParser:
         #print("LH EVENTS LIST: ")
         ArmListParser.print_Events(lh_motor_positions)
         #print("\n")
-        lh_interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
+        lh_interpolated_dictionary = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
 
         #ArmListParser.print_Trajs(lh_interpolated_list)
 
@@ -376,7 +376,7 @@ class ArmListParser:
         #print("These are the encoder tick slider/presser positions: ", lh_motor_positions)
         # return left_arm, firstc, mtimings
         # return lh_events, firstc, mtimings
-        return lh_interpolated_list
+        return lh_interpolated_dictionary
 
     @staticmethod
     def interp_with_blend(q0, qf, N, tb_cent):
@@ -614,6 +614,7 @@ class ArmListParser:
 
         full_matrix = {}
         full_matrix[0.000] = initial_point
+
         for event in events_list:
             points, timestamp = event
             # print("debug, ", points)
@@ -727,7 +728,81 @@ class ArmListParser:
 
         return new_motor_positions
 
+    @staticmethod
+    def parseAll(left_arm, right_arm,measure_time):
+        #Initialize full dictionary
+        allpoints = {}
+        #Dictionaries for LH and RH
+        print("These are the dictionaries for left arm")
+        lh_dictionary = ArmListParser.parseleft_M(left_arm, measure_time)
+        print("These are the dictionaries for right arm")
+        rh_dictionary = ArmListParser.parseright_M(right_arm, measure_time)
 
+        lh_maxtimestamp = max(lh_dictionary.keys())
+        rh_maxtimestamp = max(rh_dictionary.keys())
+        print("Key sizes:")
+        print(lh_maxtimestamp)
+        print(rh_maxtimestamp)
+        if lh_maxtimestamp > rh_maxtimestamp:
+            shorterDict = rh_dictionary
+            highkey = lh_maxtimestamp
+            lowkey = rh_maxtimestamp
+            reset = "Right"
+        else:
+            shorterDict = lh_dictionary
+            highkey = rh_maxtimestamp
+            lowkey = lh_maxtimestamp
+            reset = "Left"
+        # Filling short matrix first
+        last_point = shorterDict[lowkey]
+        shorterDict[highkey] = last_point
+        max_time = max(shorterDict.keys())
+
+        # Create a list of all timestamps, including the original ones
+        all_timestamps = sorted(set(list(shorterDict.keys()) +
+                                    [round(t, 3) for t in np.arange(0, max_time + .005, .005)]))
+
+        last_value = None
+
+        # Iterate through all timestamps
+        for timestamp in all_timestamps:
+            if timestamp in shorterDict:
+                last_value = shorterDict[timestamp]
+            elif last_value is not None:
+                # If it's an interpolated timestamp, use the last known value
+                shorterDict[timestamp] = last_value
+
+        # print resulting dictionary
+        i = 0
+        # print("Debuig Matrix: ")
+        # for key, value in shorterDict.items():
+        #     print(f"{i}| {key} : {value}")
+        #     i += 1
+        # shorterDict = dict(sorted(shorterDict.items()))
+        lh_copied_dictionary = {}
+        rh_copied_dictionary = {}
+        if reset == "Left":
+            lh_copied_dictionary = shorterDict
+            combined_dict = {
+                timestamp: lh_copied_dictionary[timestamp] + [
+                    x for x in rh_dictionary[timestamp]
+                ]
+                for timestamp in lh_copied_dictionary
+            }
+        if reset == "Right":
+            rh_copied_dictionary = shorterDict
+            combined_dict = {
+                timestamp: lh_dictionary[timestamp] + [
+                    x for x in rh_copied_dictionary[timestamp]
+                ]
+                for timestamp in lh_dictionary
+            }
+        print("Full Matrix: ")
+        for key, value in combined_dict.items():
+            print(f"{i}| {key} : {value}")
+            i += 1
+
+        return lh_dictionary, rh_dictionary
 
 
 

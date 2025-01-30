@@ -99,7 +99,7 @@ def send_msg(pos):
     udp_ip = "10.2.1.177"
     udp_port = 8888
 
-    print("pos: ", pos)
+    # print("pos: ", pos)
     pCommand = struct.pack('f' * len(pos), *pos)
     time.sleep(0.005)
     sock.sendto(pCommand, (udp_ip, udp_port))
@@ -109,8 +109,8 @@ def send_msg(pos):
 
 def main(RH, LH):
     left = [x for pos in LH for x in pos]
-    print("left: ", len(left))
-    print(left)
+    # print("left: ", len(left))
+    # print(left)
 
     print("4")
     time.sleep(1)

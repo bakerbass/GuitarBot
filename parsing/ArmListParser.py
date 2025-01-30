@@ -394,7 +394,7 @@ class ArmListParser:
 
     @staticmethod
     def lh_interpolate(lh_motor_positions, num_points=20, tb_cent=0.2, plot=False):
-        current_mm_position = [23, 23, 23, 23, 23, 23 ,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
+        current_mm_position = [0, 0, 0, 0, 0, 0 ,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
         current_encoder_position = []
         for i, value in enumerate(current_mm_position):
             if i < 6:

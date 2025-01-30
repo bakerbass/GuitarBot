@@ -332,7 +332,7 @@ class ArmListParser:
         slider_encoder_values = []
         mult = -1
         for value in slider_mm_values:
-            encoder_tick = (value * 2048) / 9.4;
+            encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
         presser_encoder_values = [-10, 38, 23]
@@ -361,7 +361,7 @@ class ArmListParser:
         #print("LH EVENTS LIST: ")
         ArmListParser.print_Events(lh_motor_positions)
         #print("\n")
-        lh_interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=True)
+        lh_interpolated_list = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
 
         #ArmListParser.print_Trajs(lh_interpolated_list)
 
@@ -402,9 +402,9 @@ class ArmListParser:
 
     @staticmethod
     def lh_interpolate(lh_motor_positions, num_points=20, tb_cent=0.2, plot=False):
-        current_mm_position = [0, 0, 0, 0, 0, 0 ,-10,-10,-10,-10,-10,-10]  # Initial position, remember to make dynamic later.
+        initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
         current_encoder_position = []
-        for i, value in enumerate(current_mm_position):
+        for i, value in enumerate(initial_point):
             if i < 6:
                 encoder_tick = (value * 2048) / 9.4
                 current_encoder_position.append(encoder_tick)
@@ -478,13 +478,14 @@ class ArmListParser:
             current_encoder_position = event[0]
 
         print("\nLH FULL MATRIX")
-        ArmListParser.getFullMatrix(result)
+        ArmListParser.getFullMatrix(result, initial_point)
         if plot:
             ArmListParser.plot_interpolation(result, 12)
         return points_only #result
 
     @staticmethod
     def rh_interpolate(rh_motor_positions, deflections, tb_cent = 0.2):
+        initial_point = [-110, 9] # remember to change to dynamic later
         currentRH_position = [-110, 9]
         strummer_slider_q0 = -110 # mm, CURRENT POINTS
         strummer_picker_q0 = 9
@@ -532,9 +533,9 @@ class ArmListParser:
 
         # ArmListParser.plot_interpolation(rh_points, 2)
         print("\nRH FULL MATRIX")
-        ArmListParser.getFullMatrix(rh_points)
+        ArmListParser.getFullMatrix(rh_points, initial_point)
 
-            # print("PICKER MhOVING: ", x, "\n")
+            # print("PICKER MOVING: ", x, "\n")
 
         return rh_points_only
 
@@ -542,29 +543,55 @@ class ArmListParser:
 
 
     @staticmethod
-    def plot_interpolation(data, points):
-        fig, axs = plt.subplots(4, 3, figsize=(20, 24))  # 4 rows, 3 columns of subplots
-        fig.suptitle('Graph of 12 Motors Over Time', fontsize=6)
-        axs = axs.flatten()
+    def plot_interpolation(data = None, points = None, mode = "events", matrix = None):
+        if mode == "events":
+            fig, axs = plt.subplots(4, 3, figsize=(20, 24))  # 4 rows, 3 columns of subplots
+            fig.suptitle('Graph of 12 Motors Over Time', fontsize=6)
+            axs = axs.flatten()
 
-        for i in range(points):
-            for event in data:
-                points, timestamp = event
-                # Round to nearest 0.005
-                #print("debug, ", points)
-                #print("debug, ", timestamp)
-                points = np.array(points)
-                time_values = np.arange(len(points)) * 0.005 + timestamp  # 5ms per point
+            for i in range(points):
+                for event in data:
+                    points, timestamp = event
+                    # Round to nearest 0.005
+                    #print("debug, ", points)
+                    #print("debug, ", timestamp)
+                    points = np.array(points)
+                    time_values = np.arange(len(points)) * 0.005 + timestamp  # 5ms per point
 
-                axs[i].plot(time_values, points[:, i])
+                    axs[i].plot(time_values, points[:, i])
 
-            axs[i].set_title(f'Motor {i + 1}')
-            axs[i].set_xlabel('Time (seconds)')
-            axs[i].set_ylabel('Encoder Tick Value')
-            axs[i].grid(True)
+                axs[i].set_title(f'Motor {i + 1}')
+                axs[i].set_xlabel('Time (seconds)')
+                axs[i].set_ylabel('Encoder Tick Value')
+                axs[i].grid(True)
 
-        plt.tight_layout()
-        plt.show()
+            plt.tight_layout()
+            plt.show()
+        if mode == "matrix":
+            timestamps = list(matrix.keys())
+            motor_data = np.array(list(matrix.values()))
+
+            num_motors = motor_data.shape[1]
+
+            num_rows = (num_motors - 1) // 3 + 1
+            num_cols = min(3, num_motors)
+
+            fig, axs = plt.subplots(num_rows, num_cols, figsize=(15, 5 * num_rows))
+            axs = axs.flatten()
+
+            for i in range(num_motors):
+                axs[i].plot(timestamps, motor_data[:, i])
+                axs[i].set_title(f'Motor {i + 1}')
+                axs[i].set_xlabel('Time (seconds)')
+                axs[i].set_ylabel('Encoder Tick Value')
+                axs[i].grid(True)
+
+            for i in range(num_motors, len(axs)):
+                fig.delaxes(axs[i])
+
+            plt.tight_layout()
+            plt.show()
+
 
     @staticmethod
     def print_Events(motor_positions):
@@ -583,9 +610,10 @@ class ArmListParser:
                 print("\n")
 
     @staticmethod
-    def getFullMatrix(events_list):
+    def getFullMatrix(events_list, initial_point, plot = True):
 
         full_matrix = {}
+        full_matrix[0.000] = initial_point
         for event in events_list:
             points, timestamp = event
             # print("debug, ", points)
@@ -595,11 +623,31 @@ class ArmListParser:
             for time, point in zip(time_values, points):
                 full_matrix[round(time,3)] = point.tolist()
 
-        #print resulting dictionary
+        ## Fill
+        # Find the maximum timestamp
+        max_time = max(full_matrix.keys())
+
+        # Create a list of all timestamps, including the original ones
+        all_timestamps = sorted(set(list(full_matrix.keys()) +
+                                    [round(t, 3) for t in np.arange(0, max_time + .005, .005)]))
+
+        last_value = None
+
+        # Iterate through all timestamps
+        for timestamp in all_timestamps:
+            if timestamp in full_matrix:
+                last_value = full_matrix[timestamp]
+            elif last_value is not None:
+                # If it's an interpolated timestamp, use the last known value
+                full_matrix[timestamp] = last_value
+        # print resulting dictionary
         i = 0
+        full_matrix = dict(sorted(full_matrix.items()))
         for key, value in full_matrix.items():
             print(f"{i}| {key} : {value}")
             i+=1
+        if plot:
+            ArmListParser.plot_interpolation(mode="matrix", matrix=full_matrix)
         return full_matrix
 
     # Will dynamically add deflect messages between events if there is enough space

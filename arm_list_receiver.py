@@ -60,7 +60,7 @@ while True:
         # rh_info = ArmListParser.parseright_M(right_arm, measure_time)
 
         #New function to combine matricies
-        lh_info, rh_info = ArmListParser.parseAll(left_arm, right_arm,measure_time)
+        song_trajectories_dict = ArmListParser.parseAll(left_arm, right_arm,measure_time)
 
         #print("right_arm_info", right_arm_info)
         # print("left_arm_info", left_arm_info)
@@ -70,22 +70,14 @@ while True:
         #print("initial_strum: ", initial_strum)
         #print("strum_onsets: ", strum_onsets)
 
-        left = []
-        right = []
-
-        for key, value in lh_info.items():
-            left.append(value)
-        for key, value in rh_info.items():
-            right.append(value)
-
-        # print("lh info: ", left)
-        print("")
-        # print("rh info: ", right)
+        song_trajectories_list = []
+        for key, value in song_trajectories_dict.items():
+            song_trajectories_list.append(value)
 
         # send song data to robot controller
         # TODO: once picking is a feature of UI, we will use pickings as well
         #RobotController.main(right_arm_info, left_arm_info)
-        RobotController.main(right, left)
+        RobotController.main(song_trajectories_list)
 
         # reset variables so that they're ready to accept new message
         left_arm, right_arm, measure_time = None, None, None

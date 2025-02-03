@@ -107,8 +107,8 @@ def send_msg(pos):
     time.sleep(0.01)
     return 0
 
-def main(RH, LH):
-    left = [x for pos in LH for x in pos]
+def main(song_trajs):
+    # left = [x for pos in song_trajs for x in pos]
     # print("left: ", len(left))
     # print(left)
 
@@ -121,11 +121,21 @@ def main(RH, LH):
     print("1")
     time.sleep(1)
 
-    size = 360
-    toSend = [left[i:i+size] for i in range(0, len(left), size)]
-    for pos in toSend:
-        send_msg(pos)
+    # size = 360
+    # toSend = [left[i:i+size] for i in range(0, len(left), size)]
+    # for pos in toSend:
+    #     send_msg(pos)
 
+    # print("SONG TRAJS: ", song_trajs)
+    for point in song_trajs:
+        start_time = time.time()
+        send_msg(point)
+
+        tts = time.time() - start_time
+
+        while tts < 0.004:
+            tts = time.time() - start_time
+            time.sleep(0.0001)
 
     print("done, exiting song")
     return 0

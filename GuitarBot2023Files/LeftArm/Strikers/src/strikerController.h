@@ -533,6 +533,30 @@ public:
     }
 
     /*
+        Function: processTrajPoints
+        Input: List of trajectory points for all motors
+        Output: Pushes point to the queue
+    */
+    void processTrajPoints(float *trajPoint)
+    {
+        int packetSize = 14;
+//        Serial.print("RECEIVED: ");
+        for(int i = 0; i<packetSize; i++)
+        {
+            Serial.print(trajPoint[i]);
+            Serial.print(" ");
+        }
+        Serial.println();
+
+        Trajectory<int32_t>::point_t temp_point;
+        for(int x = 0; x < NUM_MOTORS; x++){
+            temp_point[x] = trajPoint[x];
+        }
+        m_traj.push(temp_point);
+    }
+
+
+    /*
         Function: Execute Event
         Inputs: uint8_t playcommand[6], uint8_t fret[6], uint8_t pickings[6], int strumAngle
         Outputs: Calls executeSlide(), executeStrum(), executePluckTest() which fills allTrajs with all trajectories

@@ -25,6 +25,7 @@ int8_t strumAngle;
 uint8_t strumSpeed;
 uint8_t deflect; 
 char event;
+float trajPoint[12];
 
 
 EthernetUDP udp;
@@ -50,23 +51,23 @@ void setup() {
 
     delay(2000); //Added delay for output reading
     LOG_LOG("Initializing GuitarBot...");
-//     pController = StrikerController::createInstance();               //Uncomment commented block to use bot
-//     LOG_LOG("Initializing Pressers and Striker...");
-//     int err = pController->init(MotorSpec::EC45_Slider); //Sliders
+    pController = StrikerController::createInstance();               //Uncomment commented block to use bot
+    LOG_LOG("Initializing Pressers and Striker...");
+    int err = pController->init(MotorSpec::EC45_Slider); //Sliders
    
-//     if (err != 0) {
-//         LOG_ERROR("Controller Init failed");
-//         return;
-//     }
-// //  int err = PController->init(MotorSpec::EC20); //Pressers
-//     if (err != 0) {
-//         LOG_ERROR("Controller Init failed");
-//         return;
-//     }
-//     delay(1000);
-//     LOG_LOG("Successfully Initialized! Controller Starting....");
-//     pController->start();
-//     delay(1000);
+    if (err != 0) {
+        LOG_ERROR("Controller Init failed");
+        return;
+    }
+//  int err = PController->init(MotorSpec::EC20); //Pressers
+    if (err != 0) {
+        LOG_ERROR("Controller Init failed");
+        return;
+    }
+    delay(1000);
+    LOG_LOG("Successfully Initialized! Controller Starting....");
+    pController->start();
+    delay(1000);
 
     LOG_LOG("Listening for commands...");
 }
@@ -77,15 +78,18 @@ void loop() {
 
         complete = false;
 
-        LOG_LOG("slide 1: %i, slide 2: %i, slide 3: %i, slide 4: %i, slide 5: %i, slide 6: %i", frets[0], frets[1], frets[2], frets[3], frets[4], frets[5]);
-        LOG_LOG("press 1: %i, press 2: %i, press 3: %i, press 4: %i, press 5: %i, press 6: %i", playcommands[0], playcommands[1], playcommands[2], playcommands[3], playcommands[4], playcommands[5]);
-        LOG_LOG("pick 1: %i, pick 2: %i, pick 3: %i, pick 4: %i, pick 5: %i, pick 6: %i", pickings[0], pickings[1], pickings[2], pickings[3], pickings[4], pickings[5]);
-        LOG_LOG("tremolo length: %i, tremolo speed: %i", tremLength, tremSpeed);
-        LOG_LOG("strummer: %i, strum speed: %i, Deflect: %i", strumAngle, strumSpeed, deflect);
+        //LOG_LOG("slide 1: %i, slide 2: %i, slide 3: %i, slide 4: %i, slide 5: %i, slide 6: %i", frets[0], frets[1], frets[2], frets[3], frets[4], frets[5]);
+        //LOG_LOG("press 1: %i, press 2: %i, press 3: %i, press 4: %i, press 5: %i, press 6: %i", playcommands[0], playcommands[1], playcommands[2], playcommands[3], playcommands[4], playcommands[5]);
+        //LOG_LOG("pick 1: %i, pick 2: %i, pick 3: %i, pick 4: %i, pick 5: %i, pick 6: %i", pickings[0], pickings[1], pickings[2], pickings[3], pickings[4], pickings[5]);
+        //LOG_LOG("tremolo length: %i, tremolo speed: %i", tremLength, tremSpeed);
+        //LOG_LOG("strummer: %i, strum speed: %i, Deflect: %i", strumAngle, strumSpeed, deflect);
         // To do:
         // ExecuteEvent needs another variable to control which message is handled between LH, strum, and pick. Add in 'event' as a char/string variable.
       
-        pController->executeEvent(event, frets, playcommands, pickings, tremLength, tremSpeed, strumAngle, strumSpeed, deflect);
+        //pController->executeEvent(event, frets, playcommands, pickings, tremLength, tremSpeed, strumAngle, strumSpeed, deflect);
+
+        pController->processTrajPoints(trajPoint);
+
         // pController->executeSlide(frets, playcommands);
         //pController->executeSlideDEMO(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
         
@@ -139,15 +143,15 @@ void loop() {
 void ethernetEvent() {
     int packetSize = udp.parsePacket();
     if (packetSize) {
-      Serial.println(packetSize);
+      //Serial.println(packetSize);
       udp.read(packetBuffer, packetSize);
-
-        // Assuming each packet has 12 floats (48 bytes)
         for (int i = 0; i < packetSize / sizeof(float); i++) {
-            float* floatPtr = (float*)(packetBuffer + i * sizeof(float));
-            Serial.print(*floatPtr);
-            Serial.print(", ");
+            float* point = (float*)(packetBuffer + i * sizeof(float));
+            trajPoint[i] = *point;
+            //Serial.print(*point);
+            //Serial.print(" ");
         }
-        Serial.println();
-    }        
-}
+        //Serial.println();
+        complete = true;
+    }
+}        

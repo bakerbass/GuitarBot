@@ -126,14 +126,15 @@ def main(song_trajs):
     # for pos in toSend:
     #     send_msg(pos)
 
-    # print("SONG TRAJS: ", song_trajs)
-    for point in song_trajs:
+    print("SONG TRAJS: ", song_trajs)
+    for i, point in enumerate(song_trajs):
         start_time = time.time()
+        print(f"Sending {i}")
         send_msg(point)
 
         tts = time.time() - start_time
 
-        while tts < 0.004:
+        while tts < 0.010:
             tts = time.time() - start_time
             time.sleep(0.0001)
 

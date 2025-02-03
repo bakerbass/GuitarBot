@@ -478,7 +478,7 @@ class ArmListParser:
             current_encoder_position = event[0]
 
         print("\nLH FULL MATRIX")
-        matrix = ArmListParser.getFullMatrix(result, initial_point, plot = False)
+        matrix = ArmListParser.getFullMatrix(result, initial_point, plot = True)
         if plot:
             ArmListParser.plot_interpolation(result, 12)
         return matrix #result
@@ -533,7 +533,7 @@ class ArmListParser:
 
         # ArmListParser.plot_interpolation(rh_points, 2)
         print("\nRH FULL MATRIX")
-        matrix = ArmListParser.getFullMatrix(rh_points, initial_point, plot = False)
+        matrix = ArmListParser.getFullMatrix(rh_points, initial_point, plot = True)
 
             # print("PICKER MOVING: ", x, "\n")
 

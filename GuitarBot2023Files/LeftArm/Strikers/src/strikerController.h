@@ -526,9 +526,11 @@ public:
         Trajectory<int32_t>::point_t temp_point;
         for (int i = 0; i < 60; i++) {
             for(int x = 0; x < NUM_MOTORS; x++){
+                Serial.println(all_Trajs[x][i]);
                 temp_point[x] = all_Trajs[x][i];
             }
             m_traj.push(temp_point);
+
         }
     }
 
@@ -541,18 +543,58 @@ public:
     {
         int packetSize = 14;
 //        Serial.print("RECEIVED: ");
-        for(int i = 0; i<packetSize; i++)
+//        for(int i = 0; i<packetSize; i++)
+//        {
+//            Serial.print(trajPoint[i]);
+//            Serial.print(" ");
+//        }
+//        Serial.println();
+
+        for(int x = 0; x < NUM_MOTORS; x++){
+            if(x < 12)
+            {
+                for(int y = 0; y < 15; y++){
+                    all_Trajs[x][y] = 100;
+                }
+            }
+            else if(x == 12) // picker set to default number for now
+            {
+                for(int y = 0; y < 15; y++){
+                    all_Trajs[x][y] = 100;
+                }
+            }
+            else
+            {
+                for(int y = 0; y < 15; y++){
+                    all_Trajs[x][y] = 100;
+                }
+            }
+        }
+
+        Serial.println("PROCESSED TRAJ: ");
+
+        for (int i = 0; i<NUM_MOTORS; i++)
         {
-            Serial.print(trajPoint[i]);
+
+            //temp_point[i] = 100;
+            Serial.print(all_Trajs[i][0]);
             Serial.print(" ");
+
         }
         Serial.println();
-
+        Serial.println("PUSHING TO QUEUE: ");
         Trajectory<int32_t>::point_t temp_point;
-        for(int x = 0; x < NUM_MOTORS; x++){
-            temp_point[x] = trajPoint[x];
+        for (int i = 0; i < 15; i++) {
+            for(int x = 0; x < NUM_MOTORS; x++){
+                temp_point[x] = all_Trajs[x][i];
+            }
+            m_traj.push(temp_point);
+
         }
-        m_traj.push(temp_point);
+
+        Serial.print("QUEUE SIZE IS: ");
+        Serial.println(m_traj.count());
+        delay(100000);
     }
 
 
@@ -1205,6 +1247,7 @@ private:
 
 
     float all_Trajs[15][200]; //CHANGE FOR MORE TRAJS
+    float curr_point[15];
 
     uint8_t prev_frets[6];
     uint8_t prev_playcommands[6];
@@ -1303,6 +1346,8 @@ private:
             errorAtPop = false;
         } else {
             if (pInstance->m_traj.count() > 0) {
+                Serial.println("HERE: TRAJ COUNT IS ");
+                Serial.println(pInstance->m_traj.count());
 
                 //slider array.count() == 0 && press
 
@@ -1354,7 +1399,7 @@ private:
 //        Serial.println(" ");
 
 
-        bool run_bot = true; //false turns off motor, true turns on
+        bool run_bot = false; //false turns off motor, true turns on
 
 
         idx += 1;

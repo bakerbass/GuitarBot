@@ -88,7 +88,8 @@ void loop() {
       
         //pController->executeEvent(event, frets, playcommands, pickings, tremLength, tremSpeed, strumAngle, strumSpeed, deflect);
 
-        pController->processTrajPoints(trajPoint);
+        //pController->processTrajPoints(trajPoint);
+        pController -> executeSlideTest(100,100,100,100,100,100,100,100);
 
         // pController->executeSlide(frets, playcommands);
         //pController->executeSlideDEMO(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);

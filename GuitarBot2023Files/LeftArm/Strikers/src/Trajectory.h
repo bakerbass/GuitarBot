@@ -72,6 +72,7 @@ public:
 //    }
 
     Error_t push(point_t& point) {
+        //Serial.println("Push is def working");
         if (!m_queue.enqueue(point))
             return kBufferWriteError;
         return kNoError;

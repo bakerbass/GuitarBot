@@ -541,60 +541,47 @@ public:
     */
     void processTrajPoints(float *trajPoint)
     {
-        int packetSize = 14;
-//        Serial.print("RECEIVED: ");
-//        for(int i = 0; i<packetSize; i++)
-//        {
-//            Serial.print(trajPoint[i]);
-//            Serial.print(" ");
-//        }
-//        Serial.println();
+
+
+        int packetSize = 13;
+        Serial.print("RECEIVED: ");
+        for(int i = 0; i<packetSize; i++)
+        {
+            Serial.print(trajPoint[i]);
+            Serial.print(" ");
+        }
+        Serial.println();
 
         for(int x = 0; x < NUM_MOTORS; x++){
             if(x < 12)
             {
-                for(int y = 0; y < 15; y++){
-                    all_Trajs[x][y] = 100;
-                }
+                all_Trajs[x][0] = trajPoint[x];
+
             }
             else if(x == 12) // picker set to default number for now
             {
-                for(int y = 0; y < 15; y++){
-                    all_Trajs[x][y] = 100;
-                }
+                all_Trajs[x][0] = 762; //default value in encoder ticks, same as in start()
             }
             else
             {
-                for(int y = 0; y < 15; y++){
-                    all_Trajs[x][y] = 100;
-                }
+                all_Trajs[x][0] = trajPoint[x-1];
             }
         }
 
         Serial.println("PROCESSED TRAJ: ");
 
-        for (int i = 0; i<NUM_MOTORS; i++)
-        {
-
-            //temp_point[i] = 100;
-            Serial.print(all_Trajs[i][0]);
-            Serial.print(" ");
-
-        }
         Serial.println();
         Serial.println("PUSHING TO QUEUE: ");
         Trajectory<int32_t>::point_t temp_point;
-        for (int i = 0; i < 15; i++) {
-            for(int x = 0; x < NUM_MOTORS; x++){
-                temp_point[x] = all_Trajs[x][i];
-            }
-            m_traj.push(temp_point);
-
+        for(int x = 0; x < NUM_MOTORS; x++){
+            temp_point[x] = all_Trajs[x][0];
+            Serial.println(temp_point[x]);
         }
+        Serial.println("-------");
+        m_traj.push(temp_point);
 
         Serial.print("QUEUE SIZE IS: ");
         Serial.println(m_traj.count());
-        delay(100000);
     }
     void testFunction() {
         int mult = -1;
@@ -1416,7 +1403,7 @@ private:
                         Serial.print(" ");
                     }
                     Serial.println();
-                    delay(30000);
+                    //delay(30000); Please uncomment later
 
                     // pInstance->m_traj.generateTransitions(pInstance->m_currentPoint, pt, TRANSITION_LENGTH);
                 }
@@ -1430,16 +1417,16 @@ private:
                 }
             }
         }
-//        Serial.println("------------------");
-//        Serial.print("Index: ");
-//        Serial.println(idx);
-//        Serial.print("Traj Point: ");
-//        for (int i = 0; i < NUM_MOTORS; ++i) {
-//
-//                Serial.print(point[i]);
-//                Serial.print(" ");
-//        }
-//        Serial.println(" ");
+        Serial.println("------------------");
+        Serial.print("Index: ");
+        Serial.println(idx);
+        Serial.print("Traj Point: ");
+        for (int i = 0; i < NUM_MOTORS; ++i) {
+
+                Serial.print(point[i]);
+                Serial.print(" ");
+        }
+        Serial.println(" ");
 
 
         bool run_bot = false; //false turns off motor, true turns on

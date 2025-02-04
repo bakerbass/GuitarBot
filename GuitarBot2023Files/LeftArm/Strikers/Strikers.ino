@@ -25,7 +25,7 @@ int8_t strumAngle;
 uint8_t strumSpeed;
 uint8_t deflect; 
 char event;
-float trajPoint[12];
+float trajPoint[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
 
 EthernetUDP udp;
@@ -88,9 +88,9 @@ void loop() {
       
         //pController->executeEvent(event, frets, playcommands, pickings, tremLength, tremSpeed, strumAngle, strumSpeed, deflect);
 
-        //pController->processTrajPoints(trajPoint);
+        pController->processTrajPoints(trajPoint);
         //pController -> executeSlideTest(100,100,100,100,100,100,100,100);
-        pController -> testFunction();
+        //pController -> testFunction();
         // pController->executeSlide(frets, playcommands);
         //pController->executeSlideDEMO(fret[0], fret[1], fret[2], fret[3], fret[4], fret[5], playcommand[0], playcommand[1], playcommand[2], playcommand[3], playcommand[4], playcommand[5]);
         
@@ -149,8 +149,8 @@ void ethernetEvent() {
         for (int i = 0; i < packetSize / sizeof(float); i++) {
             float* point = (float*)(packetBuffer + i * sizeof(float));
             trajPoint[i] = *point;
-            //Serial.print(*point);
-            //Serial.print(" ");
+            // Serial.print(*point);
+            // Serial.print(" ");
         }
         //Serial.println();
         complete = true;

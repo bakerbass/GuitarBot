@@ -485,10 +485,9 @@ class ArmListParser:
 
     @staticmethod
     def rh_interpolate(rh_motor_positions, deflections, tb_cent = 0.2):
-        initial_point = [-110, 9] # remember to change to dynamic later
-        currentRH_position = [-110, 9]
-        strummer_slider_q0 = -110 # mm, CURRENT POINTS
-        strummer_picker_q0 = 9
+        initial_point = [-23965, 1960] # remember to change to dynamic later
+        strummer_slider_q0 = -23965 # encoder ticks, CURRENT POINTS
+        strummer_picker_q0 = 1960
         rh_points = []
         rh_points_only = []
         prev_timestamp = 0
@@ -506,7 +505,9 @@ class ArmListParser:
 
         for event_index, event in enumerate(rh_motor_positions):
             strummer_slider_qf = event[0][0]
+            strummer_slider_qf = (strummer_slider_qf * 2048) / 9.4
             strummer_picker_qf = event[0][1]
+            strummer_picker_qf = (strummer_picker_qf * 2048) / 9.4
             timestamp = event[1]
 
             #1. Strummer slider hold 5 points

@@ -134,7 +134,7 @@ def main(song_trajs):
 
         tts = time.time() - start_time
 
-        while tts < 0.010:
+        while tts < 0.005:
             tts = time.time() - start_time
             time.sleep(0.0001)
 

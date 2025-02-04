@@ -581,7 +581,6 @@ public:
         m_traj.push(temp_point);
 
         Serial.print("QUEUE SIZE IS: ");
-        Serial.println(m_traj.count());
     }
     void testFunction() {
         int mult = -1;
@@ -1403,7 +1402,7 @@ private:
                         Serial.print(" ");
                     }
                     Serial.println();
-                    //delay(30000); Please uncomment later
+                    delay(30000); 
 
                     // pInstance->m_traj.generateTransitions(pInstance->m_currentPoint, pt, TRANSITION_LENGTH);
                 }
@@ -1429,7 +1428,7 @@ private:
         Serial.println(" ");
 
 
-        bool run_bot = false; //false turns off motor, true turns on
+        bool run_bot = true; //false turns off motor, true turns on
 
 
         idx += 1;

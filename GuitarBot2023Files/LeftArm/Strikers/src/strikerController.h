@@ -94,10 +94,11 @@ public:
             }
 
         }
+
         MotorSpec spec4 = EC45_StrummerSlider;
         err = kNoError;
-        for (int i = NUM_STRIKERS + NUM_PRESSERS +NUM_PLUCKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS +NUM_STRUMMER_SLIDERS + 1; ++i) {
-            LOG_LOG("plucker %i", i);
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + 1; ++i) {
+            LOG_LOG("strummerSlider %i", i);
             err = m_striker[i].init(i, spec4);
             delay(100);
             if (err != kNoError) {
@@ -111,8 +112,8 @@ public:
 
         MotorSpec spec5 = EC45_StrummerPicker;
         err = kNoError;
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_PLUCKERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS +NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
-            LOG_LOG("plucker %i", i);
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
+            LOG_LOG("StrummerPicker %i", i);
             err = m_striker[i].init(i, spec5);
             delay(100);
             if (err != kNoError) {
@@ -120,6 +121,21 @@ public:
             }
             else {
                 LOG_LOG("Successfully initialized strummer-picker with id %i", i);
+            }
+
+        }
+
+        MotorSpec spec3 = EC45_Plucker;
+        err = kNoError;
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS + 1; ++i) {
+            LOG_LOG("plucker %i", i);
+            err = m_striker[i].init(i, spec3);
+            delay(100);
+            if (err != kNoError) {
+                LOG_ERROR("Cannot initialize plucker with id %i. Error: %i", i, err);
+            }
+            else {
+                LOG_LOG("Successfully initialized plucker with id %i", i);
             }
 
         }

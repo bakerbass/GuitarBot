@@ -80,10 +80,10 @@ public:
             }
 
         }
-        MotorSpec spec3 = EC45_Plucker;
+        MotorSpec spec3 = EC45_StrummerSlider;
         err = kNoError;
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS + 1; ++i) {
-            LOG_LOG("plucker %i", i);
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + 1; ++i) {
+            LOG_LOG("StrummerSlider %i", i);
             err = m_striker[i].init(i, spec3);
             delay(100);
             if (err != kNoError) {
@@ -95,26 +95,11 @@ public:
 
         }
 
-        MotorSpec spec4 = EC45_StrummerSlider;
-        err = kNoError;
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + 1; ++i) {
-            LOG_LOG("strummerSlider %i", i);
-            err = m_striker[i].init(i, spec4);
-            delay(100);
-            if (err != kNoError) {
-                LOG_ERROR("Cannot initialize strummer-slider with id %i. Error: %i", i, err);
-            }
-            else {
-                LOG_LOG("Successfully initialized strummer-slider with id %i", i);
-            }
-
-        }
-
-        MotorSpec spec5 = EC45_StrummerPicker;
+        MotorSpec spec4 = EC45_StrummerPicker;
         err = kNoError;
         for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
             LOG_LOG("StrummerPicker %i", i);
-            err = m_striker[i].init(i, spec5);
+            err = m_striker[i].init(i, spec4);
             delay(100);
             if (err != kNoError) {
                 LOG_ERROR("Cannot initialize strummer-picker with id %i. Error: %i", i, err);
@@ -125,11 +110,11 @@ public:
 
         }
 
-        MotorSpec spec3 = EC45_Plucker;
+        MotorSpec spec5 = EC45_Plucker;
         err = kNoError;
         for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS + 1; ++i) {
-            LOG_LOG("plucker %i", i);
-            err = m_striker[i].init(i, spec3);
+            LOG_LOG("Plucker %i", i);
+            err = m_striker[i].init(i, spec5);
             delay(100);
             if (err != kNoError) {
                 LOG_ERROR("Cannot initialize plucker with id %i. Error: %i", i, err);
@@ -184,35 +169,34 @@ public:
             //if (ii++ > 200) break;
         }
         LOG_LOG("Homing for pressers complete, starting pluckers. ");
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS + 1; ++i) {
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS + 1; ++i) {
             m_striker[i].startHome(i);
         }
         while (isHoming_all) {
             delay(50);
             //CHANGE ME
-            isHoming_1 = m_striker[13].homingStatus();
+            isHoming_1 = m_striker[15].homingStatus();
             isHoming_all = isHoming_1;
             if (ii++ > 200) break;
         }
         LOG_LOG("Homing for pluckers complete, starting strummer. ");
 //        delay(20000);
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_PLUCKERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_PLUCKERS + NUM_STRUMMER_SLIDERS +NUM_STRUMMER_PICKERS + 1; ++i) {
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS +NUM_STRUMMER_PICKERS + 1; ++i) {
             m_striker[i].startHome(i);
-
         }
         bool checkHome = false;
         isHoming_2 = true;
         isHoming_all = isHoming_1 || isHoming_2;
         while (isHoming_all) {
             delay(50);
-            isHoming_1 = m_striker[15].homingStatus();
+            isHoming_1 = m_striker[14].homingStatus();
             if(!checkHome && !isHoming_1){
                 checkHome = true;
-                m_striker[14].startHome(14);
+                m_striker[13].startHome(13);
             }
 
             if(checkHome){
-                isHoming_2 = m_striker[14].homingStatus();
+                isHoming_2 = m_striker[13].homingStatus();
             }
 
             isHoming_all = isHoming_1 || isHoming_2;
@@ -374,7 +358,7 @@ public:
         for(int i = 1; i < NUM_MOTORS + 1; i++) {
             float q0 = m_striker[i].getPosition_ticks();
 
-            if (i == 14) {
+            if (i == 13) {
                 // Get initial position in position ticks
                 //Translate pluckType to position ticks and assign to qf
                 float qf_strummerSlider = (strum_mm_qf * 2048) / 9.4;
@@ -394,7 +378,7 @@ public:
                 }
 
             }
-            else if (i == 15) {
+            else if (i == 14) {
                 // Get initial position in position ticks
                 //
                 float pos2pulse = (picker_mm_qf_1 * 2048) / 9.4;
@@ -929,7 +913,7 @@ public:
         //TODO: change for picker
         for(int i = 1; i < NUM_MOTORS + 1; i++) {
             float q0 = m_striker[i].getPosition_ticks();
-            if(i == 13){
+            if(i == 15){
                 // Get initial position in position ticks
                 //Translate pluckType to position ticks and assign to qf
                 float pos2pulse = (pluckLength * 1024) / 9.4;
@@ -1060,7 +1044,7 @@ public:
             float q0 = 0;
             float qf = pos2pulse;
 
-            if(i == 13){ //Picker
+            if(i == 15){ //Picker
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
                 qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;
@@ -1076,7 +1060,7 @@ public:
                     all_Trajs[i - 1][index++] = temp_traj_2[x];
                 }
             }
-            else if(i == 14){ //Strum Slider
+            else if(i == 13){ //Strum Slider
                 pos2pulse = (start_state_SS * 2048) / 9.4;
                 qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;
@@ -1093,7 +1077,7 @@ public:
 //                    Serial.println(temp_traj_2[x]);
                 }
             }
-            else if(i == 15){ // Strum Picker
+            else if(i == 14){ // Strum Picker
                 pos2pulse = (start_state_SP * 2048) / 9.4;
                 qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;

@@ -903,9 +903,9 @@ public:
         //handle direction
         if (pluckType == 1 || pluckType == 2){  //If command is pick/tremolo
             if (!pickerStates[0]){
-                pluckLength = 3;    //downstrum
+                pluckLength = 1;    //downstrum
             } else {
-                pluckLength = 7;    //upstrum
+                pluckLength = 5;    //upstrum
             }
         } else {
             return;
@@ -1026,7 +1026,7 @@ public:
     void start() {
         float start_state_SS = -110;
         float start_state_SP = 9;
-        float start_state_PICK = 7;
+        float start_state_PICK = 5;
         float pos2pulse = 0;
 
         float temp_traj_1[50];

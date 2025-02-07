@@ -931,7 +931,7 @@ public:
                 //Translate pluckType to position ticks and assign to qf
                 float pos2pulse = (pluckLength * 1024) / 9.4;
                 if(i == 16){
-                    pos2pulse = (pluckLength * 2048) / 9.4;
+                    pos2pulse = ((pluckLength - 3) * 2048) / 9.4;
                 }
                 float qf = pos2pulse;
                 //Interpolate Line

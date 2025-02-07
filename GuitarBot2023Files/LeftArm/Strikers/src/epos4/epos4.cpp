@@ -677,7 +677,7 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
         n = SetHomeOffset(52000); //52000
 
         //CHANGE THIS PLUCKER
-        if(m_uiNodeID == 15){
+        if(m_uiNodeID >= 15){
             n = SetHomeOffset(0);
         }
         if(m_uiNodeID > 6 && m_uiNodeID < 13){
@@ -720,10 +720,10 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
 //            n = setHomingCurrentThreshold(1500);; //-25
 //        }
         if(m_uiNodeID == 14){ //Slider
-//            n = setHomingCurrentThreshold(400); //PLUCKER
+//            n = setHomingCurrentThreshold(400);
             n = setHomingCurrentThreshold(1000);
         }
-        if(m_uiNodeID == 15){//Picker
+        if(m_uiNodeID >= 15){//Picker
             n = setHomingCurrentThreshold(500);
         }
         if (n != 0) {

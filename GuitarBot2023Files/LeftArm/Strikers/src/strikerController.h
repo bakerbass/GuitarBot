@@ -176,7 +176,8 @@ public:
             delay(50);
             //CHANGE ME
             isHoming_1 = m_striker[15].homingStatus();
-            isHoming_all = isHoming_1;
+            isHoming_2 = m_striker[16].homingStatus();
+            isHoming_all = isHoming_1 || isHoming_2;
             if (ii++ > 200) break;
         }
         LOG_LOG("Homing for pluckers complete, starting strummer. ");
@@ -576,7 +577,10 @@ public:
         else if(eventType == 'P'){
         //3
             LOG_LOG("Pluck message received.");
-            executePluckTest(pickings[3], tremLength, tremSpeed);
+            //1. Pass all pickings
+            //2.
+            executePluckTest(pickings, tremLength, tremSpeed);
+
             //3a. Call getPickTraj
             //3b. Call Fill_LH to fill LH with current value or 38 for pressing motors.
         }
@@ -884,7 +888,7 @@ public:
 
     }
 
-    void executePluckTest(int pluckType, int tremLength, int tremSpeed) {
+    void executePluckTest(uint8_t pluckType, int tremLength, int tremSpeed) {
 //        LOG_LOG("EXECUTE_PLUCK");
         // Make space for temporary trajs
         int tremTraj;
@@ -903,9 +907,9 @@ public:
         //handle direction
         if (pluckType == 1 || pluckType == 2){  //If command is pick/tremolo
             if (!pickerStates[0]){
-                pluckLength = 1;    //downstrum
+                pluckLength = 3;    //downstrum
             } else {
-                pluckLength = 5;    //upstrum
+                pluckLength = 7;    //upstrum
             }
         } else {
             return;
@@ -1026,7 +1030,7 @@ public:
     void start() {
         float start_state_SS = -110;
         float start_state_SP = 9;
-        float start_state_PICK = 5;
+        float start_state_PICK = 7;
         float pos2pulse = 0;
 
         float temp_traj_1[50];
@@ -1044,7 +1048,7 @@ public:
             float q0 = 0;
             float qf = pos2pulse;
 
-            if(i == 15){ //Picker
+            if(i >= 15){ //Picker
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
                 qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;

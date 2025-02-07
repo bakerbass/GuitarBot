@@ -110,11 +110,17 @@ public:
 
         }
 
-        MotorSpec spec5 = EC45_Plucker;
+        MotorSpec spec5 = EC45_Plucker_1024;
+        MotorSpec spec6 = EC45_Plucker_2048;
         err = kNoError;
         for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS + 1; ++i) {
             LOG_LOG("Plucker %i", i);
-            err = m_striker[i].init(i, spec5);
+            if(i == 15){
+                err = m_striker[i].init(i, spec5);
+            }
+            else{
+                err = m_striker[i].init(i, spec6);
+            }
             delay(100);
             if (err != kNoError) {
                 LOG_ERROR("Cannot initialize plucker with id %i. Error: %i", i, err);
@@ -888,16 +894,19 @@ public:
 
     }
 
-    void executePluckTest(uint8_t pluckType, int tremLength, int tremSpeed) {
+    void executePluckTest(uint8_t *pluckType, int tremLength, int tremSpeed) {
 //        LOG_LOG("EXECUTE_PLUCK");
         // Make space for temporary trajs
         int tremTraj;
-        if (pluckType == 1)
+
+        //Setting the pluck type to be the same for all strings for now, if there is a pluck/tremolo. 0 Still turns off the plucker.
+        int pt = pluckType[0];
+        if (pt == 1)
         {
             tremLength = 5;
             tremTraj = 5;
         }
-        else if (pluckType == 2)
+        else if (pt == 2)
         {
             tremTraj = (tremSpeed * 2) + 10;
         }
@@ -905,7 +914,7 @@ public:
         float pluckLength = -1;
 
         //handle direction
-        if (pluckType == 1 || pluckType == 2){  //If command is pick/tremolo
+        if (pt == 1 || pt == 2){  //If command is pick/tremolo
             if (!pickerStates[0]){
                 pluckLength = 3;    //downstrum
             } else {
@@ -917,29 +926,32 @@ public:
         //TODO: change for picker
         for(int i = 1; i < NUM_MOTORS + 1; i++) {
             float q0 = m_striker[i].getPosition_ticks();
-            if(i == 15){
+            if(i >= 15 && (pluckType[i-15] != 0)){
                 // Get initial position in position ticks
                 //Translate pluckType to position ticks and assign to qf
                 float pos2pulse = (pluckLength * 1024) / 9.4;
+                if(i == 16){
+                    pos2pulse = (pluckLength * 2048) / 9.4;
+                }
                 float qf = pos2pulse;
                 //Interpolate Line
 
                 Util::interpWithBlend(q0, qf, 5, .25, temp_traj_1);
-                pickerStates[0] = !pickerStates[0];
+                pickerStates[i-15] = !pickerStates[i-15];
                 // Put line into list of trajs
                 int index = 0;
                 for (int x = 0; x < 5; x++) {
                     all_Trajs[i - 1][index++] = temp_traj_1[x];
                 }
 
-                if (pluckType == 2) {
+                if (pt == 2) {
                     Util::fill(temp_traj_1, tremSpeed, qf);
                     for (int x = 0; x < tremSpeed; x++) {
                         all_Trajs[i - 1][index++] = temp_traj_1[x];
                     }
 
                     Util::interpWithBlend(qf, q0, 5, .25, temp_traj_1);
-                    pickerStates[0] = !pickerStates[0];
+                    pickerStates[i-15] = !pickerStates[i-15];
                     // Put line into list of trajs
                     for (int x = 0; x < 5; x++) {
                         all_Trajs[i - 1][index++] = temp_traj_1[x];
@@ -1050,6 +1062,10 @@ public:
 
             if(i >= 15){ //Picker
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
+                if(i == 16){
+                    start_state_PICK = 4;
+                    pos2pulse = (start_state_PICK * 2048) / 9.4;
+                }
                 qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;
                 //Interpolate Line

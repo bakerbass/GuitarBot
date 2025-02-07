@@ -39,8 +39,12 @@ int Epos4::init(int iNodeID, MotorSpec spec, bool inverted, unsigned long timeou
             m_iEncoderResolution = EC45_ENC_RES_SLIDER;
             err = configEC45Strummer_Picker();
             break;
-    case EC45_Plucker:
+    case EC45_Plucker_1024:
         m_iEncoderResolution = EC45_ENC_RES_PLUCKER;
+        err = configEC45();
+        break;
+    case EC45_Plucker_2048:
+        m_iEncoderResolution = EC45_ENC_RES_SLIDER;
         err = configEC45();
         break;
     case EC60:
@@ -719,9 +723,9 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
 //        if(m_uiNodeID == 7){
 //            n = setHomingCurrentThreshold(1500);; //-25
 //        }
-        if(m_uiNodeID == 14){ //Slider
+        if(m_uiNodeID == 14){ //Strummer-Picker
 //            n = setHomingCurrentThreshold(400);
-            n = setHomingCurrentThreshold(1000);
+            n = setHomingCurrentThreshold(300);
         }
         if(m_uiNodeID >= 15){//Picker
             n = setHomingCurrentThreshold(500);

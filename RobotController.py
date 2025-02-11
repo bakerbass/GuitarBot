@@ -101,10 +101,8 @@ def send_msg(pos):
 
     # print("pos: ", pos)
     pCommand = struct.pack('f' * len(pos), *pos)
-    time.sleep(0.005)
     sock.sendto(pCommand, (udp_ip, udp_port))
 
-    time.sleep(0.01)
     return 0
 
 def main(song_trajs):

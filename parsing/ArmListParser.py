@@ -154,22 +154,32 @@ class ArmListParser:
             deflect = event[1][2] # 0 or 1
             time_stamp = event[2]
             strum_mm_qf = strummer_dict.get(strumType)[0] # -115 or -15
+            strum_mm_qf = (strum_mm_qf * 2048) / 9.4
             picker_mm_qf = strummer_dict.get(strumType)[1]
+            picker_mm_qf = (picker_mm_qf * 2048) / 9.4
+
             if deflect == 1:
                 deflections.append(1)
             else:
                 deflections.append(0)
             rh_motor_positions.append([[strum_mm_qf, picker_mm_qf], time_stamp])
 
+
+
         print("\nRH MM:")
         ArmListParser.print_Events(rh_motor_positions)
         print("DEFLECTIONS LIST: ", deflections)
-        rh_interpolated_dictionary = ArmListParser.rh_interpolate(rh_motor_positions, deflections)
+
+        # Return rh_motor_positions and deflections for the new function
+        return rh_motor_positions, deflections
+
+
+        #rh_interpolated_dictionary = ArmListParser.rh_interpolate(rh_motor_positions, deflections)
         #print(rh_interpolated_list)
         #ArmListParser.print_Trajs(rh_interpolated_list)
 
         # return rh_events, initialStrum, strumOnsets
-        return rh_interpolated_dictionary
+        #return rh_interpolated_dictionary
 
     # parse left arm (chords) input
     @staticmethod
@@ -360,8 +370,11 @@ class ArmListParser:
         # Generate the interpolated list
         #print("LH EVENTS LIST: ")
         ArmListParser.print_Events(lh_motor_positions)
+
+        return lh_motor_positions
+
         #print("\n")
-        lh_interpolated_dictionary = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
+        #lh_interpolated_dictionary = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
 
         #ArmListParser.print_Trajs(lh_interpolated_list)
 
@@ -376,7 +389,7 @@ class ArmListParser:
         #print("These are the encoder tick slider/presser positions: ", lh_motor_positions)
         # return left_arm, firstc, mtimings
         # return lh_events, firstc, mtimings
-        return lh_interpolated_dictionary
+        #return lh_interpolated_dictionary
 
     @staticmethod
     def interp_with_blend(q0, qf, N, tb_cent):
@@ -505,9 +518,7 @@ class ArmListParser:
 
         for event_index, event in enumerate(rh_motor_positions):
             strummer_slider_qf = event[0][0]
-            strummer_slider_qf = (strummer_slider_qf * 2048) / 9.4
             strummer_picker_qf = event[0][1]
-            strummer_picker_qf = (strummer_picker_qf * 2048) / 9.4
             timestamp = event[1]
 
             #1. Strummer slider hold 5 points
@@ -677,12 +688,16 @@ class ArmListParser:
 
                 if delta > required_delta:  # Insert deflect message, TODO: ELSE, ignore the message because there's not enough time to deflect
                     num_deflections += 1
-                    if strummer_slider_qf == -15: # if coming from a down strum, insert an upstrum
+
+                    if strummer_slider_qf == -3268.0851063829787: # if coming from a down strum, insert an upstrum
                         deflect_SS_qf = -115
                         deflect_SP_qf = 14
                     else:
                         deflect_SS_qf = -15
                         deflect_SP_qf = 14
+
+                    deflect_SS_qf = (deflect_SS_qf * 2048) / 9.4
+                    deflect_SP_qf = (deflect_SP_qf * 2048) / 9.4
                     # If deflection, add a deflect event right after the previous event
                     #print("INSERTING DEFLECTION BEFORE EVENT: ", idx)
                     new_rh_motor_positions.insert(idx, [[deflect_SS_qf, deflect_SP_qf], prev_timestamp + strum_time]) # add deflect event after first event finishes
@@ -734,10 +749,20 @@ class ArmListParser:
         #Initialize full dictionary
         allpoints = {}
         #Dictionaries for LH and RH
+
+        # 1. Get events + Timestamps
         print("These are the dictionaries for left arm")
-        lh_dictionary = ArmListParser.parseleft_M(left_arm, measure_time)
+        lh_motor_positions = ArmListParser.parseleft_M(left_arm, measure_time)
         print("These are the dictionaries for right arm")
-        rh_dictionary = ArmListParser.parseright_M(right_arm, measure_time)
+        rh_motor_positions, deflections = ArmListParser.parseright_M(right_arm, measure_time)
+
+        #2. PrepMovements (Adjust timestamps)
+        lh_positions_adj, rh_positions_adj = ArmListParser.prepMovements(lh_motor_positions, rh_motor_positions)
+        ArmListParser.print_Events(lh_positions_adj)
+        ArmListParser.print_Events(rh_positions_adj)
+
+        #3. Interpolate (dedicated interp function)
+        lh_dictionary, rh_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections)
 
         lh_maxtimestamp = max(lh_dictionary.keys())
         rh_maxtimestamp = max(rh_dictionary.keys())
@@ -756,8 +781,9 @@ class ArmListParser:
             reset = "Left"
         # Filling short matrix first
         last_point = shorterDict[lowkey]
-        shorterDict[highkey] = last_point
-        max_time = max(shorterDict.keys())
+        #shorterDict[highkey] = last_point
+        max_time = highkey
+        #max_time = max(shorterDict.keys())
 
         # Create a list of all timestamps, including the original ones
         all_timestamps = sorted(set(list(shorterDict.keys()) +
@@ -804,6 +830,53 @@ class ArmListParser:
             i += 1
 
         return combined_dict
+
+
+    @staticmethod
+    def prepMovements(lh_motor_positions, rh_motor_positions):
+
+        # 1. Check if first RH timstamp is at 0.0, offset entire song
+        if rh_motor_positions[0][1] == 0.0:
+            for i, lh_event in enumerate(lh_motor_positions):
+                lh_event[1] += 0.5
+                lh_motor_positions[i][1] = lh_event[1]
+
+            for i, rh_event in enumerate(rh_motor_positions):
+                rh_event[1] += 0.5
+                rh_motor_positions[i][1] = rh_event[1]
+
+
+        # 2. Offset LH values
+        for i, lh_event in enumerate(lh_motor_positions):
+            lh_timestamp = lh_event[1]
+            idx = 0
+            rh_timestamp = rh_motor_positions[idx][1]
+            while rh_timestamp < lh_timestamp:
+                idx+=1
+                try:
+                    rh_timestamp = rh_motor_positions[idx][1]
+                except:
+                    print("END LIST")
+                    return lh_motor_positions, rh_motor_positions
+
+            delta = round(rh_timestamp - lh_timestamp, 3)
+            required_delta = 60 * 0.005  # The amount of time to complete the trajectory based on event type
+            offset = round(required_delta-delta, 3)
+            if delta < required_delta:
+                print(f"delta: {delta} is less than required delta: {required_delta}")
+                lh_timestamp -=offset
+                lh_motor_positions[i][1] = lh_timestamp
+
+        return lh_motor_positions, rh_motor_positions
+
+    @staticmethod
+    def interpolateEvents(lh_positions_adj, rh_positions_adj, deflections):
+        lh_interpolated_dictionary = ArmListParser.lh_interpolate(lh_positions_adj, plot=False)
+        rh_interpolated_dictionary = ArmListParser.rh_interpolate(rh_positions_adj, deflections)
+
+        return lh_interpolated_dictionary, rh_interpolated_dictionary
+
+
 
 
 

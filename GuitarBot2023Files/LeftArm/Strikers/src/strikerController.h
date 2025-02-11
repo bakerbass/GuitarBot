@@ -550,8 +550,6 @@ public:
     */
     void processTrajPoints(float *trajPoint)
     {
-
-
         int packetSize = 13;
         Serial.print("RECEIVED: ");
         for(int i = 0; i<packetSize; i++)
@@ -562,77 +560,30 @@ public:
         Serial.println();
 
         for(int x = 0; x < NUM_MOTORS; x++){
-            if(x < 12)
+            if(x < 14)
             {
                 all_Trajs[x][0] = trajPoint[x];
-
             }
-            else if(x == 12) // picker set to default number for now
+            else if(x == 14 || x == 15) // picker set to default number for now
             {
                 all_Trajs[x][0] = 762; //default value in encoder ticks, same as in start()
             }
-            else
-            {
-                all_Trajs[x][0] = trajPoint[x-1];
-            }
         }
 
-        Serial.println("PROCESSED TRAJ: ");
+        //Serial.println("PROCESSED TRAJ: ");
 
-        Serial.println();
-        Serial.println("PUSHING TO QUEUE: ");
+        //Serial.println();
+        //Serial.println("PUSHING TO QUEUE: ");
         Trajectory<int32_t>::point_t temp_point;
         for(int x = 0; x < NUM_MOTORS; x++){
             temp_point[x] = all_Trajs[x][0];
-            Serial.println(temp_point[x]);
+            //Serial.println(temp_point[x]);
         }
-        Serial.println("-------");
+        //Serial.println("-------");
         m_traj.push(temp_point);
 
-        Serial.print("QUEUE SIZE IS: ");
     }
-    void testFunction() {
-        int mult = -1;
 
-
-        strings[1] = 1; // setting to max out at 9 for now
-        strings[2] = 2;
-        strings[3] = 2;
-        strings[4] = 3;
-        strings[5] = 3;
-        strings[6] = 3;
-
-        strings[7] = 2;
-        strings[8] = 2;
-        strings[9] = 2;
-        strings[10] = 2;
-        strings[11] = 2;
-        strings[12] = 2;
-        while(pInstance->m_traj.count() > 1) {
-            delay(10); //test with 1ms later
-            Serial.println("Waiting until event complete....");
-        }
-
-        strings[13] = 0;
-        for(int x = 0; x < NUM_MOTORS; x++){
-            all_Trajs[x][0] = strings[x+1];
-        }
-
-        Trajectory<int32_t>::point_t temp_point;
-        for (int i = 0; i < 1; i++) {
-            Serial.print(i);
-            Serial.print(": ");
-            for(int x = 0; x < NUM_MOTORS; x++){
-                temp_point[x] = all_Trajs[x][i];
-                Serial.print(temp_point[x]);
-                Serial.print(" ");
-            }
-            Serial.println("Count");
-            m_traj.push(temp_point);
-            Serial.println(m_traj.count());
-        }
-
-    }
     
 
 

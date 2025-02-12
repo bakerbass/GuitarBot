@@ -5,10 +5,10 @@ import threading
 from pythonosc.dispatcher import Dispatcher
 from pythonosc import osc_server, udp_client
 from watcher import watch_directory
-from model_loader import load_model
+# from model_loader import load_model
 from midi_utils import validate_midi_file, get_total_bars
-from inpaint import process_midi_file
-import synth
+# from inpaint import process_midi_file
+#import synth
 from send_midi_osc import send_midi
 from chords import MIDI_Stream
 import chords
@@ -82,9 +82,9 @@ if __name__ == "__main__":
     print("Hello!")
     print("Starting NeuralNote...")
     # open_neuralnote(neuralnote_path) # commented for vst use
-    synth.initialize_fluidsynth()
+    #synth.initialize_fluidsynth()
 
-    input_directory = "/Users/Radiance\Desktop/SideProjects/Midi"  # Directory to watch for new MIDI files
+    input_directory = "Midi/"  # Directory to watch for new MIDI files
 
     # Load the model
     # print("Loading model...")

@@ -415,7 +415,7 @@ class ArmListParser:
         return curve
 
     @staticmethod
-    def lh_interpolate(lh_motor_positions, num_points=20, tb_cent=0.2, plot=False):
+    def lh_interpolate(lh_motor_positions, num_points=20, tb_cent=0.2, plot=True):
         initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
         current_encoder_position = []
         for i, value in enumerate(initial_point):
@@ -492,7 +492,7 @@ class ArmListParser:
             current_encoder_position = event[0]
 
         print("\nLH FULL MATRIX")
-        matrix = ArmListParser.getFullMatrix(result, initial_point, plot = True)
+        matrix = ArmListParser.getFullMatrix(result, initial_point, plot = plot)
         if plot:
             ArmListParser.plot_interpolation(result, 12)
         return matrix #result
@@ -505,7 +505,7 @@ class ArmListParser:
         rh_points = []
         rh_points_only = []
         prev_timestamp = 0
-        speed = 40
+        speed = 55
 
         #1. Check for any deflections
         rh_motor_positions = ArmListParser.checkDeflect(rh_motor_positions, deflections)
@@ -671,7 +671,7 @@ class ArmListParser:
         new_rh_motor_positions = []
         idx = 0
         num_deflections = 0
-        total_strum_speed = 45 # 40 points for SS, 5 points for SP # CHANGE LATER
+        total_strum_speed = 60 # 40 points for SS, 5 points for SP # CHANGE LATER
         buffer_time = 0.005 #seconds
         for event in rh_motor_positions:
             new_rh_motor_positions.append(event)

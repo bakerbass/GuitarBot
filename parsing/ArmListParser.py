@@ -36,8 +36,8 @@ class ArmListParser:
             else:
                 fret_play.append(2)
 
-        print(fret_numbers, fret_play)
-        print(dtraj, utraj)
+        # print(fret_numbers, fret_play)
+        # print(dtraj, utraj)
 
         return fret_numbers, fret_play, dtraj, utraj
 
@@ -138,6 +138,7 @@ class ArmListParser:
         #print("These are the strumOnsets: ", strumOnsets)
         #print("These are the right hand events: ", rh_events)
         print("RH EVENTS LIST: ")
+
         ArmListParser.print_Events(rh_events)
 
         strummer_dict = {
@@ -368,7 +369,7 @@ class ArmListParser:
         #
 
         # Generate the interpolated list
-        #print("LH EVENTS LIST: ")
+        print("LH EVENTS LIST: ")
         ArmListParser.print_Events(lh_motor_positions)
 
         return lh_motor_positions
@@ -876,8 +877,176 @@ class ArmListParser:
 
         return lh_interpolated_dictionary, rh_interpolated_dictionary
 
+    @staticmethod
+    def parseAllMIDI(chords, strum):
+        #Initialize full dictionary
+        allpoints = {}
+        #Dictionaries for LH and RH
 
+        # 1. Get events + Timestamps
+        lh_motor_positions = ArmListParser.parseleftMIDI(chords)
+        rh_motor_positions, deflections = ArmListParser.parserightMIDI(strum)
 
+        #2. PrepMovements (Adjust timestamps)
+        lh_positions_adj, rh_positions_adj = ArmListParser.prepMovements(lh_motor_positions, rh_motor_positions)
+        ArmListParser.print_Events(lh_positions_adj)
+        ArmListParser.print_Events(rh_positions_adj)
+
+        #3. Interpolate (dedicated interp function)
+        lh_dictionary, rh_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections)
+
+        lh_maxtimestamp = max(lh_dictionary.keys())
+        rh_maxtimestamp = max(rh_dictionary.keys())
+        print("Key sizes:")
+        print(lh_maxtimestamp)
+        print(rh_maxtimestamp)
+        if lh_maxtimestamp > rh_maxtimestamp:
+            shorterDict = rh_dictionary
+            highkey = lh_maxtimestamp
+            lowkey = rh_maxtimestamp
+            reset = "Right"
+        else:
+            shorterDict = lh_dictionary
+            highkey = rh_maxtimestamp
+            lowkey = lh_maxtimestamp
+            reset = "Left"
+        # Filling short matrix first
+        last_point = shorterDict[lowkey]
+        #shorterDict[highkey] = last_point
+        max_time = highkey
+        #max_time = max(shorterDict.keys())
+
+        # Create a list of all timestamps, including the original ones
+        all_timestamps = sorted(set(list(shorterDict.keys()) +
+                                    [round(t, 3) for t in np.arange(0, max_time + .005, .005)]))
+
+        last_value = None
+
+        # Iterate through all timestamps
+        for timestamp in all_timestamps:
+            if timestamp in shorterDict:
+                last_value = shorterDict[timestamp]
+            elif last_value is not None:
+                # If it's an interpolated timestamp, use the last known value
+                shorterDict[timestamp] = last_value
+
+        # print resulting dictionary
+        i = 0
+        # print("Debuig Matrix: ")
+        # for key, value in shorterDict.items():
+        #     print(f"{i}| {key} : {value}")
+        #     i += 1
+        # shorterDict = dict(sorted(shorterDict.items()))
+        lh_copied_dictionary = {}
+        rh_copied_dictionary = {}
+        if reset == "Left":
+            lh_copied_dictionary = shorterDict
+            combined_dict = {
+                timestamp: lh_copied_dictionary[timestamp] + [
+                    x for x in rh_dictionary[timestamp]
+                ]
+                for timestamp in lh_copied_dictionary
+            }
+        if reset == "Right":
+            rh_copied_dictionary = shorterDict
+            combined_dict = {
+                timestamp: lh_dictionary[timestamp] + [
+                    x for x in rh_copied_dictionary[timestamp]
+                ]
+                for timestamp in lh_dictionary
+            }
+        print("Full Matrix: ")
+        for key, value in combined_dict.items():
+            print(f"{i}| {key} : {value}")
+            i += 1
+
+        return combined_dict
+
+    @staticmethod
+    def parseleftMIDI(chords):
+        lh_events = []
+        for curr_chord in chords:
+            note = curr_chord[0][0]
+            key = 'n'
+            type = "MAJOR"
+            timestamp = curr_chord[1]
+            timestamp = round(timestamp * 200) / 200
+            # TODO set up rest of chord parse logic.
+
+            frets, command, dtraj, utraj = ArmListParser._get_chords_M("Alternate_Chords.csv", note + key, type)
+            lh_events.append(["LH", [frets, command], timestamp])
+
+        lh_motor_positions = []
+        slider_mm_values = [23, 56, 87, 114, 143, 167, 190, 214, 236]
+        slider_encoder_values = []
+        mult = -1
+        for value in slider_mm_values:
+            encoder_tick = (value * 2048) / 9.4
+            slider_encoder_values.append(encoder_tick)
+
+        presser_encoder_values = [-10, 38, 23]
+        for events in lh_events:
+            # for lh_events[1][0] AND for lh_events[1][1]
+            # convert from fret position/finger position to encoder tick position respectively
+            temp = [[]]
+            # make motors 1,4,5 negative
+            for i, slider_value in enumerate(events[1][0]):
+                mult = -1
+                if i == 1 or i == 2 or i == 5:
+                    mult = 1
+                if 1 <= slider_value <= 9:
+                    temp[0].append(slider_encoder_values[slider_value - 1] * mult)
+            for i, presser_value in enumerate(events[1][1]):
+                if 1 <= presser_value <= 3:
+                    temp[0].append(presser_encoder_values[presser_value - 1])
+            temp.append(events[2])
+            lh_motor_positions.append(temp)
+        print("LH EVENTS LIST: ")
+        ArmListParser.print_Events(lh_motor_positions)
+
+        return lh_motor_positions
+    @staticmethod
+    def parserightMIDI(strum):
+        # ['strum', [45/-45, 75 (strumtime), 1/0 (1 if chord change)], timestamp]
+        rh_events = []
+        prev_strum = 'UP' # Set initial here
+        for curr_strum in strum:
+            strumType = curr_strum[0]
+            timestamp = curr_strum[1]
+            timestamp = round(timestamp * 200) / 200
+            direction = 45 if strumType == "DOWN" else -45
+            add_deflection = 1 if prev_strum == strumType else 0
+            rh_events.append(['strum', [direction, 75, add_deflection], timestamp])
+            prev_strum = strumType
+
+        strummer_dict = {
+            -45: [-115, 8],  # US
+            45: [-15, 10]  # DS
+        }
+
+        rh_motor_positions = []
+        deflections = []
+
+        for event in rh_events:
+            strumType = event[1][0]  # 45 or -45
+            speed = event[1][1]  # 75
+            deflect = event[1][2]  # 0 or 1
+            time_stamp = event[2]
+            strum_mm_qf = strummer_dict.get(strumType)[0]  # -115 or -15
+            strum_mm_qf = (strum_mm_qf * 2048) / 9.4
+            picker_mm_qf = strummer_dict.get(strumType)[1]
+            picker_mm_qf = (picker_mm_qf * 2048) / 9.4
+
+            if deflect == 1:
+                deflections.append(1)
+            else:
+                deflections.append(0)
+            rh_motor_positions.append([[strum_mm_qf, picker_mm_qf], time_stamp])
+
+        print("\nRH MM:")
+        ArmListParser.print_Events(rh_motor_positions)
+        print("DEFLECTIONS LIST: ", deflections)
+        return rh_motor_positions, deflections
 
 
 

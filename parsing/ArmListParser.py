@@ -850,7 +850,7 @@ class ArmListParser:
         return lh_interpolated_dictionary, rh_interpolated_dictionary
 
     @staticmethod
-    def parseAllMIDI(chords, strum):
+    def parseAllMIDI(chords, strum, pluck):
         #Initialize full dictionary
         allpoints = {}
         #Dictionaries for LH and RH
@@ -858,6 +858,7 @@ class ArmListParser:
         # 1. Get events + Timestamps
         lh_motor_positions = ArmListParser.parseleftMIDI(chords)
         rh_motor_positions, deflections = ArmListParser.parserightMIDI(strum)
+        ArmListParser.parsePickMIDI(pluck)
 
         #2. PrepMovements (Adjust timestamps)
         lh_positions_adj, rh_positions_adj = ArmListParser.prepMovements(lh_motor_positions, rh_motor_positions)
@@ -1020,5 +1021,36 @@ class ArmListParser:
         print("DEFLECTIONS LIST: ", deflections)
         return rh_motor_positions, deflections
 
+    @staticmethod
+    def parsePickMIDI(picks):
+        pick_motor_positions = []
+        # MIDI note ranges for each string
+        string_ranges = [
+            (40, 50),  # String 1
+            (45, 55),  # String 2
+            (50, 60),  # String 3
+            (55, 65),  # String 4
+            (59, 69),  # String 5
+            (64, 74)   # String 6
+        ]
 
+        active_pickers = [0] * len(string_ranges)
+
+        for note, duration, timestamp in picks:
+            assigned = False
+
+            for pickerID, (low, high) in enumerate(string_ranges):
+                if low <= note <= high:  # Check if the note falls within the string's range
+                    if timestamp >= active_pickers[pickerID]:  # Check if the string is free
+                        start = timestamp
+                        end = timestamp + duration
+                        pick_motor_positions.append(["pick", [pickerID, note, start, end]])
+                        active_pickers[pickerID] = end
+                        assigned = True
+                        break
+
+            if not assigned:
+                print(f"Warning: No available picker for note {note} at timestamp {timestamp}")
+        # Returns [["pick", [MotorID, midival, start, end]]]
+        return pick_motor_positions
 

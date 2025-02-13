@@ -51,12 +51,12 @@ def process_messages():
                     chords = data
                 elif message_type == "Strum":
                     strum = data
-                # elif message_type == "Pluck":
-                #     pluck = data
+                elif message_type == "Pluck":
+                    pluck = data
 
-                if chords and strum:
+                if chords and strum and pluck:
                     print("Starting Song")
-                    song_trajectories_dict = ArmListParser.parseAllMIDI(chords, strum)
+                    song_trajectories_dict = ArmListParser.parseAllMIDI(chords, strum, pluck)
                     song_trajectories_list = [value for value in song_trajectories_dict.values()]
                     RobotController.main(song_trajectories_list)
                     chords = strum = pluck = None

@@ -49,8 +49,8 @@ def process_messages():
                     chords = data
                 elif message_type == "Strum":
                     strum = data
-                elif message_type == "Pluck":
-                    pluck = data
+                # elif message_type == "Pluck":
+                #     pluck = data
 
                 if chords and strum:
                     print("Starting Song")

@@ -387,7 +387,7 @@ class ArmListParser:
         return curve
 
     @staticmethod
-    def lh_interpolate(lh_motor_positions, num_points=20, tb_cent=0.2, plot=True):
+    def lh_interpolate(lh_motor_positions, num_points=20, tb_cent=0.2, plot=False):
         initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
         current_encoder_position = []
         for i, value in enumerate(initial_point):
@@ -518,7 +518,7 @@ class ArmListParser:
 
         # ArmListParser.plot_interpolation(rh_points, 2)
         print("\nRH FULL MATRIX")
-        matrix = ArmListParser.getFullMatrix(rh_points, initial_point, plot = True)
+        matrix = ArmListParser.getFullMatrix(rh_points, initial_point, plot = False)
 
             # print("PICKER MOVING: ", x, "\n")
 
@@ -595,7 +595,7 @@ class ArmListParser:
                 print("\n")
 
     @staticmethod
-    def getFullMatrix(events_list, initial_point, plot = True):
+    def getFullMatrix(events_list, initial_point, plot = False):
 
         full_matrix = {}
         full_matrix[0.000] = initial_point

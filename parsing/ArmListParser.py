@@ -170,17 +170,7 @@ class ArmListParser:
         print("\nRH MM:")
         ArmListParser.print_Events(rh_motor_positions)
         print("DEFLECTIONS LIST: ", deflections)
-
-        # Return rh_motor_positions and deflections for the new function
         return rh_motor_positions, deflections
-
-
-        #rh_interpolated_dictionary = ArmListParser.rh_interpolate(rh_motor_positions, deflections)
-        #print(rh_interpolated_list)
-        #ArmListParser.print_Trajs(rh_interpolated_list)
-
-        # return rh_events, initialStrum, strumOnsets
-        #return rh_interpolated_dictionary
 
     # parse left arm (chords) input
     @staticmethod
@@ -373,24 +363,6 @@ class ArmListParser:
         ArmListParser.print_Events(lh_motor_positions)
 
         return lh_motor_positions
-
-        #print("\n")
-        #lh_interpolated_dictionary = ArmListParser.lh_interpolate(lh_motor_positions, plot=False)
-
-        #ArmListParser.print_Trajs(lh_interpolated_list)
-
-
-
-        # Debugging
-        # for entry in interpolated_list:
-        #     for x in entry[0]:
-        #         print(x)
-        #     print(f"Timestamp: {entry[1]}\n")
-
-        #print("These are the encoder tick slider/presser positions: ", lh_motor_positions)
-        # return left_arm, firstc, mtimings
-        # return lh_events, firstc, mtimings
-        #return lh_interpolated_dictionary
 
     @staticmethod
     def interp_with_blend(q0, qf, N, tb_cent):

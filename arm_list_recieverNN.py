@@ -16,6 +16,7 @@ UDP_PORT = 12000
 # initial_point = [0,0,0,0,0,0,-10,-10,-10,-10,-10,-10, -115, 9, 7,7]
 # 6 sliders, 6 pressers, 1 strummer-slider, 1 strummer-plucker, Two pluckers for now, convert to encoder_ticks
 message_queue = queue.SimpleQueue()
+# chords = strum = pluck = None
 
 def decode_osc_message(data):
     print("Message In")
@@ -38,6 +39,7 @@ def udp_listener():
         if message_type:
             message_queue.put((message_type, message_body))
             print(f"Received {message_type}: {message_body}")
+            print(f"QUEUE SIZE",message_queue.qsize())
 
 def process_messages():
     """Process messages from the queue and handle them."""

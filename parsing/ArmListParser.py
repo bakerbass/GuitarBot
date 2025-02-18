@@ -858,12 +858,13 @@ class ArmListParser:
         # 1. Get events + Timestamps
         lh_motor_positions = ArmListParser.parseleftMIDI(chords)
         rh_motor_positions, deflections = ArmListParser.parserightMIDI(strum)
-        ArmListParser.parsePickMIDI(pluck)
+        picker_motor_positions = ArmListParser.parsePickMIDI(pluck)
 
         #2. PrepMovements (Adjust timestamps)
         lh_positions_adj, rh_positions_adj = ArmListParser.prepMovements(lh_motor_positions, rh_motor_positions)
         ArmListParser.print_Events(lh_positions_adj)
         ArmListParser.print_Events(rh_positions_adj)
+        ArmListParser.print_Events(picker_motor_positions)
 
         #3. Interpolate (dedicated interp function)
         lh_dictionary, rh_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections)
@@ -903,7 +904,7 @@ class ArmListParser:
                 # If it's an interpolated timestamp, use the last known value
                 shorterDict[timestamp] = last_value
 
-        # print resulting dictionary
+        # print resulting dictionaryor
         i = 0
         # print("Debuig Matrix: ")
         # for key, value in shorterDict.items():
@@ -1023,7 +1024,7 @@ class ArmListParser:
 
     @staticmethod
     def parsePickMIDI(picks):
-        pick_motor_positions = []
+        pick_events = []
         # MIDI note ranges for each string
         string_ranges = [
             (40, 50),  # String 1
@@ -1044,13 +1045,49 @@ class ArmListParser:
                     if timestamp >= active_pickers[pickerID]:  # Check if the string is free
                         start = timestamp
                         end = timestamp + duration
-                        pick_motor_positions.append(["pick", [pickerID, note, start, end]])
+                        pick_events.append(["pick", [pickerID, note, duration, timestamp]])
                         active_pickers[pickerID] = end
                         assigned = True
+                        print(f"Assigning Picker {pickerID} for note {note}")
                         break
 
             if not assigned:
                 print(f"Warning: No available picker for note {note} at timestamp {timestamp}")
-        # Returns [["pick", [MotorID, midival, start, end]]]
+        # pick_events = [["pick", [MotorID, midival, duration,  timestamp]]]
+
+        pick_motor_positions = []
+        # [[[motor_ID, qf_encoder_picker, duration, speed] * num_pickers], timestamp]
+        num_pickers = 2
+        tremolo_threshold = 0.5
+        pickerStates = [1] * num_pickers #TODO: Need to keep track of this at the end of songs similar to LH and RH last positions
+        motorInformation = { # motor_id : [down_pluck mm, up_pluck mm]
+            0 : [3, 7, 1024],
+            1 : [0, 4, 2048]
+        }
+        for event in pick_events:
+            motor_id = event[1][0]
+            note = event[1][1]
+            duration = round(event[1][2], 3)
+            timestamp = event[1][3]
+            curr_event = [motor_id, 0, duration, 3]
+            if duration < tremolo_threshold:
+                pick_state = pickerStates[motor_id]
+                qf_mm = int(motorInformation[motor_id][not pick_state])
+                pos2pulse = (qf_mm * motorInformation[motor_id][2]) / 9.4
+                curr_event[1] = round(pos2pulse,3)
+                pickerStates[motor_id] = not pick_state
+            else:
+                pick_state = pickerStates[motor_id]
+                qf_mm = int(motorInformation[motor_id][pick_state])
+                pos2pulse = (qf_mm * motorInformation[motor_id][2]) / 9.4
+                curr_event[1] = round(pos2pulse,3)
+            full_event = [[curr_event], timestamp]
+            pick_motor_positions.append(full_event)
+
         return pick_motor_positions
 
+    @staticmethod
+    def interpolate_Pick(pick_motor_positions):
+
+
+        return 0

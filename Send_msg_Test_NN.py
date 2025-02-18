@@ -7,9 +7,11 @@ UDP_PORT = 12000
 # strum_message = [["DOWN"/"UP"], timestamp]
 # pluck_message = [[note (midi value), duration, timestamp]] (speed?) (duration = 0 is a pick)
 
-chords_message = [["C", 0.0], ["G", 1.0], ["A", 2.0], ["F", 3.0]]
-strum_message = [["DOWN", 0.0], ["UP", 1.0], ["DOWN", 2.0], ["UP", 3.0]]
-pluck_message = [[40, 2, 0], [42, 1, 0], [46, 1, 1], [46, 1, 1], [46, 1, 1]]
+#chords_message = [["C", 0.0], ["G", 1.0], ["A", 2.0], ["F", 3.0]]
+chords_message = [["C", 0.0]]
+#strum_message = [["DOWN", 0.0], ["UP", 1.0], ["DOWN", 2.0], ["UP", 3.0]]
+strum_message = [["DOWN", 0.0]]
+pluck_message = [[45, .1, 0.0], [45, .6, 0.09], [45, .6, 2.0],  [45, .1, 4.0],  [45, .6, 6.0],  [45, .1, 8.0]]
 
 def send_osc_message(client, address, data):
     print(f"Sending OSC message to {address}: {data}")

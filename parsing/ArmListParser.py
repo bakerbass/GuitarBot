@@ -1134,7 +1134,7 @@ class ArmListParser:
         # initial_points = [762, 873]  # encoder ticks for Low E and D strings
         # current_positions = initial_points.copy()
         # result = {}
-        #
+        # NEED TO HANDLE WRONG QF_ENCODER POSITION
         # for event in pick_events:
         #     picker_actions, timestamp = event[0], event[1]
         #     event_points = [0] * 2  # Initialize with 2 motors
@@ -1153,27 +1153,24 @@ class ArmListParser:
         #         max_tremolos = int(duration / 0.1)
         #         num_tremolos = max(1, int(max_tremolos * (speed / 10)))
         #
-        #         points_per_tremolo = num_points * 2
-        #         total_points = points_per_tremolo * num_tremolos
+        #
+        #         total_points = 20 * num_tremolos
         #
         #         all_points = []
         #         for _ in range(num_tremolos):
-        #             points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, num_points, tb_cent)
-        #             points2 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, num_points, tb_cent)
+        #             points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
+        #             points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, 5, tb_cent) # (fill)
+        #             points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
+        #             points4 = ArmListParser.interp_with_blend(start_pos, start_pos, 5, tb_cent) # (fill)
+
         #             all_points.extend(points1)
         #             all_points.extend(points2)
+        #             all_points.extend(points3)
+        #             all_points.extend(points4)
         #
-        #         all_points = np.array(all_points)
         #
         #     # Update the event_points for this motor
         #     event_points[motor_id] = all_points[0]  # Take the first point for this timestamp
         #     current_positions[motor_id] = all_points[-1]  # Update current position
-        #
-        #     # Add all points to the result dictionary
-        #     for i, point in enumerate(all_points):
-        #         t = timestamp + (i * duration / len(all_points))
-        #         if t not in result:
-        #             result[t] = [0] * 12
-        #         result[t][motor_id - 15] = point
 
         return 0

@@ -11,7 +11,7 @@ UDP_PORT = 12000
 chords_message = [["C", 0.0]]
 #strum_message = [["DOWN", 0.0], ["UP", 1.0], ["DOWN", 2.0], ["UP", 3.0]]
 strum_message = [["DOWN", 0.0]]
-pluck_message = [[40, .05, 0.0], [45, .05, 0.09], [45, .05, 2.0],  [45, .05, 4.0],  [40, .025, 6.0],  [41, .05, 6.299]]
+pluck_message = [[45, .05, .5], [45, 1, 2.0], [45, .05, 4.0], [45, 1, 6.0], [45, .650, 7.0]]
 
 def send_osc_message(client, address, data):
     print(f"Sending OSC message to {address}: {data}")

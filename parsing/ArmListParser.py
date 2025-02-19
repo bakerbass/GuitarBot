@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 from parsing.chord_selector import find_lowest_cost_chord
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 class ArmListParser:
@@ -1040,13 +1043,14 @@ class ArmListParser:
             (59, 69),  # String 5
             (64, 74)  # String 6
         ]
-        tremolo_threshold = .1
+        tremolo_threshold = .65
 
         active_pickers = [-.5] * len(string_ranges)
         last_notes = [None] * len(string_ranges)
         for note, duration, timestamp in picks:
             assigned = False
             timestamp = round(timestamp * 200) / 200
+            duration = round(duration, 3)
             if duration < tremolo_threshold:
                 duration = .025
 
@@ -1088,7 +1092,7 @@ class ArmListParser:
             duration = round(event[1][2], 3)
             timestamp = event[1][3]
             timestamp = round(timestamp * 200) / 200
-            curr_event = [motor_id, note, 0, duration, 3]
+            curr_event = [motor_id, note, 0, duration, 5]
             if duration < tremolo_threshold:
                 pick_state = pickerStates[motor_id]
                 qf_mm = int(motorInformation[motor_id][not pick_state])
@@ -1131,46 +1135,94 @@ class ArmListParser:
 
     @staticmethod
     def interpPick(pick_events, num_points=20, tb_cent=0.2):
-        # initial_points = [762, 873]  # encoder ticks for Low E and D strings
-        # current_positions = initial_points.copy()
-        # result = {}
+        initial_point = [762, 873]  # encoder ticks for Low E and D strings
+        current_positions = initial_point.copy()
+        result = {}
+        motorInformation = { # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
+            0 : [3, 7, 1024],
+            1 : [0, 4, 2048]
+        }
         # NEED TO HANDLE WRONG QF_ENCODER POSITION
-        # for event in pick_events:
-        #     picker_actions, timestamp = event[0], event[1]
-        #     event_points = [0] * 2  # Initialize with 2 motors
-        #     motor_id, note, qf_encoder_picker, duration, speed = event[0]
-        #     is_pluck = duration < 0.1
-        #
-        #     start_pos = current_positions[motor_id]  # Assuming motor_id starts at 15
-        #
-        #     if is_pluck:
-        #         # Single pluck
-        #         points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent)
-        #         print(points1)
-        #
-        #     else:
-        #         # Tremolo
-        #         max_tremolos = int(duration / 0.1)
-        #         num_tremolos = max(1, int(max_tremolos * (speed / 10)))
-        #
-        #
-        #         total_points = 20 * num_tremolos
-        #
-        #         all_points = []
-        #         for _ in range(num_tremolos):
-        #             points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
-        #             points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, 5, tb_cent) # (fill)
-        #             points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
-        #             points4 = ArmListParser.interp_with_blend(start_pos, start_pos, 5, tb_cent) # (fill)
+        pick_states = [1,1,1,1,1,1] # curr states positions initialized as all 'up'
+        events_list = []
 
-        #             all_points.extend(points1)
-        #             all_points.extend(points2)
-        #             all_points.extend(points3)
-        #             all_points.extend(points4)
-        #
-        #
-        #     # Update the event_points for this motor
-        #     event_points[motor_id] = all_points[0]  # Take the first point for this timestamp
-        #     current_positions[motor_id] = all_points[-1]  # Update current position
+        for event in pick_events:
+            picker_actions, timestamp = event[0], event[1]
+            event_points = [0]
+            motor_id, note, qf_encoder_picker, duration, speed = event[0]
+            is_pluck = duration < 0.650
+
+            start_pos = current_positions[motor_id]
+
+            if is_pluck:
+                # Single pluck
+                pick_states[motor_id] = not pick_states[motor_id]
+                qf_encoder_picker = (motorInformation[motor_id][pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
+
+                all_points = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent)
+                print("pluck on ", motor_id, " ", timestamp, " ", duration)
+                events_list.append([all_points, motor_id, timestamp])
+            else:
+                # Tremolo
+                # Slowest number of points is .300 seconds between evens  = 60 points
+                # fastest number of points 1 point (5 ms)
+                fill_points = min(60, int(60 * (speed / 10)))
+                num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
+                qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
+                all_points = []
+                for _ in range(num_tremolos):
+                    points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
+                    points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, fill_points, tb_cent) # (fill)
+                    points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
+                    points4 = ArmListParser.interp_with_blend(start_pos, start_pos, fill_points, tb_cent) # (fill)
+                    print("debug")
+                    print(points2)
+
+                    all_points.extend(points1)
+                    all_points.extend(points2)
+                    all_points.extend(points3)
+                    all_points.extend(points4)
+
+                events_list.append([all_points,motor_id, timestamp])
+
+            print(all_points)
+            # Update the event_points for this motor
+            current_positions[motor_id] = all_points[-1]
+        # initialize dictionary with initial point for every .005 ms for every point
+        max_timestamp = events_list[-1][2] + (.005 * len(events_list[-1][0]))
+        curr_timestamp = 0
+        while curr_timestamp <= max_timestamp:
+            result[curr_timestamp] = [762, 863] # be careful, changing to a list will change all elements!
+            curr_timestamp = round(curr_timestamp + .005, 3)
+        for event in events_list:
+            points, id, timestamp = event
+            curr = round(timestamp * 200) /200
+            for p in points:
+                result[curr][id] = p
+                curr = round(curr + .005, 3)
+                prev_pos = p
+            while curr <= max_timestamp:
+                result[curr][id] = prev_pos
+                curr = round(curr + .005, 3)
+
+        timestamps = list(result.keys())
+        values_762 = [result[t][0] for t in timestamps]
+        values_863 = [result[t][1] for t in timestamps]
+
+        # Create subplots
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
+                            subplot_titles=("ID 15", "ID 16"))
+
+        # Add traces for each ID
+        fig.add_trace(go.Scatter(x=timestamps, y=values_762, mode='lines', name='ID 762'), row=1, col=1)
+        fig.add_trace(go.Scatter(x=timestamps, y=values_863, mode='lines', name='ID 863'), row=2, col=1)
+
+        # Update layout
+        fig.update_layout(height=600, width=1000, title_text="Event Visualization")
+        fig.update_xaxes(title_text="Timestamp")
+        fig.update_yaxes(title_text="Value")
+
+        # Show the plot
+        fig.show()
 
         return 0

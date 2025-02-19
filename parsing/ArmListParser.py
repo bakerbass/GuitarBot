@@ -864,19 +864,16 @@ class ArmListParser:
 
         #2. PrepMovements (Adjust timestamps) LH changes occur before a strum,
         lh_positions_adj, rh_positions_adj = ArmListParser.prepMovements(lh_motor_positions, rh_motor_positions)
+        # Make sure no LH movements happen at the same time as a picker movement.
+        picker_motor_positions_adj = ArmListParser.prepPicker(lh_motor_positions, picker_motor_positions)
         print("LH events")
         ArmListParser.print_Events(lh_positions_adj)
         print("RH events")
         ArmListParser.print_Events(rh_positions_adj)
         print("Picker events")
-        ArmListParser.print_Events(picker_motor_positions)
-        #2.b if a Left hand movement occurs at the same time as the start of a pick movement, remove the pick movement from the list of pick events
-        lh_positions_adj, picker_motor_positions = ArmListParser.prepPicker(lh_motor_positions,picker_motor_positions)
+        ArmListParser.print_Events(picker_motor_positions_adj)
 
-
-
-
-
+        pick_dictionary = ArmListParser.interpPick(picker_motor_positions_adj)
         #3. Interpolate (dedicated interp function)
         lh_dictionary, rh_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections)
 
@@ -1118,30 +1115,65 @@ class ArmListParser:
         prev_motor = -1 # simulates no motor as the previous
         prev_note = 0
         idx = 0
-        # Check tht no picker events happen on the same string overlap (check if previous entry is within 325 ms of the previous one. Duration overlap is already handled in parsePick.)
-                # while pick_index < len(pick_motor_positions):
-        #     pick_element = pick_motor_positions[pick_index]
-        #     pick_timestamp = pick_element[1]
-        #     # Check if there's a corresponding lh_motor_position within 300ms before
-        #     while lh_index < len(lh_motor_positions) and lh_motor_positions[lh_index][1] <= pick_timestamp:
-        #         if pick_timestamp - lh_motor_positions[lh_index][1] <= .300:
-        #             break
-        #         lh_index += 1
-        #     if lh_index == len(lh_motor_positions) or pick_timestamp - lh_motor_positions[lh_index][1] > .300:
-        #         pick_motor_positions_prepped.append(pick_element)
-        #     pick_index += 1
-        # lh_index = 0
-        # pick_index = 0
-        # while lh_index < len(lh_motor_positions):
-        #     lh_element = lh_motor_positions[lh_index]
-        #     lh_timestamp = lh_element[1]
-        #     # Check if there's a corresponding pick_motor_position within 325ms before
-        #     while pick_index < len(pick_motor_positions) and pick_motor_positions[pick_index][1] <= lh_timestamp:
-        #         if lh_timestamp - pick_motor_positions[pick_index][1] <= .325:
-        #             break
-        #         pick_index += 1
-        #     if pick_index == len(pick_motor_positions) or lh_timestamp - pick_motor_positions[pick_index][1] > .325:
-        #         lh_motor_positions_prepped.append(lh_element)
-        #     lh_index += 1
+        # Check that no picker events happen with a LH event
+        while pick_index < len(pick_motor_positions):
+            pick_element = pick_motor_positions[pick_index]
+            pick_timestamp = pick_element[1]
+            # Check if there's a corresponding lh_motor_position within 300ms before
+            while lh_index < len(lh_motor_positions) and lh_motor_positions[lh_index][1] <= pick_timestamp:
+                if pick_timestamp - lh_motor_positions[lh_index][1] <= .300:
+                    break
+                lh_index += 1
+            if lh_index == len(lh_motor_positions) or pick_timestamp - lh_motor_positions[lh_index][1] > .300:
+                pick_motor_positions_prepped.append(pick_element)
+            pick_index += 1
+        return pick_motor_positions_prepped
 
-        return lh_motor_positions_prepped, pick_motor_positions_prepped
+    @staticmethod
+    def interpPick(pick_events, num_points=20, tb_cent=0.2):
+        # initial_points = [762, 873]  # encoder ticks for Low E and D strings
+        # current_positions = initial_points.copy()
+        # result = {}
+        #
+        # for event in pick_events:
+        #     picker_actions, timestamp = event[0], event[1]
+        #     event_points = [0] * 2  # Initialize with 2 motors
+        #     motor_id, note, qf_encoder_picker, duration, speed = event[0]
+        #     is_pluck = duration < 0.1
+        #
+        #     start_pos = current_positions[motor_id]  # Assuming motor_id starts at 15
+        #
+        #     if is_pluck:
+        #         # Single pluck
+        #         points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent)
+        #         print(points1)
+        #
+        #     else:
+        #         # Tremolo
+        #         max_tremolos = int(duration / 0.1)
+        #         num_tremolos = max(1, int(max_tremolos * (speed / 10)))
+        #
+        #         points_per_tremolo = num_points * 2
+        #         total_points = points_per_tremolo * num_tremolos
+        #
+        #         all_points = []
+        #         for _ in range(num_tremolos):
+        #             points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, num_points, tb_cent)
+        #             points2 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, num_points, tb_cent)
+        #             all_points.extend(points1)
+        #             all_points.extend(points2)
+        #
+        #         all_points = np.array(all_points)
+        #
+        #     # Update the event_points for this motor
+        #     event_points[motor_id] = all_points[0]  # Take the first point for this timestamp
+        #     current_positions[motor_id] = all_points[-1]  # Update current position
+        #
+        #     # Add all points to the result dictionary
+        #     for i, point in enumerate(all_points):
+        #         t = timestamp + (i * duration / len(all_points))
+        #         if t not in result:
+        #             result[t] = [0] * 12
+        #         result[t][motor_id - 15] = point
+
+        return 0

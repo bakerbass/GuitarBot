@@ -829,16 +829,18 @@ class ArmListParser:
                 try:
                     rh_timestamp = rh_motor_positions[idx][1]
                 except:
-                    print("END LIST")
+                    # print("END LIST")
                     return lh_motor_positions, rh_motor_positions
 
             delta = round(rh_timestamp - lh_timestamp, 3)
             required_delta = 60 * 0.005  # The amount of time to complete the trajectory based on event type
             offset = round(required_delta-delta, 3)
             if delta < required_delta:
-                print(f"delta: {delta} is less than required delta: {required_delta}")
+                # print(f"delta: {delta} is less than required delta: {required_delta}")
                 lh_timestamp -=offset
                 lh_motor_positions[i][1] = lh_timestamp
+
+        # 3. For every pick event, check that the
 
         return lh_motor_positions, rh_motor_positions
 
@@ -855,16 +857,25 @@ class ArmListParser:
         allpoints = {}
         #Dictionaries for LH and RH
 
-        # 1. Get events + Timestamps
+        #1. Get events + Timestamps
         lh_motor_positions = ArmListParser.parseleftMIDI(chords)
         rh_motor_positions, deflections = ArmListParser.parserightMIDI(strum)
         picker_motor_positions = ArmListParser.parsePickMIDI(pluck)
 
-        #2. PrepMovements (Adjust timestamps)
+        #2. PrepMovements (Adjust timestamps) LH changes occur before a strum,
         lh_positions_adj, rh_positions_adj = ArmListParser.prepMovements(lh_motor_positions, rh_motor_positions)
+        print("LH events")
         ArmListParser.print_Events(lh_positions_adj)
+        print("RH events")
         ArmListParser.print_Events(rh_positions_adj)
+        print("Picker events")
         ArmListParser.print_Events(picker_motor_positions)
+        #2.b if a Left hand movement occurs at the same time as the start of a pick movement, remove the pick movement from the list of pick events
+        lh_positions_adj, picker_motor_positions = ArmListParser.prepPicker(lh_motor_positions,picker_motor_positions)
+
+
+
+
 
         #3. Interpolate (dedicated interp function)
         lh_dictionary, rh_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections)
@@ -975,8 +986,6 @@ class ArmListParser:
                     temp[0].append(presser_encoder_values[presser_value - 1])
             temp.append(events[2])
             lh_motor_positions.append(temp)
-        print("LH EVENTS LIST: ")
-        ArmListParser.print_Events(lh_motor_positions)
 
         return lh_motor_positions
     @staticmethod
@@ -1017,9 +1026,9 @@ class ArmListParser:
                 deflections.append(0)
             rh_motor_positions.append([[strum_mm_qf, picker_mm_qf], time_stamp])
 
-        print("\nRH MM:")
-        ArmListParser.print_Events(rh_motor_positions)
-        print("DEFLECTIONS LIST: ", deflections)
+        # print("\nRH MM:")
+        # ArmListParser.print_Events(rh_motor_positions)
+        # print("DEFLECTIONS LIST: ", deflections)
         return rh_motor_positions, deflections
 
     @staticmethod
@@ -1032,33 +1041,45 @@ class ArmListParser:
             (50, 60),  # String 3
             (55, 65),  # String 4
             (59, 69),  # String 5
-            (64, 74)   # String 6
+            (64, 74)  # String 6
         ]
+        tremolo_threshold = .1
 
-        active_pickers = [0] * len(string_ranges)
-
+        active_pickers = [-.5] * len(string_ranges)
+        last_notes = [None] * len(string_ranges)
         for note, duration, timestamp in picks:
             assigned = False
+            timestamp = round(timestamp * 200) / 200
+            if duration < tremolo_threshold:
+                duration = .025
 
             for pickerID, (low, high) in enumerate(string_ranges):
                 if low <= note <= high:  # Check if the note falls within the string's range
-                    if timestamp >= active_pickers[pickerID]:  # Check if the string is free
-                        start = timestamp
+                    if last_notes[pickerID] == note:
+                        # If the note is the same as the last one on this picker, only check if it's free
+                        if timestamp >= active_pickers[pickerID]:
+                            assigned = True
+                    else:
+                        # If the note is different, check for 325ms gap (300 to slide and press, 25 to pluck)
+                        if timestamp >= active_pickers[pickerID] and timestamp - 0.325 >= active_pickers[pickerID]:
+                            assigned = True
+
+                    if assigned:
                         end = timestamp + duration
                         pick_events.append(["pick", [pickerID, note, duration, timestamp]])
                         active_pickers[pickerID] = end
-                        assigned = True
+                        last_notes[pickerID] = note
                         print(f"Assigning Picker {pickerID} for note {note}")
                         break
 
             if not assigned:
                 print(f"Warning: No available picker for note {note} at timestamp {timestamp}")
+
         # pick_events = [["pick", [MotorID, midival, duration,  timestamp]]]
 
         pick_motor_positions = []
-        # [[[motor_ID, qf_encoder_picker, duration, speed] * num_pickers], timestamp]
+        # [[[motor_ID, qf_encoder_picker, duration, speed] * num_pickers], timestamp]],]
         num_pickers = 2
-        tremolo_threshold = 0.5
         pickerStates = [1] * num_pickers #TODO: Need to keep track of this at the end of songs similar to LH and RH last positions
         motorInformation = { # motor_id : [down_pluck mm, up_pluck mm]
             0 : [3, 7, 1024],
@@ -1069,25 +1090,58 @@ class ArmListParser:
             note = event[1][1]
             duration = round(event[1][2], 3)
             timestamp = event[1][3]
-            curr_event = [motor_id, 0, duration, 3]
+            timestamp = round(timestamp * 200) / 200
+            curr_event = [motor_id, note, 0, duration, 3]
             if duration < tremolo_threshold:
                 pick_state = pickerStates[motor_id]
                 qf_mm = int(motorInformation[motor_id][not pick_state])
                 pos2pulse = (qf_mm * motorInformation[motor_id][2]) / 9.4
-                curr_event[1] = round(pos2pulse,3)
+                curr_event[2] = round(pos2pulse,3)
                 pickerStates[motor_id] = not pick_state
             else:
                 pick_state = pickerStates[motor_id]
                 qf_mm = int(motorInformation[motor_id][pick_state])
                 pos2pulse = (qf_mm * motorInformation[motor_id][2]) / 9.4
-                curr_event[1] = round(pos2pulse,3)
-            full_event = [[curr_event], timestamp]
+                curr_event[2] = round(pos2pulse,3)
+            full_event = [curr_event, timestamp]
             pick_motor_positions.append(full_event)
 
         return pick_motor_positions
 
     @staticmethod
-    def interpolate_Pick(pick_motor_positions):
+    def prepPicker(lh_motor_positions, pick_motor_positions):
+        lh_motor_positions_prepped = []
+        pick_motor_positions_prepped = []
+        lh_index = 0
+        pick_index = 0
+        prev_timestamp = -.500 # prep time
+        prev_motor = -1 # simulates no motor as the previous
+        prev_note = 0
+        idx = 0
+        # Check tht no picker events happen on the same string overlap (check if previous entry is within 325 ms of the previous one. Duration overlap is already handled in parsePick.)
+                # while pick_index < len(pick_motor_positions):
+        #     pick_element = pick_motor_positions[pick_index]
+        #     pick_timestamp = pick_element[1]
+        #     # Check if there's a corresponding lh_motor_position within 300ms before
+        #     while lh_index < len(lh_motor_positions) and lh_motor_positions[lh_index][1] <= pick_timestamp:
+        #         if pick_timestamp - lh_motor_positions[lh_index][1] <= .300:
+        #             break
+        #         lh_index += 1
+        #     if lh_index == len(lh_motor_positions) or pick_timestamp - lh_motor_positions[lh_index][1] > .300:
+        #         pick_motor_positions_prepped.append(pick_element)
+        #     pick_index += 1
+        # lh_index = 0
+        # pick_index = 0
+        # while lh_index < len(lh_motor_positions):
+        #     lh_element = lh_motor_positions[lh_index]
+        #     lh_timestamp = lh_element[1]
+        #     # Check if there's a corresponding pick_motor_position within 325ms before
+        #     while pick_index < len(pick_motor_positions) and pick_motor_positions[pick_index][1] <= lh_timestamp:
+        #         if lh_timestamp - pick_motor_positions[pick_index][1] <= .325:
+        #             break
+        #         pick_index += 1
+        #     if pick_index == len(pick_motor_positions) or lh_timestamp - pick_motor_positions[pick_index][1] > .325:
+        #         lh_motor_positions_prepped.append(lh_element)
+        #     lh_index += 1
 
-
-        return 0
+        return lh_motor_positions_prepped, pick_motor_positions_prepped

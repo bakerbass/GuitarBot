@@ -550,7 +550,7 @@ public:
     */
     void processTrajPoints(float *trajPoint)
     {
-        int packetSize = 13;
+        int packetSize = 15;
         Serial.print("RECEIVED: ");
         for(int i = 0; i<packetSize; i++)
         {
@@ -560,14 +560,14 @@ public:
         Serial.println();
 
         for(int x = 0; x < NUM_MOTORS; x++){
-            if(x < 14)
+            if(x < 16)
             {
                 all_Trajs[x][0] = trajPoint[x];
             }
-            else if(x == 14 || x == 15) // picker set to default number for now
-            {
-                all_Trajs[x][0] = 762; //default value in encoder ticks, same as in start()
-            }
+//            else if(x == 14 || x == 15) // picker set to default number for now
+//            {
+//                all_Trajs[x][0] = 762; //default value in encoder ticks, same as in start()
+//            }
         }
 
         //Serial.println("PROCESSED TRAJ: ");
@@ -1389,8 +1389,8 @@ private:
             errorAtPop = false;
         } else {
             if (pInstance->m_traj.count() > 0) {
-                Serial.println("HERE: TRAJ COUNT IS ");
-                Serial.println(pInstance->m_traj.count());
+//                Serial.println("TRAJ COUNT IS ");
+//                Serial.println(pInstance->m_traj.count());
 
                 //slider array.count() == 0 && press
 

@@ -912,20 +912,20 @@ class ArmListParser:
         fig = go.Figure()
 
         # Add a trace for each motor
-        for motor in range(16):
-            y_values = [values[motor] for values in combined_dict.values()]
-            fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
-
-        # Update layout
-        fig.update_layout(
-            title='Motor Positions Over Time',
-            xaxis_title='Timestamp',
-            yaxis_title='Motor Position',
-            legend_title='Motors'
-        )
-
-        # Show the plot
-        fig.show()
+        # for motor in range(16):
+        #     y_values = [values[motor] for values in combined_dict.values()]
+        #     fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
+        #
+        # # Update layout
+        # fig.update_layout(
+        #     title='Motor Positions Over Time',
+        #     xaxis_title='Timestamp',
+        #     yaxis_title='Motor Position',
+        #     legend_title='Motors'
+        # )
+        #
+        # # Show the plot
+        # fig.show()
 
         return combined_dict
 
@@ -955,14 +955,16 @@ class ArmListParser:
             lh_events.append(["LH", [frets, command], timestamp])
 
         lh_motor_positions = []
-        slider_mm_values = [23, 56, 87, 114, 143, 167, 190, 214, 236]
+        # slider_mm_values = [23, 56, 87, 114, 143, 167, 190, 214, 236]
+        slider_mm_values = [23, 23, 23, 23, 23, 23, 23, 23, 23] # for testing
         slider_encoder_values = []
         mult = -1
         for value in slider_mm_values:
             encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
-        presser_encoder_values = [-10, 38, 23]
+        # presser_encoder_values = [-10, 38, 23]
+        presser_encoder_values = [-10, -10, -10] # for testing
         for events in lh_events:
             # for lh_events[1][0] AND for lh_events[1][1]
             # convert from fret position/finger position to encoder tick position respectively
@@ -995,9 +997,13 @@ class ArmListParser:
             rh_events.append(['strum', [direction, 75, add_deflection], timestamp])
             prev_strum = strumType
 
-        strummer_dict = {
+        # strummer_dict = {
+        #     -45: [-115, 8],  # US
+        #     45: [-15, 10]  # DS
+        # }
+        strummer_dict = { # for testing
             -45: [-115, 8],  # US
-            45: [-15, 10]  # DS
+            45: [-115, 8]  # DS
         }
 
         rh_motor_positions = []
@@ -1036,7 +1042,7 @@ class ArmListParser:
             (59, 69),  # String 5
             (64, 74)  # String 6
         ]
-        tremolo_threshold = .65
+        tremolo_threshold = .5
 
         active_pickers = [-.5] * len(string_ranges)
         last_notes = [None] * len(string_ranges)
@@ -1144,7 +1150,7 @@ class ArmListParser:
             picker_actions, timestamp = event[0], event[1]
             event_points = [0]
             motor_id, note, qf_encoder_picker, duration, speed = event[0]
-            is_pluck = duration < 0.650
+            is_pluck = duration < 0.500
 
             start_pos = current_positions[motor_id]
 
@@ -1160,7 +1166,7 @@ class ArmListParser:
                 # Tremolo
                 # Slowest number of points is .300 seconds between evens  = 60 points
                 # fastest number of points 5 point (25 ms)
-                fill_points = min(60, int(60 - (speed - 1) * (55 / 9)))
+                fill_points = min(30, int(30 - (speed - 1) * (25 / 9)))
                 num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
                 qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
                 all_points = []

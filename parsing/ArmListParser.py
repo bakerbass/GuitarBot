@@ -848,11 +848,12 @@ class ArmListParser:
         return lh_motor_positions, rh_motor_positions
 
     @staticmethod
-    def interpolateEvents(lh_positions_adj, rh_positions_adj, deflections):
+    def interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj):
         lh_interpolated_dictionary = ArmListParser.lh_interpolate(lh_positions_adj, plot=False)
         rh_interpolated_dictionary = ArmListParser.rh_interpolate(rh_positions_adj, deflections)
+        pick_interpolated_dictionary = ArmListParser.interpPick(picker_motor_positions_adj)
 
-        return lh_interpolated_dictionary, rh_interpolated_dictionary
+        return lh_interpolated_dictionary, rh_interpolated_dictionary, pick_interpolated_dictionary
 
     @staticmethod
     def parseAllMIDI(chords, strum, pluck):
@@ -875,77 +876,70 @@ class ArmListParser:
         ArmListParser.print_Events(rh_positions_adj)
         print("Picker events")
         ArmListParser.print_Events(picker_motor_positions_adj)
-
-        pick_dictionary = ArmListParser.interpPick(picker_motor_positions_adj)
         #3. Interpolate (dedicated interp function)
-        lh_dictionary, rh_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections)
+        lh_dictionary, rh_dictionary, pick_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj)
 
-        lh_maxtimestamp = max(lh_dictionary.keys())
-        rh_maxtimestamp = max(rh_dictionary.keys())
-        print("Key sizes:")
-        print(lh_maxtimestamp)
-        print(rh_maxtimestamp)
-        if lh_maxtimestamp > rh_maxtimestamp:
-            shorterDict = rh_dictionary
-            highkey = lh_maxtimestamp
-            lowkey = rh_maxtimestamp
-            reset = "Right"
-        else:
-            shorterDict = lh_dictionary
-            highkey = rh_maxtimestamp
-            lowkey = lh_maxtimestamp
-            reset = "Left"
-        # Filling short matrix first
-        last_point = shorterDict[lowkey]
-        #shorterDict[highkey] = last_point
-        max_time = highkey
-        #max_time = max(shorterDict.keys())
+        # Find the maximum timestamp across all dictionaries
+        max_timestamp = max(max(lh_dictionary.keys()), max(rh_dictionary.keys()), max(pick_dictionary.keys()))
 
-        # Create a list of all timestamps, including the original ones
-        all_timestamps = sorted(set(list(shorterDict.keys()) +
-                                    [round(t, 3) for t in np.arange(0, max_time + .005, .005)]))
+        # Create a list of all timestamps, including interpolated ones
+        all_timestamps = sorted(set(
+            list(lh_dictionary.keys()) +
+            list(rh_dictionary.keys()) +
+            list(pick_dictionary.keys()) +
+            [round(t, 3) for t in np.arange(0, max_timestamp + 0.005, 0.005)]
+        ))
 
-        last_value = None
+        # Interpolate all dictionaries
+        lh_interpolated = ArmListParser.interpolate_dict(lh_dictionary, all_timestamps)
+        rh_interpolated = ArmListParser.interpolate_dict(rh_dictionary, all_timestamps)
+        pick_interpolated = ArmListParser.interpolate_dict(pick_dictionary, all_timestamps)
 
-        # Iterate through all timestamps
+        # Combine all dictionaries
+        combined_dict = {}
         for timestamp in all_timestamps:
-            if timestamp in shorterDict:
-                last_value = shorterDict[timestamp]
-            elif last_value is not None:
-                # If it's an interpolated timestamp, use the last known value
-                shorterDict[timestamp] = last_value
-
-        # print resulting dictionaryor
+            combined_dict[timestamp] = (
+                    lh_interpolated.get(timestamp, []) +
+                    rh_interpolated.get(timestamp, []) +
+                    pick_interpolated.get(timestamp, [])
+            )
         i = 0
-        # print("Debuig Matrix: ")
-        # for key, value in shorterDict.items():
-        #     print(f"{i}| {key} : {value}")
-        #     i += 1
-        # shorterDict = dict(sorted(shorterDict.items()))
-        lh_copied_dictionary = {}
-        rh_copied_dictionary = {}
-        if reset == "Left":
-            lh_copied_dictionary = shorterDict
-            combined_dict = {
-                timestamp: lh_copied_dictionary[timestamp] + [
-                    x for x in rh_dictionary[timestamp]
-                ]
-                for timestamp in lh_copied_dictionary
-            }
-        if reset == "Right":
-            rh_copied_dictionary = shorterDict
-            combined_dict = {
-                timestamp: lh_dictionary[timestamp] + [
-                    x for x in rh_copied_dictionary[timestamp]
-                ]
-                for timestamp in lh_dictionary
-            }
         print("Full Matrix: ")
         for key, value in combined_dict.items():
             print(f"{i}| {key} : {value}")
             i += 1
 
+        fig = go.Figure()
+
+        # Add a trace for each motor
+        for motor in range(16):
+            y_values = [values[motor] for values in combined_dict.values()]
+            fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
+
+        # Update layout
+        fig.update_layout(
+            title='Motor Positions Over Time',
+            xaxis_title='Timestamp',
+            yaxis_title='Motor Position',
+            legend_title='Motors'
+        )
+
+        # Show the plot
+        fig.show()
+
+
         return combined_dict
+
+    @staticmethod
+    def interpolate_dict(dictionary, all_timestamps):
+        interpolated = {}
+        last_value = None
+        for timestamp in all_timestamps:
+            if timestamp in dictionary:
+                last_value = dictionary[timestamp]
+            if last_value is not None:
+                interpolated[timestamp] = last_value
+        return interpolated
 
     @staticmethod
     def parseleftMIDI(chords):
@@ -1047,7 +1041,7 @@ class ArmListParser:
 
         active_pickers = [-.5] * len(string_ranges)
         last_notes = [None] * len(string_ranges)
-        for note, duration, timestamp in picks:
+        for note, duration, speed, timestamp in picks:
             assigned = False
             timestamp = round(timestamp * 200) / 200
             duration = round(duration, 3)
@@ -1067,10 +1061,10 @@ class ArmListParser:
 
                     if assigned:
                         end = timestamp + duration
-                        pick_events.append(["pick", [pickerID, note, duration, timestamp]])
+                        pick_events.append(["pick", [pickerID, note, duration, speed, timestamp]])
                         active_pickers[pickerID] = end
                         last_notes[pickerID] = note
-                        print(f"Assigning Picker {pickerID} for note {note}")
+                        # print(f"Assigning Picker {pickerID} for note {note}")
                         break
 
             if not assigned:
@@ -1090,9 +1084,10 @@ class ArmListParser:
             motor_id = event[1][0]
             note = event[1][1]
             duration = round(event[1][2], 3)
-            timestamp = event[1][3]
+            speed = round(event[1][3])
+            timestamp = event[1][4]
             timestamp = round(timestamp * 200) / 200
-            curr_event = [motor_id, note, 0, duration, 5]
+            curr_event = [motor_id, note, 0, duration, speed]
             if duration < tremolo_threshold:
                 pick_state = pickerStates[motor_id]
                 qf_mm = int(motorInformation[motor_id][not pick_state])
@@ -1138,12 +1133,12 @@ class ArmListParser:
         initial_point = [762, 873]  # encoder ticks for Low E and D strings
         current_positions = initial_point.copy()
         result = {}
-        motorInformation = { # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
+        motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
             0 : [3, 7, 1024],
             1 : [0, 4, 2048]
         }
-        # NEED TO HANDLE WRONG QF_ENCODER POSITION
-        pick_states = [1,1,1,1,1,1] # curr states positions initialized as all 'up'
+        # NEED TO HANDLE SLIDER/PRESSER
+        pick_states = [1, 1, 1, 1, 1, 1]  # curr states positions initialized as all 'up'
         events_list = []
 
         for event in pick_events:
@@ -1160,13 +1155,13 @@ class ArmListParser:
                 qf_encoder_picker = (motorInformation[motor_id][pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
 
                 all_points = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent)
-                print("pluck on ", motor_id, " ", timestamp, " ", duration)
+                # print("pluck on ", motor_id, " ", timestamp, " ", duration)
                 events_list.append([all_points, motor_id, timestamp])
             else:
                 # Tremolo
                 # Slowest number of points is .300 seconds between evens  = 60 points
                 # fastest number of points 1 point (5 ms)
-                fill_points = min(60, int(60 * (speed / 10)))
+                fill_points = min(60, int(60 - (speed - 1) * (55 / 9)))
                 num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
                 qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
                 all_points = []
@@ -1175,8 +1170,6 @@ class ArmListParser:
                     points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, fill_points, tb_cent) # (fill)
                     points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
                     points4 = ArmListParser.interp_with_blend(start_pos, start_pos, fill_points, tb_cent) # (fill)
-                    print("debug")
-                    print(points2)
 
                     all_points.extend(points1)
                     all_points.extend(points2)
@@ -1185,7 +1178,6 @@ class ArmListParser:
 
                 events_list.append([all_points,motor_id, timestamp])
 
-            print(all_points)
             # Update the event_points for this motor
             current_positions[motor_id] = all_points[-1]
         # initialize dictionary with initial point for every .005 ms for every point
@@ -1205,24 +1197,24 @@ class ArmListParser:
                 result[curr][id] = prev_pos
                 curr = round(curr + .005, 3)
 
-        timestamps = list(result.keys())
-        values_762 = [result[t][0] for t in timestamps]
-        values_863 = [result[t][1] for t in timestamps]
+        # timestamps = list(result.keys())
+        # values_1 = [result[t][0] for t in timestamps]
+        # values_2 = [result[t][1] for t in timestamps]
+        #
+        # # Create subplots
+        # fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
+        #                     subplot_titles=("ID 15", "ID 16"))
+        #
+        # # Add traces for each ID
+        # fig.add_trace(go.Scatter(x=timestamps, y=values_1, mode='lines', name='ID 15'), row=1, col=1)
+        # fig.add_trace(go.Scatter(x=timestamps, y=values_2, mode='lines', name='ID 16'), row=2, col=1)
+        #
+        # # Update layout
+        # fig.update_layout(height=600, width=1000, title_text="Event Visualization")
+        # fig.update_xaxes(title_text="Timestamp")
+        # fig.update_yaxes(title_text="Value")
+        #
+        # # Show the plot
+        # fig.show()
 
-        # Create subplots
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-                            subplot_titles=("ID 15", "ID 16"))
-
-        # Add traces for each ID
-        fig.add_trace(go.Scatter(x=timestamps, y=values_762, mode='lines', name='ID 762'), row=1, col=1)
-        fig.add_trace(go.Scatter(x=timestamps, y=values_863, mode='lines', name='ID 863'), row=2, col=1)
-
-        # Update layout
-        fig.update_layout(height=600, width=1000, title_text="Event Visualization")
-        fig.update_xaxes(title_text="Timestamp")
-        fig.update_yaxes(title_text="Value")
-
-        # Show the plot
-        fig.show()
-
-        return 0
+        return result

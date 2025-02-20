@@ -911,21 +911,22 @@ class ArmListParser:
 
         fig = go.Figure()
 
-        # Add a trace for each motor
-        # for motor in range(16):
-        #     y_values = [values[motor] for values in combined_dict.values()]
-        #     fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
-        #
-        # # Update layout
-        # fig.update_layout(
-        #     title='Motor Positions Over Time',
-        #     xaxis_title='Timestamp',
-        #     yaxis_title='Motor Position',
-        #     legend_title='Motors'
-        # )
-        #
-        # # Show the plot
-        # fig.show()
+        #Add a trace for each motor
+        for motor in range(16):
+            if motor == 14:
+                y_values = [values[motor] for values in combined_dict.values()]
+                fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
+
+        # Update layout
+        fig.update_layout(
+            title='Motor Positions Over Time',
+            xaxis_title='Timestamp',
+            yaxis_title='Motor Position',
+            legend_title='Motors'
+        )
+
+        # Show the plot
+        fig.show()
 
         return combined_dict
 
@@ -1163,23 +1164,27 @@ class ArmListParser:
                 # print("pluck on ", motor_id, " ", timestamp, " ", duration)
                 events_list.append([all_points, motor_id, timestamp])
             else:
-                # Tremolo # CHNAGE TO SIN WAVE
+                # Tremolo # CHANGE TO SIN WAVE
+                all_points = ArmListParser.maketremolo(544,218, duration, speed)
+
+
+
                 # Slowest number of points is .300 seconds between evens  = 60 points
                 # fastest number of points 5 point (25 ms)
-                fill_points = min(30, int(30 - (speed - 1) * (25 / 9)))
-                num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
-                qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
-                all_points = []
-                for _ in range(num_tremolos):
-                    points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
-                    points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, fill_points, tb_cent) # (fill)
-                    points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
-                    points4 = ArmListParser.interp_with_blend(start_pos, start_pos, fill_points, tb_cent) # (fill)
-
-                    all_points.extend(points1)
-                    all_points.extend(points2)
-                    all_points.extend(points3)
-                    all_points.extend(points4)
+                # fill_points = min(30, int(30 - (speed - 1) * (25 / 9)))
+                # num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
+                # qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
+                # all_points = []
+                # for _ in range(num_tremolos):
+                #     points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
+                #     points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, fill_points, tb_cent) # (fill)
+                #     points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
+                #     points4 = ArmListParser.interp_with_blend(start_pos, start_pos, fill_points, tb_cent) # (fill)
+                #
+                #     all_points.extend(points1)
+                #     all_points.extend(points2)
+                #     all_points.extend(points3)
+                #     all_points.extend(points4)
 
                 events_list.append([all_points,motor_id, timestamp])
 
@@ -1209,27 +1214,29 @@ class ArmListParser:
     @staticmethod
     def scale_speed(value):
         usermin = 1
-
         usermax = 10
-        fastest = 0.03
-        slowest = 0.06
+        fastest = 0.025
+        slowest = 0.15
         scaled = ((value - usermin) / (usermax - usermin)) * (fastest - slowest) + slowest
 
         return scaled
 
     @staticmethod
-    def tremolosin(curT, period, amp):
-        tremolo_s = amp * math.sin((2 * math.pi * (curT - math.pi / 4)) / period)
+    def tremolosin(curT, period, amp, horiz_shift):
+        tremolo_s = horiz_shift + amp * math.sin((2 * math.pi * (curT - math.pi / 4)) / period)
         return tremolo_s
 
     @staticmethod
-    def maketremolo(amp, duration, speed):
+    def maketremolo(horiz_shift, amp, duration, speed):
+        print("Duration: ", duration)
         period = ArmListParser.scale_speed(speed)
-
+        print("period: ", period)
         tstep = 0.005
         endtrem = (duration // speed) * speed  # amount of tremolos we can do and end at the top or bottom
-        fullarray = np.full(duration//tstep, ArmListParser.tremolosin(endtrem,period, amp)) #this keeps it at the top or bottom for the little last bit
+        print("Max number of tremolos: ", endtrem)
+        fullarray = np.full(int(duration//tstep), ArmListParser.tremolosin(endtrem,period, amp, horiz_shift)) #this keeps it at the top or bottom for the little last bit
         times = np.arange(0, endtrem + tstep, tstep)
-        tremoloArray = [ ArmListParser.tremolosin(t,period, amp) for t in times]
+        tremoloArray = [ ArmListParser.tremolosin(t,period, amp, horiz_shift) for t in times]
         fullarray[:len(tremoloArray)] = tremoloArray
+        print("Tremolo Points: ", tremoloArray)
         return fullarray

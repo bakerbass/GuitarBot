@@ -927,7 +927,6 @@ class ArmListParser:
         # Show the plot
         fig.show()
 
-
         return combined_dict
 
     @staticmethod
@@ -1160,7 +1159,7 @@ class ArmListParser:
             else:
                 # Tremolo
                 # Slowest number of points is .300 seconds between evens  = 60 points
-                # fastest number of points 1 point (5 ms)
+                # fastest number of points 5 point (25 ms)
                 fill_points = min(60, int(60 - (speed - 1) * (55 / 9)))
                 num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
                 qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
@@ -1196,25 +1195,5 @@ class ArmListParser:
             while curr <= max_timestamp:
                 result[curr][id] = prev_pos
                 curr = round(curr + .005, 3)
-
-        # timestamps = list(result.keys())
-        # values_1 = [result[t][0] for t in timestamps]
-        # values_2 = [result[t][1] for t in timestamps]
-        #
-        # # Create subplots
-        # fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-        #                     subplot_titles=("ID 15", "ID 16"))
-        #
-        # # Add traces for each ID
-        # fig.add_trace(go.Scatter(x=timestamps, y=values_1, mode='lines', name='ID 15'), row=1, col=1)
-        # fig.add_trace(go.Scatter(x=timestamps, y=values_2, mode='lines', name='ID 16'), row=2, col=1)
-        #
-        # # Update layout
-        # fig.update_layout(height=600, width=1000, title_text="Event Visualization")
-        # fig.update_xaxes(title_text="Timestamp")
-        # fig.update_yaxes(title_text="Value")
-        #
-        # # Show the plot
-        # fig.show()
 
         return result

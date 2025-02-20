@@ -1163,7 +1163,7 @@ class ArmListParser:
                 # print("pluck on ", motor_id, " ", timestamp, " ", duration)
                 events_list.append([all_points, motor_id, timestamp])
             else:
-                # Tremolo
+                # Tremolo # CHNAGE TO SIN WAVE
                 # Slowest number of points is .300 seconds between evens  = 60 points
                 # fastest number of points 5 point (25 ms)
                 fill_points = min(30, int(30 - (speed - 1) * (25 / 9)))
@@ -1203,3 +1203,33 @@ class ArmListParser:
                 curr = round(curr + .005, 3)
 
         return result
+
+
+
+    @staticmethod
+    def scale_speed(value):
+        usermin = 1
+
+        usermax = 10
+        fastest = 0.03
+        slowest = 0.06
+        scaled = ((value - usermin) / (usermax - usermin)) * (fastest - slowest) + slowest
+
+        return scaled
+
+    @staticmethod
+    def tremolosin(curT, period, amp):
+        tremolo_s = amp * math.sin((2 * math.pi * (curT - math.pi / 4)) / period)
+        return tremolo_s
+
+    @staticmethod
+    def maketremolo(amp, duration, speed):
+        period = ArmListParser.scale_speed(speed)
+
+        tstep = 0.005
+        endtrem = (duration // speed) * speed  # amount of tremolos we can do and end at the top or bottom
+        fullarray = np.full(duration//tstep, ArmListParser.tremolosin(endtrem,period, amp)) #this keeps it at the top or bottom for the little last bit
+        times = np.arange(0, endtrem + tstep, tstep)
+        tremoloArray = [ ArmListParser.tremolosin(t,period, amp) for t in times]
+        fullarray[:len(tremoloArray)] = tremoloArray
+        return fullarray

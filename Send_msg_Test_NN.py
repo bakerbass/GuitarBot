@@ -16,7 +16,7 @@ strum_message = [["DOWN", 0.0]]
 
 pluck_message = [[45, 1, 10, 1],[51, 1, 4, 1.5], [45, 1, 5, 3], [51, 1, 8, 3.5], [45, 1, 5, 5.0], [51, 1.5, 8, 5.5]]
 
-# pluck_message = [[45, 5, 1, 1]]
+# pluck_message = [[45, 5, 10, 1]]
 
 def send_osc_message(client, address, data):
     print(f"Sending OSC message to {address}: {data}")

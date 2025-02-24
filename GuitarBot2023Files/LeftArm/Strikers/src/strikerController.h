@@ -183,7 +183,8 @@ public:
             //CHANGE ME
             isHoming_1 = m_striker[15].homingStatus();
             isHoming_2 = m_striker[16].homingStatus();
-            isHoming_all = isHoming_1 || isHoming_2;
+            isHoming_3 = m_striker[17].homingStatus();
+            isHoming_all = isHoming_1 || isHoming_2 || isHoming_3;
             if (ii++ > 200) break;
         }
         LOG_LOG("Homing for pluckers complete, starting strummer. ");
@@ -560,7 +561,7 @@ public:
         Serial.println();
 
         for(int x = 0; x < NUM_MOTORS; x++){
-            if(x < 16)
+            if(x < 17)
             {
                 all_Trajs[x][0] = trajPoint[x];
             }
@@ -1108,8 +1109,11 @@ public:
 
             if(i >= 15){ //Picker
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
-                if(i == 16){
+                if(i == 16 || i == 17){
                     start_state_PICK = 4;
+                    if(i == 17){
+                        start_state_PICK = 8;
+                    }
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                 }
                 qf = pos2pulse;
@@ -1287,8 +1291,8 @@ private:
     bool m_bDataRequested = false;
 
 
-    float all_Trajs[15][200]; //CHANGE FOR MORE TRAJS
-    float curr_point[15];
+    float all_Trajs[17][200]; //CHANGE FOR MORE TRAJS
+    float curr_point[17];
 
     int prev_frets[6];
     int prev_playcommands[6];

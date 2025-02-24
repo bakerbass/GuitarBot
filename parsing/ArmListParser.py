@@ -909,24 +909,24 @@ class ArmListParser:
             print(f"{i}| {key} : {value}")
             i += 1
 
-        fig = go.Figure()
-
-        #Add a trace for each motor
-        for motor in range(16):
-            if motor == 14 or motor == 15:
-                y_values = [values[motor] for values in combined_dict.values()]
-                fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
-
-        # Update layout
-        fig.update_layout(
-            title='Motor Positions Over Time',
-            xaxis_title='Timestamp',
-            yaxis_title='Motor Position',
-            legend_title='Motors'
-        )
-
-        # Show the plot
-        fig.show()
+        # fig = go.Figure()
+        #
+        # #Add a trace for each motor
+        # for motor in range(17):
+        #     if motor == 14 or motor == 15 or motor == 16:
+        #         y_values = [values[motor] for values in combined_dict.values()]
+        #         fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
+        #
+        # # Update layout
+        # fig.update_layout(
+        #     title='Motor Positions Over Time',
+        #     xaxis_title='Timestamp',
+        #     yaxis_title='Motor Position',
+        #     legend_title='Motors'
+        # )
+        #
+        # # Show the plot
+        # fig.show()
 
         return combined_dict
 
@@ -1080,11 +1080,12 @@ class ArmListParser:
 
         pick_motor_positions = []
         # [[[motor_ID, qf_encoder_picker, duration, speed] * num_pickers], timestamp]],]
-        num_pickers = 2
+        num_pickers = 3
         pickerStates = [1] * num_pickers #TODO: Need to keep track of this at the end of songs similar to LH and RH last positions
         motorInformation = { # motor_id : [down_pluck mm, up_pluck mm]
             0 : [3, 7, 1024],
-            1 : [0, 4, 2048]
+            1 : [0, 4, 2048],
+            2 : [4, 8, 2048]
         }
         for event in pick_events:
             motor_id = event[1][0]
@@ -1136,12 +1137,13 @@ class ArmListParser:
 
     @staticmethod
     def interpPick(pick_events, num_points=20, tb_cent=0.2):
-        initial_point = [762, 873]  # encoder ticks for Low E and D strings
+        initial_point = [762, 873, 1743]  # encoder ticks for Low E and D strings
         current_positions = initial_point.copy()
         result = {}
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
             0 : [3, 7, 1024],
-            1 : [0, 4, 2048]
+            1 : [0, 4, 2048],
+            2: [4, 8,  2048]
         }
         # NEED TO HANDLE SLIDER/PRESSER
         pick_states = [1, 1, 1, 1, 1, 1]  # curr states positions initialized as all 'up'
@@ -1203,7 +1205,7 @@ class ArmListParser:
         print("Max Timestep: ", max_timestamp)
         curr_timestamp = 0
         while curr_timestamp <= max_timestamp:
-            result[curr_timestamp] = [762, 863] # be careful, changing to a list will change all elements!
+            result[curr_timestamp] = [762, 863, 1743] # be careful, changing to a list will change all elements!
             curr_timestamp = round(curr_timestamp + .005, 3)
         for event in events_list:
             points, id, timestamp = event

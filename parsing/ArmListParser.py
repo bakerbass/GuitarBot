@@ -913,7 +913,7 @@ class ArmListParser:
 
         #Add a trace for each motor
         for motor in range(16):
-            if motor == 14:
+            if motor == 14 or motor == 15:
                 y_values = [values[motor] for values in combined_dict.values()]
                 fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
 
@@ -1145,6 +1145,7 @@ class ArmListParser:
         }
         # NEED TO HANDLE SLIDER/PRESSER
         pick_states = [1, 1, 1, 1, 1, 1]  # curr states positions initialized as all 'up'
+        #pick_states = [0, 0, 0, 0, 0, 0]
         events_list = []
 
         for event in pick_events:
@@ -1165,8 +1166,15 @@ class ArmListParser:
                 events_list.append([all_points, motor_id, timestamp])
             else:
                 # Tremolo # CHANGE TO SIN WAVE
-                all_points = ArmListParser.maketremolo(544,218, duration, speed)
-
+                # picker 1, change to dictionary of values for all 6 motors
+                max_mm, min_mm = motorInformation[motor_id][0:2] #3, 7, or 0, 4
+                max = (max_mm * motorInformation[motor_id][2]) / 9.4
+                min = (min_mm * motorInformation[motor_id][2]) / 9.4
+                print("Max, min", max, min)
+                vert_shift = (max+min)/2 # 544
+                amp = abs((max-min))/2 # Default: 218
+                print("Amplitude", amp)
+                all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
 
 
                 # Slowest number of points is .300 seconds between evens  = 60 points
@@ -1192,6 +1200,7 @@ class ArmListParser:
             current_positions[motor_id] = all_points[-1]
         # initialize dictionary with initial point for every .005 ms for every point
         max_timestamp = events_list[-1][2] + (.005 * len(events_list[-1][0]))
+        print("Max Timestep: ", max_timestamp)
         curr_timestamp = 0
         while curr_timestamp <= max_timestamp:
             result[curr_timestamp] = [762, 863] # be careful, changing to a list will change all elements!
@@ -1217,26 +1226,43 @@ class ArmListParser:
         usermax = 10
         fastest = 0.025
         slowest = 0.15
-        scaled = ((value - usermin) / (usermax - usermin)) * (fastest - slowest) + slowest
+        scaled = (10 + 2* ((slowest/0.005)-(value-1)*((fastest*1000)/(usermax-usermin)))) * 0.005
 
         return scaled
 
     @staticmethod
-    def tremolosin(curT, period, amp, horiz_shift):
-        tremolo_s = horiz_shift + amp * math.sin((2 * math.pi * (curT - math.pi / 4)) / period)
-        return tremolo_s
+    def tremolocos(curT, period, amp, vert_shift, pick_state):
+        if pick_state == 1:
+            tremolo_s = vert_shift + amp * math.cos((2 * math.pi * (curT)) / period)
+        else:
+            tremolo_s = vert_shift + amp * -math.cos((2 * math.pi * (curT)) / period)
+        return tremolo_s #produces one tremolo point at a time
 
     @staticmethod
-    def maketremolo(horiz_shift, amp, duration, speed):
+    def maketremolo(vert_shift, amp, duration, speed, pick_state): # Todo: Test case of starting at 326, should work
         print("Duration: ", duration)
+        # Calculate the period based on the user's inputted speed value 1-10
         period = ArmListParser.scale_speed(speed)
         print("period: ", period)
+        print("frequency: ", 1/period)
+        # Determine max number of tremolos we can achieve in the duration for the given speed
         tstep = 0.005
-        endtrem = (duration // speed) * speed  # amount of tremolos we can do and end at the top or bottom
-        print("Max number of tremolos: ", endtrem)
-        fullarray = np.full(int(duration//tstep), ArmListParser.tremolosin(endtrem,period, amp, horiz_shift)) #this keeps it at the top or bottom for the little last bit
-        times = np.arange(0, endtrem + tstep, tstep)
-        tremoloArray = [ ArmListParser.tremolosin(t,period, amp, horiz_shift) for t in times]
-        fullarray[:len(tremoloArray)] = tremoloArray
+        num_tremolos = (duration // period)  # amount of tremolos we can do and end at the top or bottom
+        print("Max number of tremolos: ", num_tremolos)
+        # Interpolate the cosine wave for every point in num_tremolos
+        trem_times = np.arange(0, (num_tremolos*period)+tstep, tstep)
+        print("Times: ", trem_times)
+        tremoloArray = [ ArmListParser.tremolocos(t,period, amp, vert_shift, pick_state) for t in trem_times]
+        #fullarray[:len(tremoloArray)] = tremoloArray
         print("Tremolo Points: ", tremoloArray)
-        return fullarray
+
+        # Add in a fill at the very end if needed
+        end_fill = duration - trem_times[-1]
+        fill_array = []
+        if end_fill >0 :
+            fill_array = np.full(int(period//0.005), ArmListParser.tremolocos(trem_times[-1], period, amp, vert_shift, pick_state))
+            print("Fill array: ", fill_array)
+        tremoloArray.extend(fill_array)
+        print("Full Tremolo Array: ", tremoloArray)
+
+        return tremoloArray

@@ -909,24 +909,24 @@ class ArmListParser:
             print(f"{i}| {key} : {value}")
             i += 1
 
-        # fig = go.Figure()
-        #
-        # #Add a trace for each motor
-        # for motor in range(17):
-        #     if motor == 14 or motor == 15 or motor == 16:
-        #         y_values = [values[motor] for values in combined_dict.values()]
-        #         fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
-        #
-        # # Update layout
-        # fig.update_layout(
-        #     title='Motor Positions Over Time',
-        #     xaxis_title='Timestamp',
-        #     yaxis_title='Motor Position',
-        #     legend_title='Motors'
-        # )
-        #
-        # # Show the plot
-        # fig.show()
+        fig = go.Figure()
+
+        #Add a trace for each motor
+        for motor in range(17):
+            if motor == 14 or motor == 15 or motor == 16:
+                y_values = [values[motor] for values in combined_dict.values()]
+                fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
+
+        # Update layout
+        fig.update_layout(
+            title='Motor Positions Over Time',
+            xaxis_title='Timestamp',
+            yaxis_title='Motor Position',
+            legend_title='Motors'
+        )
+
+        # Show the plot
+        fig.show()
 
         return combined_dict
 
@@ -1055,6 +1055,7 @@ class ArmListParser:
                 duration = .025
 
             for pickerID, (low, high) in enumerate(string_ranges):
+                print("Active Pickers: ", active_pickers)
                 if low <= note <= high:  # Check if the note falls within the string's range
                     if last_notes[pickerID] == note:
                         # If the note is the same as the last one on this picker, only check if it's free
@@ -1102,6 +1103,7 @@ class ArmListParser:
                 curr_event[2] = round(pos2pulse,3)
                 pickerStates[motor_id] = not pick_state
             else:
+                print("MOTOR ID: ", motor_id)
                 pick_state = pickerStates[motor_id]
                 qf_mm = int(motorInformation[motor_id][pick_state])
                 pos2pulse = (qf_mm * motorInformation[motor_id][2]) / 9.4
@@ -1170,12 +1172,18 @@ class ArmListParser:
                 # Tremolo # CHANGE TO SIN WAVE
                 # picker 1, change to dictionary of values for all 6 motors
                 max_mm, min_mm = motorInformation[motor_id][0:2] #3, 7, or 0, 4
-                max = (max_mm * motorInformation[motor_id][2]) / 9.4
-                min = (min_mm * motorInformation[motor_id][2]) / 9.4
-                print("Max, min", max, min)
-                vert_shift = (max+min)/2 # 544
-                amp = abs((max-min))/2 # Default: 218
+                max_encoder = (max_mm * motorInformation[motor_id][2]) / 9.4
+                min_encoder = (min_mm * motorInformation[motor_id][2]) / 9.4
+
+                print("Max, min", max_encoder, min_encoder)
+                vert_shift = (max_encoder+min_encoder)/2 # 544
+
+                max_amp = abs((max_encoder-min_encoder))/2 # Default: 218 for picker 1
+                min_amp = max_amp * 0.5
+                # Amplitude Scaling
+                amp = ArmListParser.scaleAmplitude(max_amp, min_amp, speed)
                 print("Amplitude", amp)
+
                 all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
 
 
@@ -1200,9 +1208,23 @@ class ArmListParser:
 
             # Update the event_points for this motor
             current_positions[motor_id] = all_points[-1]
+
         # initialize dictionary with initial point for every .005 ms for every point
-        max_timestamp = events_list[-1][2] + (.005 * len(events_list[-1][0]))
-        print("Max Timestep: ", max_timestamp)
+        # Find max timestamp by looping through events and determining end times
+        max_timestamp = 0
+        max_timestamp_event = None
+        for i, pick_event in enumerate(events_list):
+            timestamp = pick_event[2]
+            duration = 0.005 * len(pick_event[0])
+            event_time = round((timestamp + duration) * 200) / 200
+            # print("Current Max Timestamp: ", max_timestamp, max_timestamp_event)
+            # print("Current Event Time: ", event_time)
+            if event_time > max_timestamp:
+                max_timestamp = event_time
+                max_timestamp_event = i
+
+        #max_timestamp = events_list[-1][2] + (.005 * len(events_list[-1][0]))
+        print("Max Timestep + event: ", max_timestamp, max_timestamp_event)
         curr_timestamp = 0
         while curr_timestamp <= max_timestamp:
             result[curr_timestamp] = [762, 863, 1743] # be careful, changing to a list will change all elements!
@@ -1253,10 +1275,10 @@ class ArmListParser:
         print("Max number of tremolos: ", num_tremolos)
         # Interpolate the cosine wave for every point in num_tremolos
         trem_times = np.arange(0, (num_tremolos*period)+tstep, tstep)
-        print("Times: ", trem_times)
+        #print("Times: ", trem_times)
         tremoloArray = [ ArmListParser.tremolocos(t,period, amp, vert_shift, pick_state) for t in trem_times]
         #fullarray[:len(tremoloArray)] = tremoloArray
-        print("Tremolo Points: ", tremoloArray)
+        #print("Tremolo Points: ", tremoloArray)
 
         # Add in a fill at the very end if needed
         end_fill = duration - trem_times[-1]
@@ -1268,3 +1290,12 @@ class ArmListParser:
         print("Full Tremolo Array: ", tremoloArray)
 
         return tremoloArray
+
+    @staticmethod
+    def scaleAmplitude(max_amplitude, min_amplitude, speed):
+        print("Max Amplitude, Min Amplitude: ", max_amplitude, min_amplitude)
+        low_speed = 1
+        high_speed = 10
+        scaledAmp = max_amplitude + ((speed - low_speed) / (high_speed - low_speed)) * (min_amplitude - max_amplitude)
+        return scaledAmp
+

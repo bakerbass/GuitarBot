@@ -393,6 +393,12 @@ class ArmListParser:
     def lh_interpolate(lh_motor_positions, num_points=20, tb_cent=0.2, plot=False):
         initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
         current_encoder_position = []
+        max_timestamp = lh_motor_positions[-1][1] + 0.3
+        full_matrix = {}
+        for t in np.arange(0, max_timestamp + 0.005, 0.005):
+            full_matrix[round(t, 3)] = [0] * 12  # 12 zeros for 12 motors
+
+
         for i, value in enumerate(initial_point):
             if i < 6:
                 encoder_tick = (value * 2048) / 9.4
@@ -466,11 +472,35 @@ class ArmListParser:
             #print("debug_2", len(result))
             current_encoder_position = event[0]
 
+        for event in result:
+            points, timestamp = event
+            time_values = np.arange(len(points)) * 0.005 + timestamp  # 5ms per point
+            for time, point in zip(time_values, points):
+                full_matrix[round(time, 3)] = point
+
+            # Fill in missing values
+        max_time = max(full_matrix.keys())
+        all_timestamps = sorted(set(list(full_matrix.keys()) +
+                                    [round(t, 3) for t in np.arange(0, max_time + .005, .005)]))
+        last_value = initial_point
+
+        for timestamp in all_timestamps:
+            if timestamp in full_matrix and full_matrix[timestamp] != [0] * 12:
+                last_value = full_matrix[timestamp]
+            else:
+                full_matrix[timestamp] = last_value
+
+        full_matrix = dict(sorted(full_matrix.items()))
+
+        # Print resulting dictionary
         print("\nLH FULL MATRIX")
-        matrix = ArmListParser.getFullMatrix(result, initial_point, plot = plot)
+        for i, (key, value) in enumerate(full_matrix.items()):
+            print(f"{i}| {key} : {value}")
+
+        # matrix = ArmListParser.getFullMatrix(result, initial_point, plot = plot)
         if plot:
             ArmListParser.plot_interpolation(result, 12)
-        return matrix #result
+        return full_matrix #result
 
     @staticmethod
     def rh_interpolate(rh_motor_positions, deflections, tb_cent = 0.2):
@@ -1041,7 +1071,7 @@ class ArmListParser:
             (50, 60),  # String 3
             (55, 65),  # String 4
             (59, 69),  # String 5
-            (64, 74)  # String 6
+            (64, 74)   # String 6
         ]
         tremolo_threshold = .5
 
@@ -1096,6 +1126,14 @@ class ArmListParser:
             timestamp = event[1][4]
             timestamp = round(timestamp * 200) / 200
             curr_event = [motor_id, note, 0, duration, speed]
+            # 1. Get Motors that need to slide and press.
+            slide_MotorID = motor_id + 6
+            press_MotorID = motor_id + 12
+            # 2. Get the timestamp that the event should happen.
+            lh_tmstmp = timestamp - .325
+
+
+
             if duration < tremolo_threshold:
                 pick_state = pickerStates[motor_id]
                 qf_mm = int(motorInformation[motor_id][not pick_state])
@@ -1103,7 +1141,6 @@ class ArmListParser:
                 curr_event[2] = round(pos2pulse,3)
                 pickerStates[motor_id] = not pick_state
             else:
-                print("MOTOR ID: ", motor_id)
                 pick_state = pickerStates[motor_id]
                 qf_mm = int(motorInformation[motor_id][pick_state])
                 pos2pulse = (qf_mm * motorInformation[motor_id][2]) / 9.4

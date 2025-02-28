@@ -390,8 +390,9 @@ class ArmListParser:
         return curve
 
     @staticmethod
-    def lh_interpolate(lh_motor_positions, lh_pick_pos, num_points=20, tb_cent=0.2, plot=False):
-        initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
+    def lh_interpolate(lh_motor_positions, lh_pick_pos, initial_point, num_points=20, tb_cent=0.2, plot=False):
+        # initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
+        initial_point = initial_point[0:12]
         current_encoder_position = []
         if not lh_pick_pos:
             max_timestamp = lh_motor_positions[-1][1] + 0.3
@@ -403,8 +404,8 @@ class ArmListParser:
 
         for i, value in enumerate(initial_point):
             if i < 6:
-                encoder_tick = (value * 2048) / 9.4
-                current_encoder_position.append(encoder_tick)
+                # encoder_tick = (value * 2048) / 9.4
+                current_encoder_position.append(value)
             else:
                 current_encoder_position.append(value)
 
@@ -560,8 +561,9 @@ class ArmListParser:
         return full_matrix
 
     @staticmethod
-    def rh_interpolate(rh_motor_positions, deflections, tb_cent = 0.2):
-        initial_point = [-23965, 1960] # remember to change to dynamic later
+    def rh_interpolate(rh_motor_positions, deflections, initial_point, tb_cent = 0.2):
+        # initial_point = [-23965, 1960] # remember to change to dynamic later
+        initial_point = initial_point[12:14]
         strummer_slider_q0 = -23965 # encoder ticks, CURRENT POINTS
         strummer_picker_q0 = 1960
         rh_points = []
@@ -825,8 +827,8 @@ class ArmListParser:
         ArmListParser.print_Events(rh_positions_adj)
 
         #3. Interpolate (dedicated interp function)
-        lh_dictionary, rh_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections)
-
+        # lh_dictionary, rh_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections)
+        lh_dictionary, rh_dictionary = None # refactor to initial point to work
         lh_maxtimestamp = max(lh_dictionary.keys())
         rh_maxtimestamp = max(rh_dictionary.keys())
         print("Key sizes:")
@@ -935,16 +937,16 @@ class ArmListParser:
         return lh_motor_positions, rh_motor_positions
 
     @staticmethod
-    def interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj):
+    def interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj, initial_point):
 
-        rh_interpolated_dictionary = ArmListParser.rh_interpolate(rh_positions_adj, deflections)
-        pick_interpolated_dictionary, lh_pick_pos = ArmListParser.interpPick(picker_motor_positions_adj)
-        lh_interpolated_dictionary = ArmListParser.lh_interpolate(lh_positions_adj, lh_pick_pos, plot=False)
+        rh_interpolated_dictionary = ArmListParser.rh_interpolate(rh_positions_adj, deflections, initial_point)
+        pick_interpolated_dictionary, lh_pick_pos = ArmListParser.interpPick(picker_motor_positions_adj, initial_point)
+        lh_interpolated_dictionary = ArmListParser.lh_interpolate(lh_positions_adj, lh_pick_pos, initial_point, plot=False)
 
         return lh_interpolated_dictionary, rh_interpolated_dictionary, pick_interpolated_dictionary
 
     @staticmethod
-    def parseAllMIDI(chords, strum, pluck):
+    def parseAllMIDI(chords, strum, pluck, initial_point):
         #Initialize full dictionary
         allpoints = {}
         #Dictionaries for LH and RH
@@ -965,7 +967,7 @@ class ArmListParser:
         print("Picker events")
         ArmListParser.print_Events(picker_motor_positions_adj)
         #3. Interpolate (dedicated interp function)
-        lh_dictionary, rh_dictionary, pick_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj)
+        lh_dictionary, rh_dictionary, pick_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj, initial_point)
 
         # Find the maximum timestamp across all dictionaries
         max_timestamp = max(max(lh_dictionary.keys()), max(rh_dictionary.keys()), max(pick_dictionary.keys()))
@@ -1086,14 +1088,14 @@ class ArmListParser:
             rh_events.append(['strum', [direction, 75, add_deflection], timestamp])
             prev_strum = strumType
 
-        # strummer_dict = {
-        #     -45: [-115, 8],  # US
-        #     45: [-15, 10]  # DS
-        # }
-        strummer_dict = { # for testing
+        strummer_dict = {
             -45: [-115, 8],  # US
-            45: [-115, 8]  # DS
+            45: [-15, 10]  # DS
         }
+        # strummer_dict = { # for testing
+        #     -45: [-115, 8],  # US
+        #     45: [-115, 8]  # DS
+        # }
 
         rh_motor_positions = []
         deflections = []
@@ -1233,8 +1235,9 @@ class ArmListParser:
         return pick_motor_positions_prepped
 
     @staticmethod
-    def interpPick(pick_events, num_points=20, tb_cent=0.2):
-        initial_point = [762, 873, 1743]  # encoder ticks for Low E and D strings
+    def interpPick(pick_events, initial_point, num_points=20, tb_cent=0.2):
+        # initial_point = [762, 873, 1743]  # encoder ticks for Low E and D strings
+        initial_point = initial_point[14:]
         current_positions = initial_point.copy()
         result = {}
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
@@ -1267,18 +1270,11 @@ class ArmListParser:
             else:
                 # Tremolo # CHANGE TO SIN WAVE
                 # picker 1, change to dictionary of values for all 6 motors
-                max_mm, min_mm = motorInformation[motor_id][0:2] #3, 7, or 0, 4
-                max_encoder = (max_mm * motorInformation[motor_id][2]) / 9.4
-                min_encoder = (min_mm * motorInformation[motor_id][2]) / 9.4
-
-                # print("Max, min", max_encoder, min_encoder)
-                vert_shift = (max_encoder+min_encoder)/2 # 544
-
-                max_amp = abs((max_encoder-min_encoder))/2 # Default: 218 for picker 1
-                min_amp = max_amp * 0.5
-                # Amplitude Scaling
-                amp = ArmListParser.scaleAmplitude(max_amp, min_amp, speed)
-                # print("Amplitude", amp)
+                max_mm, min_mm = motorInformation[motor_id][0:2]
+                max = (max_mm * motorInformation[motor_id][2]) / 9.4
+                min = (min_mm * motorInformation[motor_id][2]) / 9.4
+                vert_shift = (max + min) / 2  # 544
+                amp = abs((max - min)) / 2  # Default: 218
 
                 all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
 

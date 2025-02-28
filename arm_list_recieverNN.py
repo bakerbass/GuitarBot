@@ -8,6 +8,7 @@ from parsing.ArmListParser import ArmListParser
 from pythonosc.osc_message import OscMessage
 from pythonosc.parsing import osc_types
 
+initial_point = [0, 0, 0, 0, 0, 0, -2178, -2178, -2178, -2178, -2178, -2178, -23965, 1960, 762, 873, 1743]
 # For External
 # UDP_IP = "192.168.1.1"
 # For Local
@@ -44,6 +45,7 @@ def udp_listener():
 def process_messages():
     """Process messages from the queue and handle them."""
     chords = strum = pluck = None
+    initial_point = [0, 0, 0, 0, 0, 0, -2178, -2178, -2178, -2178, -2178, -2178, -23965, 1960, 762, 873, 1743]
 
     while True:
         try:
@@ -58,9 +60,10 @@ def process_messages():
 
                 if chords and strum and pluck:
                     print("Starting Song")
-                    song_trajectories_dict = ArmListParser.parseAllMIDI(chords, strum, pluck)
+                    song_trajectories_dict = ArmListParser.parseAllMIDI(chords, strum, pluck, initial_point)
                     song_trajectories_list = [value for value in song_trajectories_dict.values()]
                     RobotController.main(song_trajectories_list)
+                    initial_point = song_trajectories_list[-1]
                     chords = strum = pluck = None
         except queue.Empty:
             pass

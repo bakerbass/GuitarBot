@@ -1089,7 +1089,7 @@ public:
     void start() {
         float start_state_SS = -110;
         float start_state_SP = 9;
-        float start_state_PICK = 7;
+        float start_state_PICK = 9;
         float pos2pulse = 0;
 
         float temp_traj_1[50];

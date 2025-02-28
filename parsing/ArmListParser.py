@@ -397,7 +397,7 @@ class ArmListParser:
         if not lh_pick_pos:
             max_timestamp = lh_motor_positions[-1][1] + 0.3
         else:
-            max_timestamp = max(lh_motor_positions[-1][1] + 0.3, lh_pick_pos[-1][2] + .3 )
+            max_timestamp = max(lh_motor_positions[-1][1] + 0.3, lh_pick_pos[-1][2] + .3)
         full_matrix = {}
         for t in np.arange(0, max_timestamp + 0.005, 0.005):
             full_matrix[round(t, 3)] = [100000] * 12  # 12 zeros for 12 motors
@@ -564,8 +564,8 @@ class ArmListParser:
     def rh_interpolate(rh_motor_positions, deflections, initial_point, tb_cent = 0.2):
         # initial_point = [-23965, 1960] # remember to change to dynamic later
         initial_point = initial_point[12:14]
-        strummer_slider_q0 = -23965 # encoder ticks, CURRENT POINTS
-        strummer_picker_q0 = 1960
+        strummer_slider_q0 = initial_point[0] # encoder ticks, CURRENT POINTS
+        strummer_picker_q0 = initial_point[1]
         rh_points = []
         rh_points_only = []
         prev_timestamp = 0
@@ -1046,7 +1046,7 @@ class ArmListParser:
             lh_events.append(["LH", [frets, command], timestamp])
 
         lh_motor_positions = []
-        slider_mm_values = [23, 56, 87, 114, 143, 167, 190, 214, 236]
+        slider_mm_values = [19, 54, 87, 114, 141, 165, 188, 212, 234]
         # slider_mm_values = [23, 23, 23, 23, 23, 23, 23, 23, 23] # for testing
         slider_encoder_values = []
         mult = -1
@@ -1054,7 +1054,7 @@ class ArmListParser:
             encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
-        presser_encoder_values = [-10, 38, 23]
+        presser_encoder_values = [-10, 40, 23]
         # presser_encoder_values = [-10, -10, -10] # for testing
         for events in lh_events:
             # for lh_events[1][0] AND for lh_events[1][1]
@@ -1241,7 +1241,7 @@ class ArmListParser:
         current_positions = initial_point.copy()
         result = {}
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
-            0 : [3, 7, 1024],
+            0 : [4, 9, 1024],
             1 : [0, 4, 2048],
             2: [4, 8,  2048]
         }
@@ -1270,31 +1270,31 @@ class ArmListParser:
             else:
                 # Tremolo # CHANGE TO SIN WAVE
                 # picker 1, change to dictionary of values for all 6 motors
-                max_mm, min_mm = motorInformation[motor_id][0:2]
-                max = (max_mm * motorInformation[motor_id][2]) / 9.4
-                min = (min_mm * motorInformation[motor_id][2]) / 9.4
-                vert_shift = (max + min) / 2  # 544
-                amp = abs((max - min)) / 2  # Default: 218
-
-                all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
+                # max_mm, min_mm = motorInformation[motor_id][0:2]
+                # max = (max_mm * motorInformation[motor_id][2]) / 9.4
+                # min = (min_mm * motorInformation[motor_id][2]) / 9.4
+                # vert_shift = (max + min) / 2  # 544
+                # amp = abs((max - min)) / 2  # Default: 218
+                #
+                # all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
 
 
                 # Slowest number of points is .300 seconds between evens  = 60 points
                 # fastest number of points 5 point (25 ms)
-                # fill_points = min(30, int(30 - (speed - 1) * (25 / 9)))
-                # num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
-                # qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
-                # all_points = []
-                # for _ in range(num_tremolos):
-                #     points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
-                #     points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, fill_points, tb_cent) # (fill)
-                #     points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
-                #     points4 = ArmListParser.interp_with_blend(start_pos, start_pos, fill_points, tb_cent) # (fill)
-                #
-                #     all_points.extend(points1)
-                #     all_points.extend(points2)
-                #     all_points.extend(points3)
-                #     all_points.extend(points4)
+                fill_points = min(30, int(30 - (speed - 1) * (25 / 9)))
+                num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
+                qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
+                all_points = []
+                for _ in range(num_tremolos):
+                    points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
+                    points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, fill_points, tb_cent) # (fill)
+                    points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
+                    points4 = ArmListParser.interp_with_blend(start_pos, start_pos, fill_points, tb_cent) # (fill)
+
+                    all_points.extend(points1)
+                    all_points.extend(points2)
+                    all_points.extend(points3)
+                    all_points.extend(points4)
 
                 events_list.append([all_points,motor_id, timestamp])
 

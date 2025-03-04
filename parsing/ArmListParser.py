@@ -1054,7 +1054,7 @@ class ArmListParser:
             encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
-        presser_encoder_values = [-10, 40, 23]
+        presser_encoder_values = [-10, 40, 30]
         # presser_encoder_values = [-10, -10, -10] # for testing
         for events in lh_events:
             # for lh_events[1][0] AND for lh_events[1][1]
@@ -1340,7 +1340,7 @@ class ArmListParser:
         # print("Max Timestep + event: ", max_timestamp, max_timestamp_event)
         curr_timestamp = 0
         while curr_timestamp <= max_timestamp:
-            result[curr_timestamp] = [762, 863, 1743] # be careful, changing to a list will change all elements!
+            result[curr_timestamp] = [980, 863, 1743] # be careful, changing to a list will change all elements!
             curr_timestamp = round(curr_timestamp + .005, 3)
         for event in events_list:
             points, id, timestamp = event

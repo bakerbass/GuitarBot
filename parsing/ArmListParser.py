@@ -731,7 +731,7 @@ class ArmListParser:
     # Will dynamically add deflect messages between events if there is enough space
     @staticmethod
     def checkDeflect(rh_motor_positions, deflections):
-        prev_timestamp = -1000 # dummy initial value
+        prev_timestamp = 0 # dummy initial value
         new_rh_motor_positions = []
         idx = 0
         num_deflections = 0
@@ -1003,9 +1003,9 @@ class ArmListParser:
 
         #Add a trace for each motor
         for motor in range(17):
-            #if motor == 14 or motor == 15 or motor == 16:
-            y_values = [values[motor] for values in combined_dict.values()]
-            fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
+            if motor == 14 or motor == 15 or motor == 16:
+                y_values = [values[motor] for values in combined_dict.values()]
+                fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
 
         # Update layout
         fig.update_layout(
@@ -1212,27 +1212,27 @@ class ArmListParser:
 
     @staticmethod
     def prepPicker(lh_motor_positions, pick_motor_positions):
-        lh_motor_positions_prepped = []
         pick_motor_positions_prepped = []
         lh_index = 0
-        pick_index = 0
-        prev_timestamp = -.500 # prep time
-        prev_motor = -1 # simulates no motor as the previous
-        prev_note = 0
-        idx = 0
-        # Check that no picker events happen with a LH event
-        while pick_index < len(pick_motor_positions):
-            pick_element = pick_motor_positions[pick_index]
+
+        for pick_element in pick_motor_positions:
             pick_timestamp = pick_element[1]
-            # Check if there's a corresponding lh_motor_position within 300ms before
-            while lh_index < len(lh_motor_positions) and lh_motor_positions[lh_index][1] <= pick_timestamp:
-                if pick_timestamp - lh_motor_positions[lh_index][1] <= .300:
+            overlap = False
+
+            # Check for overlapping left-hand events
+            while lh_index < len(lh_motor_positions) and lh_motor_positions[lh_index][1] <= pick_timestamp + 0.300:
+                lh_timestamp = lh_motor_positions[lh_index][1]
+                if abs(pick_timestamp - lh_timestamp) <= 0.300:
+                    overlap = True
                     break
                 lh_index += 1
-            if lh_index == len(lh_motor_positions) or pick_timestamp - lh_motor_positions[lh_index][1] > .300:
+
+            # If no overlap, add the pick event
+            if not overlap:
                 pick_motor_positions_prepped.append(pick_element)
-            pick_index += 1
+
         return pick_motor_positions_prepped
+
 
     @staticmethod
     def interpPick(pick_events, initial_point, num_points=20, tb_cent=0.2):

@@ -20,11 +20,11 @@ def _get_chord_voicings_list(filepath, chord_letter, chord_type):
     row = 0
 
     # Finds row where first voicing occurs
-    while row < 334 and not (df_chords.iloc[row].iloc[0] == chord_letter and df_chords.iloc[row].iloc[1] == chord_type):
+    while row < 355 and not (df_chords.iloc[row].iloc[0] == chord_letter and df_chords.iloc[row].iloc[1] == chord_type):
         row += 1
 
     # Add all voicings (assumes they're contiguous, allows for stopping early)
-    while row < 334 and df_chords.iloc[row].iloc[0] == chord_letter and df_chords.iloc[row].iloc[1] == chord_type:
+    while row < 355 and df_chords.iloc[row].iloc[0] == chord_letter and df_chords.iloc[row].iloc[1] == chord_type:
         chord_possibilities.append(_chord_from_row(df_chords, row))
         row += 1
 

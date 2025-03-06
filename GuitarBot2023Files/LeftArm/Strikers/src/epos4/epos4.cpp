@@ -41,11 +41,11 @@ int Epos4::init(int iNodeID, MotorSpec spec, bool inverted, unsigned long timeou
             break;
     case EC45_Plucker_1024:
         m_iEncoderResolution = EC45_ENC_RES_PLUCKER;
-        err = configEC45();
+        err = configEC45Pickers();
         break;
     case EC45_Plucker_2048:
         m_iEncoderResolution = EC45_ENC_RES_SLIDER;
-        err = configEC45();
+        err = configEC45Pickers();
         break;
     case EC60:
         m_iEncoderResolution = EC60_ENC_RES;
@@ -401,6 +401,68 @@ int Epos4::configEC45Strummer_Picker() {
     return 0;
 }
 
+int Epos4::configEC45Pickers() {
+    int err;
+    // LOG_LOG("Configuring EC45");
+
+    err = setNominalCurrent(3210);
+    if (err != 0) {
+        LOG_ERROR("setNominalCurrent");
+        return err;
+    }
+
+    err = setOutputCurrentLimit(5000);
+    if (err != 0) {
+        LOG_ERROR("setOutputCurrentLimit");
+        return err;
+    }
+
+    err = setMotorTorqueConstant(36900); // uNm/A
+    if (err != 0) {
+        LOG_ERROR("setMotorTorqueConstant");
+        return err;
+    }
+
+    err = setThermalTimeConstantWinding(296); // x 0.1 s
+    if (err != 0) {
+        LOG_ERROR("setThermalTimeConstantWinding");
+        return err;
+    }
+
+    err = setNumPolePairs(8);
+    if (err != 0) {
+        LOG_ERROR("setNumPolePairs");
+        return err;
+    }
+
+    // Encoder
+    err = setEncoderNumPulses(m_iEncoderResolution);
+    if (err != 0) {
+        LOG_ERROR("setEncoderNumPulses");
+        return err;
+    }
+    // refer FW Spec 6.2.56.2 for type
+    err = setEncoderType(0x0);
+    if (err != 0) {
+        LOG_ERROR("setEncoderType");
+        return err;
+    }
+
+    err = setCurrentControlParameters_Pickers();
+    if (err != 0) {
+        LOG_ERROR("setCurrentControlParameters");
+        return err;
+    }
+
+    err = setPositionControlParameters_Pickers();
+    if (err != 0) {
+        LOG_ERROR("setPositionControlParameters");
+        return err;
+    }
+
+    return 0;
+}
+
 int Epos4::readObj(_WORD index, _BYTE subIndex, _DWORD* answer) {
     // block SDO
     m_bSDOBusy = true;
@@ -677,10 +739,8 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
             LOG_ERROR("setHomingMethod");
             return -1;
         }
-        //CHANGE ME
         n = SetHomeOffset(52000); //52000
 
-        //CHANGE THIS PLUCKER
         if(m_uiNodeID >= 15){
             n = SetHomeOffset(0);
         }
@@ -1167,6 +1227,23 @@ int Epos4::setCurrentControlParameters_StrummerSlider() {
     return 0;
 }
 
+int Epos4::setCurrentControlParameters_Pickers() {
+    int n;
+    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 1042729);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_I_GAIN, 2976309);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    return 0;
+}
+
 int Epos4::setCurrentControlParameters_EC20() {
     int n;
     n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 3456649);
@@ -1318,6 +1395,47 @@ int Epos4::setPositionControlParameters_StrummerPicker() {
     }
 
     n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_A_GAIN, 870);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+    return 0;
+}
+
+int Epos4::setPositionControlParameters_Pickers() {
+    int n;
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 18462573);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    _DWORD ans;
+    n = readObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, &ans);
+    if (n != 0) {
+        LOG_ERROR("Read Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_I_GAIN, 157853228);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 170004);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_V_GAIN, 9945);
+    if (n != 0) {
+        LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+        return -1;
+    }
+
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_A_GAIN, 585);
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;

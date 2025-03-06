@@ -1003,9 +1003,9 @@ class ArmListParser:
 
         #Add a trace for each motor
         for motor in range(17):
-            if motor == 14 or motor == 15 or motor == 16:
-                y_values = [values[motor] for values in combined_dict.values()]
-                fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
+        # if motor == 14 or motor == 15 or motor == 16:
+            y_values = [values[motor] for values in combined_dict.values()]
+            fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
 
         # Update layout
         fig.update_layout(
@@ -1241,9 +1241,9 @@ class ArmListParser:
         current_positions = initial_point.copy()
         result = {}
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
-            0 : [4, 9, 1024],
-            1 : [0, 4, 2048],
-            2: [4, 8,  2048]
+            0 : [3.75, 7.5, 1024],
+            1 : [1.50, 4.25, 2048],
+            2: [4, 7.5,  2048]
         }
         # NEED TO HANDLE SLIDER/PRESSER
         pick_states = [1, 1, 1, 1, 1, 1]  # curr states positions initialized as all 'up'
@@ -1270,31 +1270,40 @@ class ArmListParser:
             else:
                 # Tremolo # CHANGE TO SIN WAVE
                 # picker 1, change to dictionary of values for all 6 motors
-                # max_mm, min_mm = motorInformation[motor_id][0:2]
-                # max = (max_mm * motorInformation[motor_id][2]) / 9.4
-                # min = (min_mm * motorInformation[motor_id][2]) / 9.4
-                # vert_shift = (max + min) / 2  # 544
-                # amp = abs((max - min)) / 2  # Default: 218
-                #
-                # all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
+                max_mm, min_mm = motorInformation[motor_id][0:2]  # 3, 7, or 0, 4
+                max_encoder = (max_mm * motorInformation[motor_id][2]) / 9.4
+                min_encoder = (min_mm * motorInformation[motor_id][2]) / 9.4
 
+                print("Max, min", max_encoder, min_encoder)
+                vert_shift = (max_encoder + min_encoder) / 2  # 544
+                print("Vertical Shift: ", vert_shift)
+
+                max_amp = abs((max_encoder - min_encoder))/2  # Default: 218 for picker 1
+                min_amp = max_amp * 0.5
+                #min amplitude for picker 1 needed is 225
+                # Amplitude Scaling
+                #amp = ArmListParser.scaleAmplitude(max_amp, min_amp, speed) #TODO: Double Check amplitude calculation
+                amp = max_amp
+                print("Amplitude", amp)
+
+                all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
 
                 # Slowest number of points is .300 seconds between evens  = 60 points
                 # fastest number of points 5 point (25 ms)
-                fill_points = min(30, int(30 - (speed - 1) * (25 / 9)))
-                num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
-                qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
-                all_points = []
-                for _ in range(num_tremolos):
-                    points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
-                    points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, fill_points, tb_cent) # (fill)
-                    points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
-                    points4 = ArmListParser.interp_with_blend(start_pos, start_pos, fill_points, tb_cent) # (fill)
-
-                    all_points.extend(points1)
-                    all_points.extend(points2)
-                    all_points.extend(points3)
-                    all_points.extend(points4)
+                # fill_points = min(30, int(30 - (speed - 1) * (25 / 9)))
+                # num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
+                # qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
+                # all_points = []
+                # for _ in range(num_tremolos):
+                #     points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
+                #     points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, fill_points, tb_cent) # (fill)
+                #     points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
+                #     points4 = ArmListParser.interp_with_blend(start_pos, start_pos, fill_points, tb_cent) # (fill)
+                #
+                #     all_points.extend(points1)
+                #     all_points.extend(points2)
+                #     all_points.extend(points3)
+                #     all_points.extend(points4)
 
                 events_list.append([all_points,motor_id, timestamp])
 
@@ -1311,7 +1320,8 @@ class ArmListParser:
                 (59, 69, -1),  # String 5
                 (64, 74,  1)   # String 6
             ]
-            slider_mm_values = [23, 56, 87, 114, 143, 167, 190, 214, 236]
+            slider_mm_values = [19, 54, 87, 114, 141, 165, 188, 212, 234]
+            # slider_mm_values = [23, 23, 23, 23, 23, 23, 23, 23, 23] # for testing
 
             fret = note - string_ranges[motor_id][0]
             if fret == 0:
@@ -1340,7 +1350,8 @@ class ArmListParser:
         # print("Max Timestep + event: ", max_timestamp, max_timestamp_event)
         curr_timestamp = 0
         while curr_timestamp <= max_timestamp:
-            result[curr_timestamp] = [980, 863, 1743] # be careful, changing to a list will change all elements!
+            print("Initial Point: ", initial_point)
+            result[curr_timestamp] = initial_point.copy() # be careful, changing to a list will change all elements!
             curr_timestamp = round(curr_timestamp + .005, 3)
         for event in events_list:
             points, id, timestamp = event
@@ -1411,4 +1422,6 @@ class ArmListParser:
         high_speed = 10
         scaledAmp = max_amplitude + ((speed - low_speed) / (high_speed - low_speed)) * (min_amplitude - max_amplitude)
         return scaledAmp
+
+
 

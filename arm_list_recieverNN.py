@@ -44,7 +44,7 @@ def udp_listener():
 def process_messages():
     """Process messages from the queue and handle them."""
     chords = strum = pluck = None
-    initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, -23965, 1960, 762, 873, 1743]
+    initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, -23965, 1960, 817, 926, 1634]
 
     while True:
         try:

@@ -54,6 +54,7 @@ public:
 
 
     Error_t initStrikers(MotorSpec spec) {
+        // HOME SLIDERS
         m_motorSpec = spec;
         Error_t err = kNoError;
         for (int i = 1; i < NUM_STRIKERS + 1; ++i) {
@@ -66,9 +67,11 @@ public:
             }
             //m_strinitiker[i].setPresserCallback(pPresserCallBack);
         }
+
+        // HOME PRESSERS
         MotorSpec spec2 = EC20;
         err = kNoError;
-        for (int i = NUM_STRIKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + 1; ++i) {
+        for (int i = NUM_STRIKERS + 1; i < NUM_STRIKERS + NUM_PRESSERS + 1; ++i) {
             LOG_LOG("presser %i", i);
             err = m_striker[i].init(i, spec2);
             delay(100);
@@ -80,9 +83,11 @@ public:
             }
 
         }
+
+        //HOME STRUMMER SLIDER
         MotorSpec spec3 = EC45_StrummerSlider;
         err = kNoError;
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + 1; ++i) {
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + 1; i < NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; ++i) {
             LOG_LOG("StrummerSlider %i", i);
             err = m_striker[i].init(i, spec3);
             delay(100);
@@ -95,9 +100,10 @@ public:
 
         }
 
+        // HOME STRUMMER PICKER
         MotorSpec spec4 = EC45_StrummerPicker;
         err = kNoError;
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
             LOG_LOG("StrummerPicker %i", i);
             err = m_striker[i].init(i, spec4);
             delay(100);
@@ -110,12 +116,13 @@ public:
 
         }
 
+        //HOME PICKERS
         MotorSpec spec5 = EC45_Plucker_1024;
         MotorSpec spec6 = EC45_Plucker_2048;
         err = kNoError;
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS + 1; ++i) {
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i < NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS + 1; ++i) {
             LOG_LOG("Plucker %i", i);
-            if(i == 15){
+            if(i == 15){ //
                 err = m_striker[i].init(i, spec5);
             }
             else{
@@ -1089,7 +1096,7 @@ public:
     void start() {
         float start_state_SS = -110;
         float start_state_SP = 9;
-        float start_state_PICK = 9;
+        float start_state_PICK = 7.5;
         float pos2pulse = 0;
 
         float temp_traj_1[50];
@@ -1109,13 +1116,15 @@ public:
 
             if(i >= 15){ //Picker
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
-                if(i == 16 || i == 17){
-                    start_state_PICK = 4;
-                    if(i == 17){
-                        start_state_PICK = 8;
+                if(i == 16){
+                    start_state_PICK = 4.25;
+                    pos2pulse = (start_state_PICK * 2048) / 9.4;
                     }
+                if(i == 17){
+                    start_state_PICK = 7.5;
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                 }
+
                 qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;
                 //Interpolate Line

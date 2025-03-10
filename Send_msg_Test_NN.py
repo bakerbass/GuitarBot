@@ -20,11 +20,11 @@ UDP_PORT = 12000
 
 # pluck_message = [[56, 1, 2, 5]]
 
-chords_message = [["On", 13]]
+chords_message = [["B", 3], ["C", 4]]
 strum_message = [["DOWN", 0.0]]
 # pluck_message = [[56, 3, 10, 1]]
 pluck_message = [    # String 1
-    [54, .1, 1, 2],
+    [54, 10, 1, 2],
     [54, .1, 1, 2.5],
     [50, .1, 1, 4],
     [40, .1, 1, 5],

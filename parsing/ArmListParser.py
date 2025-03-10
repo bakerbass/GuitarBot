@@ -12,6 +12,7 @@ class ArmListParser:
     @staticmethod
     def _get_chords_M(filepath, chord_letter, chord_type):
         # print("chord stats: ", chord_type, chord_letter)
+
         fret_numbers_optimized = find_lowest_cost_chord(ArmListParser.current_fret_positions, filepath, chord_letter,
                                                         chord_type)
         ArmListParser.current_fret_positions = fret_numbers_optimized
@@ -392,12 +393,16 @@ class ArmListParser:
     @staticmethod
     def lh_interpolate(lh_motor_positions, lh_pick_pos, initial_point, num_points=20, tb_cent=0.2, plot=False):
         # initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
+        #print("lh_pick_pos: ", lh_pick_pos)
         initial_point = initial_point[0:12]
         current_encoder_position = []
         if not lh_pick_pos:
             max_timestamp = lh_motor_positions[-1][1] + 0.3
         else:
-            max_timestamp = max(lh_motor_positions[-1][1] + 0.3, lh_pick_pos[-1][2] + .3)
+            #print("LAST LH MOTOR POSITION: ", lh_motor_positions[-1], lh_motor_positions[-1][1])
+            #print("LAST PICK MOTOR POSITION: ", lh_pick_pos[-1], lh_pick_pos[-1][2])
+            max_timestamp = max(lh_motor_positions[-1][1] + 0.3, lh_pick_pos[-1][2] + .3) # 6
+            #print("Max Timestamp!!!: ", max_timestamp)
         full_matrix = {}
         for t in np.arange(0, max_timestamp + 0.005, 0.005):
             full_matrix[round(t, 3)] = [100000] * 12  # 12 zeros for 12 motors
@@ -437,6 +442,7 @@ class ArmListParser:
 
         # Sort the combined dictionary by timestamp
         full_LH.sort(key=lambda x: x['timestamp'])
+        #print("FULL LH MATRIX SORTED: ", full_LH)
         full_matrix[0] = initial_point
         for event in full_LH:
             timestamp = round(event['timestamp'], 3)
@@ -511,7 +517,7 @@ class ArmListParser:
                     # q0_presser_motor = current_encoder_position[motor_index + 6] # For all motors
                     q0_presser_motor = current_encoder_position[presser_motor_ID] # CHANGE ME LATER FOR ALL MOTORS
                     qf_slider = int(event['position'])
-                    qf_presser = 38
+                    qf_presser = 40
                     if int(event['position']) == -1: # open string
                         qf_slider = q0_slider_motor
                         qf_presser = -10
@@ -550,6 +556,7 @@ class ArmListParser:
                     prev_values[i] = full_matrix[t][i]
 
         sorted_timestamps = sorted(full_matrix.keys())
+        #print("Sorted Timestamps: ", sorted_timestamps) # up to 6
         previous_values = copy.deepcopy(initial_point)
 
         for timestamp in sorted_timestamps:
@@ -972,8 +979,14 @@ class ArmListParser:
         #3. Interpolate (dedicated interp function)
         lh_dictionary, rh_dictionary, pick_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj, initial_point)
 
+        print("Picker Dictionary: ")  # only up to 6
+        i = 0
+        for key, value in pick_dictionary.items():
+            print(f"{i}| {key} : {value}")
+            i += 1
         # Find the maximum timestamp across all dictionaries
         max_timestamp = max(max(lh_dictionary.keys()), max(rh_dictionary.keys()), max(pick_dictionary.keys()))
+        print("Max Timestamp ParseAllMidi: ", max_timestamp)
 
         # Create a list of all timestamps, including interpolated ones
         all_timestamps = sorted(set(
@@ -1262,6 +1275,7 @@ class ArmListParser:
         lh_pick_events = []
 
         for event in pick_events:
+            print("PICKSSS: ", event)
             picker_actions, timestamp = event[0], event[1]
             event_points = [0]
             motor_id, note, qf_encoder_picker, duration, speed = event[0]
@@ -1366,7 +1380,7 @@ class ArmListParser:
         # print("Max Timestep + event: ", max_timestamp, max_timestamp_event)
         curr_timestamp = 0
         while curr_timestamp <= max_timestamp:
-            print("Initial Point: ", initial_point)
+            #print("Initial Point: ", initial_point)
             result[curr_timestamp] = initial_point.copy() # be careful, changing to a list will change all elements!
             curr_timestamp = round(curr_timestamp + .005, 3)
         for event in events_list:
@@ -1379,7 +1393,7 @@ class ArmListParser:
             while curr <= max_timestamp:
                 result[curr][id] = prev_pos
                 curr = round(curr + .005, 3)
-
+        print("LH PICK EVENTS: ", lh_pick_events)
         return result, lh_pick_events
 
 

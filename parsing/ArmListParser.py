@@ -504,9 +504,12 @@ class ArmListParser:
                     slider_points = []
                     presser_points = []
                     motor_index = event['motor_id']
-
-                    q0_slider_motor = current_encoder_position[motor_index]
-                    q0_presser_motor = current_encoder_position[motor_index + 6]
+                    slider_motor_ID = motor_index + motor_index # CHANGE ME LATER FOR ALL MOTORS
+                    presser_motor_ID = motor_index + 6 + motor_index # CHANGE ME LATER FOR ALL MOTORS
+                    # q0_slider_motor = current_encoder_position[motor_index] # For all motors
+                    q0_slider_motor = current_encoder_position[slider_motor_ID] # CHANGE ME LATER FOR ALL MOTORS
+                    # q0_presser_motor = current_encoder_position[motor_index + 6] # For all motors
+                    q0_presser_motor = current_encoder_position[presser_motor_ID] # CHANGE ME LATER FOR ALL MOTORS
                     qf_slider = int(event['position'])
                     qf_presser = 38
                     if int(event['position']) == -1: # open string
@@ -527,15 +530,15 @@ class ArmListParser:
                     presser_points.extend(p3)
                     curr_t = timestamp
                     for curr_p in slider_points:
-                        full_matrix[curr_t][motor_index] = copy.deepcopy(curr_p)
+                        full_matrix[curr_t][slider_motor_ID] = copy.deepcopy(curr_p)
                         curr_t = round(curr_t + .005, 3)
                     curr_t = timestamp
                     for curr_p in presser_points:
-                        full_matrix[curr_t][motor_index + 6] = copy.deepcopy(curr_p)
+                        full_matrix[curr_t][presser_motor_ID] = copy.deepcopy(curr_p)
                         curr_t = round(curr_t + .005, 3)
 
-                    current_encoder_position[motor_index] = s3[-1]
-                    current_encoder_position[motor_index + 6] = p3[-1]
+                    current_encoder_position[slider_motor_ID] = s3[-1]
+                    current_encoder_position[presser_motor_ID] = p3[-1]
 
         # Fill in gaps
         prev_values = initial_point.copy()
@@ -1088,14 +1091,14 @@ class ArmListParser:
             rh_events.append(['strum', [direction, 75, add_deflection], timestamp])
             prev_strum = strumType
 
-        strummer_dict = {
-            -45: [-115, 8],  # US
-            45: [-15, 10]  # DS
-        }
-        # strummer_dict = { # for testing
+        # strummer_dict = {
         #     -45: [-115, 8],  # US
-        #     45: [-115, 8]  # DS
+        #     45: [-15, 10]  # DS
         # }
+        strummer_dict = { # for testing
+            -45: [-115, 8],  # US
+            45: [-115, 8]  # DS
+        }
 
         rh_motor_positions = []
         deflections = []
@@ -1125,14 +1128,21 @@ class ArmListParser:
     def parsePickMIDI(picks):
         pick_events = []
         # MIDI note ranges for each string
-        string_ranges = [
-            (40, 50),  # String 1
-            (45, 55),  # String 2
-            (50, 60),  # String 3
-            (55, 65),  # String 4
-            (59, 69),  # String 5
-            (64, 74)   # String 6
+        # string_ranges = [ # for all pluckers
+        #     (40, 50),  # String 1
+        #     (45, 55),  # String 2
+        #     (50, 60),  # String 3
+        #     (55, 65),  # String 4
+        #     (59, 69),  # String 5
+        #     (64, 74)   # String 6
+        # ]
+        string_ranges = [ # for plucker prototype 1
+            (40, 49),  # String 1
+            (50, 59),  # String 3
+            (59, 68),  # String 5
         ]
+
+
         tremolo_threshold = .5
 
         active_pickers = [-.5] * len(string_ranges)
@@ -1312,14 +1322,20 @@ class ArmListParser:
             current_positions[motor_id] = all_points[-1]
             # [Slider_MotorID, enc_val target position, TS]
             # max midi_va for MotorID - note
-            string_ranges = [
-                (40, 50, -1),  # String 1
-                (45, 55,  1),  # String 2
-                (50, 60,  1),  # String 3
-                (55, 65, -1),  # String 4
-                (59, 69, -1),  # String 5
-                (64, 74,  1)   # String 6
+            # string_ranges = [ # Forall Pluckers
+            #     (40, 50, -1),  # String 1
+            #     (45, 55,  1),  # String 2
+            #     (50, 60,  1),  # String 3
+            #     (55, 65, -1),  # String 4
+            #     (59, 69, -1),  # String 5
+            #     (64, 74,  1)   # String 6
+            # ]
+            string_ranges = [  # for plucker prototype 1
+                (40, 49, -1),  # String 1
+                (50, 59, 1),  # String 3
+                (59, 68, -1),  # String 5
             ]
+
             slider_mm_values = [19, 54, 87, 114, 141, 165, 188, 212, 234]
             # slider_mm_values = [23, 23, 23, 23, 23, 23, 23, 23, 23] # for testing
 
@@ -1327,7 +1343,7 @@ class ArmListParser:
             if fret == 0:
                 lh_enc_val = -1
             else:
-                lh_enc_val = ((slider_mm_values[fret] * 2048) / 9.4) * string_ranges[motor_id][2]
+                lh_enc_val = ((slider_mm_values[fret - 1] * 2048) / 9.4) * string_ranges[motor_id][2]
             curr_lhp_event = [motor_id, lh_enc_val, timestamp - .3]
             lh_pick_events.append(curr_lhp_event)
 

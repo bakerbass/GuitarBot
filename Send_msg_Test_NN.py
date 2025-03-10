@@ -8,9 +8,9 @@ UDP_PORT = 12000
 # strum_message = [["DOWN"/"UP"], timestamp]
 # pluck_message = [[note (midi value), duration, speed, timestamp]]
 
-chords_message = [["A", 0.0], ["D", 4.0], ["E", 5.0], ["A", 6.0], ["On", 8.0]] # Marcus Demo 3/6/2025
-strum_message = [ ["DOWN", 1.0], ["UP", 2.0], ["DOWN", 4.0], ["UP", 5.0], ["DOWN", 6.0]] # Marcus Demo 3/6/2025
-pluck_message = [[45, .1, 10, 1], [47, .5, 10, 2], [48, 3, 4, 3], ] # Marcus Demo 3/6/2025
+# chords_message = [["A", 0.0], ["D", 4.0], ["E", 5.0], ["A", 6.0], ["On", 8.0]] # Marcus Demo 3/6/2025
+# strum_message = [ ["DOWN", 1.0], ["UP", 2.0], ["DOWN", 4.0], ["UP", 5.0], ["DOWN", 6.0]] # Marcus Demo 3/6/2025
+# pluck_message = [[45, .1, 10, 1], [47, .5, 10, 2], [48, 3, 4, 3], ] # Marcus Demo 3/6/2025
 
 # pluck_message = [[45, 1, 10, 1],[51, 1, 4, 1.5], [45, 1, 5, 3], [51, 1, 8, 3.5], [45, 1, 5, 5.0], [51, 1.5, 8, 5.5],
 #                 [45, 1, 10, 7],[51, 1, 4, 7.5], [45, 1, 5, 9], [51, 1, 8, 9.5], [45, 1, 5, 11], [51, 1.5, 8, 11.5],
@@ -20,10 +20,26 @@ pluck_message = [[45, .1, 10, 1], [47, .5, 10, 2], [48, 3, 4, 3], ] # Marcus Dem
 
 # pluck_message = [[56, 1, 2, 5]]
 
-# chords_message = [["On", 0.0], ["On", 6.0]]
-# strum_message = [["DOWN", 0.0]]
-# pluck_message = [[51, 2, 10, 2], [56, 2, 10, 5]]
-# pluck_message = [[51, 1, 10, 2], [56, 1, 10, 3]]
+chords_message = [["On", 13]]
+strum_message = [["DOWN", 0.0]]
+# pluck_message = [[56, 3, 10, 1]]
+pluck_message = [    # String 1
+    [54, .1, 1, 2],
+    [54, .1, 1, 2.5],
+    [50, .1, 1, 4],
+    [40, .1, 1, 5],
+    [40, .1, 1, 6],
+    # [52, .1, 1, 5],
+    # [52, .1, 1, 6],
+    # [52, .1, 1, 7],
+    # [56, .1, 1, 8],
+    # [56, .1, 1, 9],
+    # [57, .1, 1, 10],
+    # [59, .1, 1, 11],
+    # [59, .1, 1, 12]
+]
+
+# , [51, .1, 10, 2], [61, .1, 10, 3]
 # Derrick Demo for 2/27/2025 -- Randomly generated three picker tremolos with amplitude scaling
 def create_tremolo_message():
     #1. Generate 5 random speeds

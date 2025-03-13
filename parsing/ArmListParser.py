@@ -1019,7 +1019,6 @@ class ArmListParser:
 
         #Add a trace for each motor
         for motor in range(17):
-            if motor == 12:
                 y_values = [values[motor] for values in combined_dict.values()]
                 fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
 
@@ -1266,7 +1265,7 @@ class ArmListParser:
         pickerStates = [1] * num_pickers #TODO: Need to keep track of this at the end of songs similar to LH and RH last positions
         motorInformation = { # motor_id : [down_pluck mm, up_pluck mm]
             0 : [3, 7, 1024],
-            1 : [0, 4, 2048],
+            1 : [0, 3.5, 2048],
             2 : [4, 7, 2048]
         }
         for event in pick_events:
@@ -1333,8 +1332,8 @@ class ArmListParser:
         result = {}
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
             0 : [3.75, 7.5, 1024],
-            1 : [1, 4, 2048],
-            2: [4, 7,  2048]
+            1 : [-.75, 3, 2048],
+            2: [3, 7,  2048]
         }
         # NEED TO HANDLE SLIDER/PRESSER
         pick_states = [1, 1, 1, 1, 1, 1]  # curr states positions initialized as all 'up'
@@ -1362,40 +1361,41 @@ class ArmListParser:
             else:
                 # Tremolo # CHANGE TO SIN WAVE
                 # picker 1, change to dictionary of values for all 6 motors
-                max_mm, min_mm = motorInformation[motor_id][0:2]  # 3, 7, or 0, 4
-                max_encoder = (max_mm * motorInformation[motor_id][2]) / 9.4
-                min_encoder = (min_mm * motorInformation[motor_id][2]) / 9.4
-
-                print("Max, min", max_encoder, min_encoder)
-                vert_shift = (max_encoder + min_encoder) / 2  # 544
-                print("Vertical Shift: ", vert_shift)
-
-                max_amp = abs((max_encoder - min_encoder))/2  # Default: 218 for picker 1
-                min_amp = max_amp * 0.5
-                #min amplitude for picker 1 needed is 225
-                # Amplitude Scaling
-                #amp = ArmListParser.scaleAmplitude(max_amp, min_amp, speed) #TODO: Double Check amplitude calculation
-                amp = max_amp
-                print("Amplitude", amp)
-
-                all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
+                # max_mm, min_mm = motorInformation[motor_id][0:2]  # 3, 7, or 0, 4
+                # max_encoder = (max_mm * motorInformation[motor_id][2]) / 9.4
+                # min_encoder = (min_mm * motorInformation[motor_id][2]) / 9.4
+                #
+                # print("Max, min", max_encoder, min_encoder)
+                # vert_shift = (max_encoder + min_encoder) / 2  # 544
+                # print("Vertical Shift: ", vert_shift)
+                #
+                # max_amp = abs((max_encoder - min_encoder))/2  # Default: 218 for picker 1
+                # min_amp = max_amp * 0.5
+                # #min amplitude for picker 1 needed is 225
+                # # Amplitude Scaling
+                # #amp = ArmListParser.scaleAmplitude(max_amp, min_amp, speed) #TODO: Double Check amplitude calculation
+                # amp = max_amp
+                # print("Amplitude", amp)
+                #
+                # all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
 
                 # Slowest number of points is .300 seconds between evens  = 60 points
                 # fastest number of points 5 point (25 ms)
-                # fill_points = min(30, int(30 - (speed - 1) * (25 / 9)))
-                # num_tremolos = math.floor(duration / (((fill_points * .005) + .025) * 2))
-                # qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
-                # all_points = []
-                # for _ in range(num_tremolos):
-                #     points1 = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent) # (move)
-                #     points2 = ArmListParser.interp_with_blend(qf_encoder_picker, qf_encoder_picker, fill_points, tb_cent) # (fill)
-                #     points3 = ArmListParser.interp_with_blend(qf_encoder_picker, start_pos, 5, tb_cent) # (move)
-                #     points4 = ArmListParser.interp_with_blend(start_pos, start_pos, fill_points, tb_cent) # (fill)
-                #
-                #     all_points.extend(points1)
-                #     all_points.extend(points2)
-                #     all_points.extend(points3)
-                #     all_points.extend(points4)
+                fill_points = min(30, int(30 - (speed - 1) * (25 / 9))) - 10
+                num_tremolos = math.floor(duration / (((fill_points * .005) + .075) * 2))
+                qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
+                all_points = []
+                for _ in range(num_tremolos):
+                    points1 = ArmListParser.interp_with_sine_blend(start_pos, qf_encoder_picker, 15)  # (move)
+                    points2 = ArmListParser.interp_with_sine_blend(qf_encoder_picker, qf_encoder_picker, fill_points)  # (fill)
+                    start_pos = (motorInformation[motor_id][pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
+                    points3 = ArmListParser.interp_with_sine_blend(qf_encoder_picker, start_pos, 15)  # (move)
+                    points4 = ArmListParser.interp_with_sine_blend(start_pos, start_pos, fill_points)  # (fill)
+
+                    all_points.extend(points1)
+                    all_points.extend(points2)
+                    all_points.extend(points3)
+                    all_points.extend(points4)
 
                 events_list.append([all_points,motor_id, timestamp])
 
@@ -1521,5 +1521,11 @@ class ArmListParser:
         scaledAmp = max_amplitude + ((speed - low_speed) / (high_speed - low_speed)) * (min_amplitude - max_amplitude)
         return scaledAmp
 
+    @staticmethod
+    def interp_with_sine_blend(start_pos, end_pos, num_points):
+        t = np.linspace(0, np.pi, num_points)
+        blend = (1 - np.cos(t)) / 2
+        points = (1 - blend) * start_pos + blend * end_pos
 
+        return points
 

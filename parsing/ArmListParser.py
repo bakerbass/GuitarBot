@@ -1019,9 +1019,9 @@ class ArmListParser:
 
         #Add a trace for each motor
         for motor in range(17):
-        # if motor == 14 or motor == 15 or motor == 16:
-            y_values = [values[motor] for values in combined_dict.values()]
-            fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
+            if motor == 12:
+                y_values = [values[motor] for values in combined_dict.values()]
+                fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
 
         # Update layout
         fig.update_layout(
@@ -1048,17 +1048,84 @@ class ArmListParser:
         return interpolated
 
     @staticmethod
+    def parse_chord(chords):
+        # Default chord type and key
+        key = 'n'
+        chord_type = "MAJOR"
+
+        if len(chords) > 1:
+            curr_index = 1
+
+            # Determine whether chord is sharp/natural/flat
+            key = chords[curr_index]
+            if key not in ['#', 'f']:
+                key = 'n'
+            else:
+                curr_index += 1
+
+            # Grab the rest of the chord input
+            remaining_input = chords[curr_index:]
+
+            # Check one-letter notations
+            if len(remaining_input) == 1:
+                chord_types_one_letter = {
+                    'm': "MINOR",
+                    '7': "DOMINANT",
+                    '9': "DOMINANT",
+                    '13': "DOMINANT",
+                    'o': "HALF-DIM",
+                    '5': "FIFTH"
+                }
+                chord_type = chord_types_one_letter.get(remaining_input, chord_type)
+
+            # Check two-letter notations
+            elif len(remaining_input) == 2:
+                chord_types_two_letters = {
+                    "M6": "MAJOR6",
+                    "M7": "MAJOR7",
+                    "M9": "MAJOR9",
+                    "m6": "MINOR6",
+                    "m7": "MINOR7",
+                    "m9": "MINOR9"
+                }
+                chord_type = chord_types_two_letters.get(remaining_input, chord_type)
+
+            # Check three-letter+ notations
+            elif len(remaining_input) >= 3:
+                chord_types_three_letters = {
+                    "sus": "SUS4",
+                    "sus4": "SUS4",
+                    "sus2": "SUS2",
+                    "dim": "DIMINISHED",
+                    "dim7": "DIMINISHED"
+                }
+                chord_type = chord_types_three_letters.get(remaining_input, chord_type)
+
+                # Check for test chord inputs
+                if remaining_input.startswith("TEST"):
+                    test_number = remaining_input[4:]
+                    if test_number.isdigit():
+                        chord_type = f"TEST{test_number}"
+                        print(f"test {test_number} accepted")
+
+        # Read chord from csv
+        note = str.upper(chords[0])
+        frets, command, dtraj, utraj = ArmListParser._get_chords_M("Alternate_Chords.csv", note + key, chord_type)
+
+        return frets, command, dtraj, utraj, note, key, chord_type
+
+    @staticmethod
     def parseleftMIDI(chords):
         lh_events = []
         for curr_chord in chords:
             note = curr_chord[0][0]
-            key = 'n'
-            type = "MAJOR"
             timestamp = curr_chord[1]
             timestamp = round(timestamp * 200) / 200
-            # TODO set up rest of chord parse logic.
 
-            frets, command, dtraj, utraj = ArmListParser._get_chords_M("Alternate_Chords.csv", note + key, type)
+            # Parse the chord
+            chord_input = note + curr_chord[0][1:]
+            frets, command, dtraj, utraj, parsed_note, key, chord_type = ArmListParser.parse_chord(chord_input)
+
             lh_events.append(["LH", [frets, command], timestamp])
 
         lh_motor_positions = []
@@ -1104,14 +1171,14 @@ class ArmListParser:
             rh_events.append(['strum', [direction, 75, add_deflection], timestamp])
             prev_strum = strumType
 
-        # strummer_dict = {
-        #     -45: [-115, 8],  # US
-        #     45: [-15, 10]  # DS
-        # }
-        strummer_dict = { # for testing
+        strummer_dict = {
             -45: [-115, 8],  # US
-            45: [-115, 8]  # DS
+            45: [-15, 10]  # DS
         }
+        # strummer_dict = { # for testing
+        #     -45: [-115, 8],  # US
+        #     45: [-115, 8]  # DS
+        # }
 
         rh_motor_positions = []
         deflections = []
@@ -1180,7 +1247,8 @@ class ArmListParser:
                             assigned = True
 
                     if assigned:
-                        end = timestamp + duration
+                        # end = timestamp + duration
+                        end = timestamp
                         pick_events.append(["pick", [pickerID, note, duration, speed, timestamp]])
                         active_pickers[pickerID] = end
                         last_notes[pickerID] = note
@@ -1199,7 +1267,7 @@ class ArmListParser:
         motorInformation = { # motor_id : [down_pluck mm, up_pluck mm]
             0 : [3, 7, 1024],
             1 : [0, 4, 2048],
-            2 : [4, 8, 2048]
+            2 : [4, 7, 2048]
         }
         for event in pick_events:
             motor_id = event[1][0]
@@ -1265,8 +1333,8 @@ class ArmListParser:
         result = {}
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
             0 : [3.75, 7.5, 1024],
-            1 : [1.50, 4.25, 2048],
-            2: [4, 7.5,  2048]
+            1 : [1, 4, 2048],
+            2: [4, 7,  2048]
         }
         # NEED TO HANDLE SLIDER/PRESSER
         pick_states = [1, 1, 1, 1, 1, 1]  # curr states positions initialized as all 'up'

@@ -1117,11 +1117,11 @@ public:
             if(i >= 15){ //Picker
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
                 if(i == 16){
-                    start_state_PICK = 4.25;
+                    start_state_PICK = 4.0;
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                     }
                 if(i == 17){
-                    start_state_PICK = 7.5;
+                    start_state_PICK = 7.0;
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                 }
 

@@ -35,14 +35,15 @@ def find_lowest_cost_chord(current_fret_positions, filepath, chord_letter, chord
 def _get_chord_voicings_list(filepath, chord_letter, chord_type):
     df_chords = pd.read_csv(filepath)
     chord_possibilities = []
+    debug = df_chords.iloc[350]
     row = 0
 
     # Finds row where first voicing occurs
-    while row < 355 and not (df_chords.iloc[row].iloc[0] == chord_letter and df_chords.iloc[row].iloc[1] == chord_type):
+    while row < 351 and not (df_chords.iloc[row].iloc[0] == chord_letter and df_chords.iloc[row].iloc[1] == chord_type):
         row += 1
 
     # Add all voicings (assumes they're contiguous, allows for stopping early)
-    while row < 355 and df_chords.iloc[row].iloc[0] == chord_letter and df_chords.iloc[row].iloc[1] == chord_type:
+    while row < 351 and df_chords.iloc[row].iloc[0] == chord_letter and df_chords.iloc[row].iloc[1] == chord_type:
         chord_possibilities.append(_chord_from_row(df_chords, row))
         row += 1
     print("ALL CHORD POSSIBILITIES: ", chord_possibilities)

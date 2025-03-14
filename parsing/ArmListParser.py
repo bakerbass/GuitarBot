@@ -1381,15 +1381,15 @@ class ArmListParser:
 
                 # Slowest number of points is .300 seconds between evens  = 60 points
                 # fastest number of points 5 point (25 ms)
-                fill_points = min(30, int(30 - (speed - 1) * (25 / 9))) - 10
-                num_tremolos = math.floor(duration / (((fill_points * .005) + .075) * 2))
+                fill_points = min(30, int(30 - (speed - 1) * (25 / 9))) - 4
+                num_tremolos = math.floor(duration / (((fill_points * .005) + .055) * 2))
                 qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
                 all_points = []
                 for _ in range(num_tremolos):
-                    points1 = ArmListParser.interp_with_sine_blend(start_pos, qf_encoder_picker, 15)  # (move)
+                    points1 = ArmListParser.interp_with_sine_blend(start_pos, qf_encoder_picker, 11)  # (move)
                     points2 = ArmListParser.interp_with_sine_blend(qf_encoder_picker, qf_encoder_picker, fill_points)  # (fill)
                     start_pos = (motorInformation[motor_id][pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
-                    points3 = ArmListParser.interp_with_sine_blend(qf_encoder_picker, start_pos, 15)  # (move)
+                    points3 = ArmListParser.interp_with_sine_blend(qf_encoder_picker, start_pos, 11)  # (move)
                     points4 = ArmListParser.interp_with_sine_blend(start_pos, start_pos, fill_points)  # (fill)
 
                     all_points.extend(points1)

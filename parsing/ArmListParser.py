@@ -401,8 +401,8 @@ class ArmListParser:
         else:
             #print("LAST LH MOTOR POSITION: ", lh_motor_positions[-1], lh_motor_positions[-1][1])
             #print("LAST PICK MOTOR POSITION: ", lh_pick_pos[-1], lh_pick_pos[-1][2])
-            max_timestamp = max(lh_motor_positions[-1][1] + 0.3, lh_pick_pos[-1][2] + .3) # 6
-            #print("Max Timestamp!!!: ", max_timestamp)
+            max_timestamp = max(lh_motor_positions[-1][1] + 0.3, lh_pick_pos[-1][2] + .325) # 6
+
         full_matrix = {}
         for t in np.arange(0, max_timestamp + 0.005, 0.005):
             full_matrix[round(t, 3)] = [100000] * 12  # 12 zeros for 12 motors
@@ -444,8 +444,12 @@ class ArmListParser:
         full_LH.sort(key=lambda x: x['timestamp'])
         #print("FULL LH MATRIX SORTED: ", full_LH)
         full_matrix[0] = initial_point
-        for event in full_LH:
+        prev_type = None
+        prev_position = None
+        prev_motor_id = None
+        for i,event in enumerate(full_LH):
             timestamp = round(event['timestamp'], 3)
+
             if timestamp in full_matrix:
                 if event['type'] == 'chord':
                     points = []
@@ -507,6 +511,11 @@ class ArmListParser:
 
 
                 elif event['type'] == 'note':
+                    num_points_note = 25
+                    current_type = event['type']
+                    current_motor_id = event['motor_id']
+                    current_position = event['position']
+
                     slider_points = []
                     presser_points = []
                     motor_index = event['motor_id']
@@ -521,19 +530,30 @@ class ArmListParser:
                     if int(event['position']) == -1: # open string
                         qf_slider = q0_slider_motor
                         qf_presser = -10
+                    if prev_type == 'chord' or not(current_type == prev_type and prev_position == current_position and prev_motor_id == current_motor_id): # If the prior is not the same MIDI note
+                        print("DIFFERENT NOTE")
+                        s1 = ArmListParser.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
+                        p1 = ArmListParser.interp_with_blend(q0_presser_motor, -10, num_points, tb_cent)
+                        slider_points.extend(s1)
+                        presser_points.extend(p1)
 
-                    s1 = ArmListParser.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
-                    p1 = ArmListParser.interp_with_blend(q0_presser_motor, -10, num_points, tb_cent)
-                    slider_points.extend(s1)
-                    presser_points.extend(p1)
-                    s2 = ArmListParser.interp_with_blend(q0_slider_motor, qf_slider, num_points, tb_cent)
-                    p2 = ArmListParser.interp_with_blend(-10, -10, num_points, tb_cent)
-                    slider_points.extend(s2)
-                    presser_points.extend(p2)
-                    s3 = ArmListParser.interp_with_blend(qf_slider, qf_slider, num_points, tb_cent)
-                    p3 = ArmListParser.interp_with_blend(-10, qf_presser, num_points, tb_cent)
-                    slider_points.extend(s3)
-                    presser_points.extend(p3)
+                        s2 = ArmListParser.interp_with_blend(q0_slider_motor, qf_slider, num_points_note, tb_cent)
+                        p2 = ArmListParser.interp_with_blend(-10, -10, num_points, tb_cent)
+                        slider_points.extend(s2)
+                        presser_points.extend(p2)
+
+                        s3 = ArmListParser.interp_with_blend(qf_slider, qf_slider, num_points, tb_cent)
+                        p3 = ArmListParser.interp_with_blend(-10, qf_presser, num_points, tb_cent)
+                        slider_points.extend(s3)
+                        presser_points.extend(p3)
+
+                    else: # Same note back to back
+                        print("Same NOTE")
+                        s3 = ArmListParser.interp_with_blend(q0_slider_motor, qf_slider, num_points_note, tb_cent)
+                        p3 = ArmListParser.interp_with_blend(q0_presser_motor, qf_presser, num_points, tb_cent)
+                        slider_points.extend(s3)
+                        presser_points.extend(p3)
+
                     curr_t = timestamp
                     for curr_p in slider_points:
                         full_matrix[curr_t][slider_motor_ID] = copy.deepcopy(curr_p)
@@ -545,6 +565,14 @@ class ArmListParser:
 
                     current_encoder_position[slider_motor_ID] = s3[-1]
                     current_encoder_position[presser_motor_ID] = p3[-1]
+
+                    # Update previous note values
+                    prev_type = event["type"]
+                    prev_position = event["position"]
+                    prev_motor_id = event["motor_id"]
+
+
+
 
         # Fill in gaps
         prev_values = initial_point.copy()
@@ -956,7 +984,7 @@ class ArmListParser:
         return lh_interpolated_dictionary, rh_interpolated_dictionary, pick_interpolated_dictionary
 
     @staticmethod
-    def parseAllMIDI(chords, strum, pluck, initial_point):
+    def parseAllMIDI(chords, strum, pluck, initial_point, graph = False):
         #Initialize full dictionary
         allpoints = {}
         #Dictionaries for LH and RH
@@ -1014,24 +1042,25 @@ class ArmListParser:
         for key, value in combined_dict.items():
             print(f"{i}| {key} : {value}")
             i += 1
+        if graph:
+            fig = go.Figure()
 
-        fig = go.Figure()
+            #Add a trace for each motor
+            for motor in range(17):
+                # if motor > 13:
+                    y_values = [values[motor] for values in combined_dict.values()]
+                    fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
 
-        #Add a trace for each motor
-        for motor in range(17):
-                y_values = [values[motor] for values in combined_dict.values()]
-                fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))
+            # Update layout
+            fig.update_layout(
+                title='Motor Positions Over Time',
+                xaxis_title='Timestamp',
+                yaxis_title='Motor Position',
+                legend_title='Motors'
+            )
 
-        # Update layout
-        fig.update_layout(
-            title='Motor Positions Over Time',
-            xaxis_title='Timestamp',
-            yaxis_title='Motor Position',
-            legend_title='Motors'
-        )
-
-        # Show the plot
-        fig.show()
+            # Show the plot
+            fig.show()
 
         return combined_dict
 
@@ -1217,7 +1246,7 @@ class ArmListParser:
         # ]
         string_ranges = [ # for plucker prototype 1
             (40, 49),  # String 1
-            (50, 59),  # String 3
+            (50, 58),  # String 3
             (59, 68),  # String 5
         ]
 
@@ -1332,7 +1361,7 @@ class ArmListParser:
         result = {}
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
             0 : [3.75, 7.5, 1024],
-            1 : [-2.0, 1.5, 2048],
+            1 : [-3.0, 1.3, 2048],
             2: [4.5, 8,  2048]
         }
         # NEED TO HANDLE SLIDER/PRESSER
@@ -1342,7 +1371,6 @@ class ArmListParser:
         lh_pick_events = []
 
         for event in pick_events:
-            print("PICKSSS: ", event)
             picker_actions, timestamp = event[0], event[1]
             event_points = [0]
             motor_id, note, qf_encoder_picker, duration, speed = event[0]
@@ -1355,7 +1383,7 @@ class ArmListParser:
                 pick_states[motor_id] = not pick_states[motor_id]
                 qf_encoder_picker = (motorInformation[motor_id][pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
 
-                all_points = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 5, tb_cent)
+                all_points = ArmListParser.interp_with_blend(start_pos, qf_encoder_picker, 11, tb_cent)
                 # print("pluck on ", motor_id, " ", timestamp, " ", duration)
                 events_list.append([all_points, motor_id, timestamp])
             else:
@@ -1370,11 +1398,11 @@ class ArmListParser:
                 # print("Vertical Shift: ", vert_shift)
                 #
                 # max_amp = abs((max_encoder - min_encoder))/2  # Default: 218 for picker 1
-                # min_amp = max_amp * 0.5
+                # min_amp = max_amp * 0.80
                 # #min amplitude for picker 1 needed is 225
                 # # Amplitude Scaling
                 # #amp = ArmListParser.scaleAmplitude(max_amp, min_amp, speed) #TODO: Double Check amplitude calculation
-                # amp = max_amp
+                # amp = min_amp
                 # print("Amplitude", amp)
                 #
                 # all_points = ArmListParser.maketremolo(vert_shift, amp, duration, speed, pick_states[motor_id])
@@ -1386,10 +1414,14 @@ class ArmListParser:
                 qf_encoder_picker = (motorInformation[motor_id][not pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
                 all_points = []
                 for _ in range(num_tremolos):
-                    points1 = ArmListParser.interp_with_sine_blend(start_pos, qf_encoder_picker, 11)  # (move)
+                    # 11 is a good value for all
+                    # Changing it too much conflicts with fill points for speed
+                    num_points = 11
+                    print("num_points: ", num_points)
+                    points1 = ArmListParser.interp_with_sine_blend(start_pos, qf_encoder_picker, num_points)  # (move)
                     points2 = ArmListParser.interp_with_sine_blend(qf_encoder_picker, qf_encoder_picker, fill_points)  # (fill)
                     start_pos = (motorInformation[motor_id][pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
-                    points3 = ArmListParser.interp_with_sine_blend(qf_encoder_picker, start_pos, 11)  # (move)
+                    points3 = ArmListParser.interp_with_sine_blend(qf_encoder_picker, start_pos, num_points)  # (move)
                     points4 = ArmListParser.interp_with_sine_blend(start_pos, start_pos, fill_points)  # (fill)
 
                     all_points.extend(points1)
@@ -1414,7 +1446,7 @@ class ArmListParser:
             # ]
             string_ranges = [  # for plucker prototype 1
                 (40, 49, -1),  # String 1
-                (50, 59, 1),  # String 3
+                (50, 58, 1),  # String 3
                 (59, 68, -1),  # String 5
             ]
 

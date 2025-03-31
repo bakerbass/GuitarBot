@@ -391,17 +391,17 @@ class ArmListParser:
         return curve
 
     @staticmethod
-    def lh_interpolate(lh_motor_positions, lh_pick_pos, initial_point, num_points=20, tb_cent=0.2, plot=False):
+    def lh_interpolate(lh_motor_positions, lh_pick_pos, initial_point, num_points=40, tb_cent=0.2, plot=False):
         # initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
         #print("lh_pick_pos: ", lh_pick_pos)
         initial_point = initial_point[0:12]
         current_encoder_position = []
         if not lh_pick_pos:
-            max_timestamp = lh_motor_positions[-1][1] + 0.3
+            max_timestamp = lh_motor_positions[-1][1] + 0.6
         else:
             #print("LAST LH MOTOR POSITION: ", lh_motor_positions[-1], lh_motor_positions[-1][1])
             #print("LAST PICK MOTOR POSITION: ", lh_pick_pos[-1], lh_pick_pos[-1][2])
-            max_timestamp = max(lh_motor_positions[-1][1] + 0.3, lh_pick_pos[-1][2] + .325) # 6
+            max_timestamp = max(lh_motor_positions[-1][1] + 0.6, lh_pick_pos[-1][2] + .325) # 6
 
         full_matrix = {}
         for t in np.arange(0, max_timestamp + 0.005, 0.005):

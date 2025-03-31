@@ -141,8 +141,9 @@ public:
     // Set target position through PDO. Uses RPDO 3 - object 2
     int PDO_setPosition(int32_t position);
     int PDO_rotate(float fAngle, bool bRadian = true);
-    // Set target velocity through PDO. Uses RPDO 4 - object 2
-    int PDO_setTorque(int32_t iTorque);
+    // Set target torque through PDO. Uses RPDO 4 - object 2
+    int PDO_setTorque(int16_t iTorque);
+    int readTargetTorque(int16_t* targetTorque);
 
     int setRxMsg(can_message_t& msg);
     void handleEMCYMsg(can_message_t& msg);

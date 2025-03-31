@@ -1173,7 +1173,7 @@ public:
             }
             else
             {
-                Util::fill(temp_traj_3, 100, q0);
+                Util::interpWithBlend(q0, 300, 100, .05, temp_traj_3);
                 int index = 0;
                 for (int x = 0; x < 100; x++) {
                     all_Trajs[i - 1][index++] = temp_traj_3[x];
@@ -1219,6 +1219,8 @@ public:
         m_bPlaying = true;
         RPDOTimer.start();
         // faultClearTimer.start();
+        delay(1000);
+
     }
 
 
@@ -1245,14 +1247,20 @@ public:
     Error_t enablePDO(bool bEnable = true) {
         Error_t err;
         for (int i = 1; i < NUM_MOTORS + 1; ++i) {
-            err = m_striker[i].enablePDO(bEnable);
-            LOG_LOG("Enabling PDO for motor %i", i);
+            if(i > 6 && i < 13){
+                err = m_striker[i].enablePDOEC20(bEnable);
+                LOG_LOG("Enabling PDO for torque motor %i", i);
+            }
+            else{
+                err = m_striker[i].enablePDO(bEnable);
+                LOG_LOG("Enabling PDO for motor %i", i);
+            }
+
             delay(100);
             if (err != kNoError) {
                 LOG_ERROR("EnablePDO failed. Error Code %i", err);
                 return err;
             }
-
         }
         return kNoError;
     }
@@ -1461,8 +1469,14 @@ private:
         idx += 1;
         if (run_bot){
                 // drive actuators here...
-                for (int i = 1; i < NUM_MOTORS + 1; ++i)
-                pInstance->m_striker[i].rotate(point[i - 1]);
+                for (int i = 1; i < NUM_MOTORS + 1; ++i){
+                    if(i > 6 && i < 13){
+                        pInstance->m_striker[i].applyTorque(point[i - 1]);
+                    }
+                    else{
+                        pInstance->m_striker[i].rotate(point[i - 1]);
+                    }
+                }
         }
 
         // Set sendRequest flag if total trajectory time is less than the buffer time.

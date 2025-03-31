@@ -76,6 +76,10 @@ public:
         epos.PDO_setPosition(pos);
     }
 
+    void applyTorque(int pos){
+        epos.PDO_setTorque(pos);
+    }
+
 
     void reset() {
         epos.reset();
@@ -244,6 +248,9 @@ public:
             LOG_ERROR("Error setting torque");
         }
     }
+    void readTorque(int16_t* torque){
+        epos.readTargetTorque(torque);
+    }
 
     uint8_t getNodeId() const {
         if (!m_bInitialized) return 0;
@@ -327,7 +334,7 @@ public:
         int err = 0;
 
         if (bEnable) {
-            err = epos.setOpMode(OpMode::CyclicSyncPosition);
+            err = epos.setOpMode(OpMode::CyclicSyncTorque);
             err = epos.setNMTState(NMTState::Operational);
         } else {
             err = epos.setNMTState(NMTState::PreOperational);
@@ -388,6 +395,7 @@ public:
         m_iTremoloStartIdx = 0;
         m_iEndIdx = MAX_TRAJ_POINTS;
     }
+
 
     void checkAndRecover() {
         // This function uses SDO (very expensive). 

@@ -1579,7 +1579,6 @@ int Epos4::PDO_config() {
     }
 
     return kNoError;
-    // return PDO_configRPDO4();
 }
 
 int Epos4::PDO_configRPDO3() {
@@ -1647,7 +1646,7 @@ int Epos4::PDO_configRPDO4() {
         return err;
     }
 
-    // Set RPDO3 transmission type to Asynchronous
+    // Set RPDO4 transmission type to Asynchronous
     err = writeObj(0x1403, 0x02, 255);
     if (err != 0) {
         LOG_ERROR("Set transmission type failed for RPDO4. Error code: %h", m_uiError);
@@ -1675,7 +1674,7 @@ int Epos4::PDO_configRPDO4() {
          return err;
      }
 
-     err = writeObj(0x1603, 0x02, 0x60710020);   // Torque
+     err = writeObj(0x1603, 0x02, 0x60710010);   // Torque
      if (err != 0) {
          LOG_ERROR("write to 0x02 failed for RPDO4. Error code: %h", m_uiError);
          return err;
@@ -1759,13 +1758,36 @@ int Epos4::PDO_setPosition(int32_t position) {
     m_iEncoderPosition = position;
     return 0;
 }
+int Epos4::readTargetTorque(int16_t* targetTorque) {
+    // Ensure the pointer is valid
+    if (!targetTorque) {
+        LOG_ERROR("Invalid pointer for Target Torque.");
+        return -1;
+    }
+
+    // Declare a variable to hold the response
+    _DWORD response;
+
+    // Read object 0x6071:0 (Target Torque)
+    int err = readObj(0x6071, 0x00, &response);
+    if (err != 0) {
+        LOG_ERROR("Failed to read Target Torque. Error code: %h", m_uiError);
+        return err;
+    }
+
+    // Extract the 16-bit torque value from the response
+    *targetTorque = static_cast<int16_t>(response & 0xFFFF);
+
+    LOG_LOG("Target Torque: %i", *targetTorque);
+    return 0;
+}
 
 int Epos4::PDO_rotate(float fAngle, bool bRadian) {
     int32_t pos = angle2Pos(fAngle, bRadian);
     return PDO_setPosition(pos);
 }
 
-int Epos4::PDO_setTorque(int32_t iTorque) {
+int Epos4::PDO_setTorque(int16_t iTorque) {
     // Torque is a percentage given in parts per 1000. For example, setting 500 is 50% of maximum torque rating.
     uint8_t LSB = 0x0F;
     if (m_bFault)
@@ -1773,14 +1795,15 @@ int Epos4::PDO_setTorque(int32_t iTorque) {
 
     m_txMsg.id = COB_ID_RPDO4 + m_uiNodeID;
     m_txMsg.format = CAN_STD_FORMAT;
-    m_txMsg.length = 6;
+    m_txMsg.length = 4;
     m_txMsg.data[0] = LSB;  // cw set to enable and switch on. Clear fault if present
     m_txMsg.data[1] = 0x0;
     m_txMsg.data[2] = (uint8_t) (iTorque & 0xFF);
     m_txMsg.data[3] = (uint8_t) ((iTorque >> 8) & 0xFF);
-    m_txMsg.data[4] = (uint8_t) ((iTorque >> 16) & 0xFF);
-    m_txMsg.data[5] = (uint8_t) ((iTorque >> 24) & 0xFF);
+//    m_txMsg.data[4] = (uint8_t) ((iTorque >> 16) & 0xFF);
+//    m_txMsg.data[5] = (uint8_t) ((iTorque >> 24) & 0xFF);
     int n = CanBus.writeMessage(&m_txMsg);
+    //LOG_LOG("SETTING TORQUE");
 
     if (n != m_txMsg.length) {
         LOG_ERROR("CanBus write msg failed.");

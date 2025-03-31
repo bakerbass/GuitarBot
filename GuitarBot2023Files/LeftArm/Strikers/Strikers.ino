@@ -62,9 +62,10 @@ void setup() {
     delay(1000);
     LOG_LOG("Successfully Initialized! Controller Starting....");
     pController->start();
-    delay(1000);
 
     LOG_LOG("Listening for commands...");
+    delay(60000);
+    
 }
 
 void loop() {

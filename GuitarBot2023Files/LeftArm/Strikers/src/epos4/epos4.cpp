@@ -1573,6 +1573,10 @@ int Epos4::PDO_config() {
     if (err != 0) {
         LOG_ERROR("Failed to configure RPDO3. Error code: %h", m_uiError);
     }
+    err = PDO_configRPDO4();
+    if (err != 0) {
+        LOG_ERROR("Failed to configure RPDO4. Error code: %h", m_uiError);
+    }
 
     return kNoError;
     // return PDO_configRPDO4();
@@ -1633,6 +1637,7 @@ int Epos4::PDO_configRPDO3() {
 }
 
 int Epos4::PDO_configRPDO4() {
+    // Configured for setting torque
     int err;
 
     // Set COB ID for RPDO4
@@ -1657,31 +1662,31 @@ int Epos4::PDO_configRPDO4() {
     */
 
     // // Write the value “0” (zero) to subindex 0x00 (disable PDO).
-    // err = writeObj(0x1603, 0x00, 0);
-    // if (err != 0) {
-    //     LOG_ERROR("write zero to 0x00 failed for RPDO4. Error code: %h", m_uiError);
-    //     return err;
-    // }
+     err = writeObj(0x1603, 0x00, 0);
+     if (err != 0) {
+         LOG_ERROR("write zero to 0x00 failed for RPDO4. Error code: %h", m_uiError);
+         return err;
+     }
 
     // // Modify the desired objects in subindex 0x01…0x0n.
-    // err = writeObj(0x1603, 0x01, 0x60810020);   // Velocity
-    // if (err != 0) {
-    //     LOG_ERROR("write to 0x01 failed for RPDO4. Error code: %h", m_uiError);
-    //     return err;
-    // }
+     err = writeObj(0x1603, 0x01, 0x60400010);   // Controlword
+     if (err != 0) {
+         LOG_ERROR("write to 0x01 failed for RPDO4. Error code: %h", m_uiError);
+         return err;
+     }
 
-    // err = writeObj(0x1603, 0x02, 0x60830020);   // Acceleration
-    // if (err != 0) {
-    //     LOG_ERROR("write to 0x02 failed for RPDO4. Error code: %h", m_uiError);
-    //     return err;
-    // }
+     err = writeObj(0x1603, 0x02, 0x60710020);   // Torque
+     if (err != 0) {
+         LOG_ERROR("write to 0x02 failed for RPDO4. Error code: %h", m_uiError);
+         return err;
+     }
 
     // // Write the desired number of mapped objects to subindex 0x00.
-    // err = writeObj(0x1603, 0x00, 2);
-    // if (err != 0) {
-    //     LOG_ERROR("write length failed for RPDO4. Error code: %h", m_uiError);
-    //     return err;
-    // }
+     err = writeObj(0x1603, 0x00, 2);
+     if (err != 0) {
+         LOG_ERROR("write length failed for RPDO4. Error code: %h", m_uiError);
+         return err;
+     }
 
     return 0;
 }
@@ -1760,8 +1765,8 @@ int Epos4::PDO_rotate(float fAngle, bool bRadian) {
     return PDO_setPosition(pos);
 }
 
-int Epos4::PDO_setVelocity(int32_t iVelocity) {
-    iVelocity = iVelocity * m_iDirMultiplier;
+int Epos4::PDO_setTorque(int32_t iTorque) {
+    // Torque is a percentage given in parts per 1000. For example, setting 500 is 50% of maximum torque rating.
     uint8_t LSB = 0x0F;
     if (m_bFault)
         LSB = 0x8F;
@@ -1771,10 +1776,10 @@ int Epos4::PDO_setVelocity(int32_t iVelocity) {
     m_txMsg.length = 6;
     m_txMsg.data[0] = LSB;  // cw set to enable and switch on. Clear fault if present
     m_txMsg.data[1] = 0x0;
-    m_txMsg.data[2] = (uint8_t) (iVelocity & 0xFF);
-    m_txMsg.data[3] = (uint8_t) ((iVelocity >> 8) & 0xFF);
-    m_txMsg.data[4] = (uint8_t) ((iVelocity >> 16) & 0xFF);
-    m_txMsg.data[5] = (uint8_t) ((iVelocity >> 24) & 0xFF);
+    m_txMsg.data[2] = (uint8_t) (iTorque & 0xFF);
+    m_txMsg.data[3] = (uint8_t) ((iTorque >> 8) & 0xFF);
+    m_txMsg.data[4] = (uint8_t) ((iTorque >> 16) & 0xFF);
+    m_txMsg.data[5] = (uint8_t) ((iTorque >> 24) & 0xFF);
     int n = CanBus.writeMessage(&m_txMsg);
 
     if (n != m_txMsg.length) {

@@ -142,7 +142,7 @@ public:
     int PDO_setPosition(int32_t position);
     int PDO_rotate(float fAngle, bool bRadian = true);
     // Set target velocity through PDO. Uses RPDO 4 - object 2
-    int PDO_setVelocity(int32_t iVelocity);
+    int PDO_setTorque(int32_t iTorque);
 
     int setRxMsg(can_message_t& msg);
     void handleEMCYMsg(can_message_t& msg);

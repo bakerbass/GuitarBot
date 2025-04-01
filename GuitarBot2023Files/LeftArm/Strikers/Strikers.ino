@@ -64,7 +64,6 @@ void setup() {
     pController->start();
 
     LOG_LOG("Listening for commands...");
-    delay(60000);
     
 }
 

@@ -340,7 +340,7 @@ class ArmListParser:
             encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
-        presser_encoder_values = [-10, 38, 23]
+        presser_encoder_values = [-10, 350, 200]
         for events in lh_events:
             # for lh_events[1][0] AND for lh_events[1][1]
             # convert from fret position/finger position to encoder tick position respectively
@@ -391,7 +391,7 @@ class ArmListParser:
         return curve
 
     @staticmethod
-    def lh_interpolate(lh_motor_positions, lh_pick_pos, initial_point, num_points=40, tb_cent=0.2, plot=False):
+    def lh_interpolate(lh_motor_positions, lh_pick_pos, initial_point, num_points=20, tb_cent=0.2, plot=False):
         # initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
         #print("lh_pick_pos: ", lh_pick_pos)
         initial_point = initial_point[0:12]
@@ -464,7 +464,7 @@ class ArmListParser:
 
                     interpolated_points_1 = list(map(list, zip(*interpolated_values_1)))
                     interpolated_values_2 = [
-                        ArmListParser.interp_with_blend(curr_pos[i + 6], -10, num_points, tb_cent)
+                        ArmListParser.interp_with_blend(curr_pos[i + 6], -100, num_points, tb_cent)
                         for i in range(len(target_positions_presser))
                     ]
                     interpolated_points_2 = list(map(list, zip(*interpolated_values_2)))
@@ -480,7 +480,7 @@ class ArmListParser:
                     ]
                     interpolated_points_3 = list(map(list, zip(*interpolated_values_3)))
                     interpolated_values_4 = [
-                        ArmListParser.interp_with_blend(-10, -10, num_points, tb_cent)  # Change to fill later
+                        ArmListParser.interp_with_blend(-100, -100, num_points, tb_cent)  # Change to fill later
                         for i in range(len(target_positions_presser))
                     ]
                     interpolated_points_4 = list(map(list, zip(*interpolated_values_4)))
@@ -496,7 +496,7 @@ class ArmListParser:
                     ]
                     interpolated_points_5 = list(map(list, zip(*interpolated_values_5)))
                     interpolated_values_6 = [
-                        ArmListParser.interp_with_blend(-10, target_positions_presser[i], num_points, tb_cent)
+                        ArmListParser.interp_with_blend(-100, target_positions_presser[i], num_points, tb_cent)
                         for i in range(len(target_positions_presser))
                     ]
                     interpolated_points_6 = list(map(list, zip(*interpolated_values_6)))
@@ -526,10 +526,10 @@ class ArmListParser:
                     # q0_presser_motor = current_encoder_position[motor_index + 6] # For all motors
                     q0_presser_motor = current_encoder_position[presser_motor_ID] # CHANGE ME LATER FOR ALL MOTORS
                     qf_slider = int(event['position'])
-                    qf_presser = 40
+                    qf_presser = 500
                     if int(event['position']) == -1: # open string
                         qf_slider = q0_slider_motor
-                        qf_presser = -10
+                        qf_presser = -200
                     if prev_type == 'chord' or not(current_type == prev_type and prev_position == current_position and prev_motor_id == current_motor_id): # If the prior is not the same MIDI note
                         print("DIFFERENT NOTE")
                         s1 = ArmListParser.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
@@ -1165,7 +1165,7 @@ class ArmListParser:
             encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
-        presser_encoder_values = [-10, 40, 30]
+        presser_encoder_values = [-150, 500, 200]
         # presser_encoder_values = [-10, -10, -10] # for testing
         for events in lh_events:
             # for lh_events[1][0] AND for lh_events[1][1]

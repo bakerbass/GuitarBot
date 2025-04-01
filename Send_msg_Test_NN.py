@@ -27,7 +27,7 @@ pluck_message =  [[50, 1, 5, 0]]
 # Testing multiple phrases
 # chords_message = [["On", 3]]
 # strum_message =  [["UP", 0]]
-# pluck_message = [[55, .5, 10, 1]]
+# pluck_message = [[55, .5, 10, 1], [50, .5, 10, 2]]
 
 #
 # chords_message_2 = [["On", 2]]

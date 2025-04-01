@@ -1173,7 +1173,7 @@ public:
             }
             else
             {
-                Util::interpWithBlend(q0, 300, 100, .05, temp_traj_3);
+                Util::interpWithBlend(q0, -1, 100, .05, temp_traj_3);
                 int index = 0;
                 for (int x = 0; x < 100; x++) {
                     all_Trajs[i - 1][index++] = temp_traj_3[x];

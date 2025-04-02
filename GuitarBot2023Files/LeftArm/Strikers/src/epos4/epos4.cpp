@@ -1721,12 +1721,14 @@ int Epos4::PDO_processMsg(can_message_t& msg) {
         callbackEncPos = m_iEncoderPosition;
         // LOG_LOG("Encoder position: %i", m_iEncoderPosition);
     }
+//    LOG_LOG("PDO MESSAGE TRANSMIT");
+//    LOG_LOG("%i",m_iEncoderPosition);
 
     m_bFault = (m_uiCurrentStatusWord & (1 << 3));
 
-    if (m_bFault || m_uiError != 0x0000) {
-        LOG_WARN("status: %h - Fault detected in node %i. Error (%h): %s", m_uiCurrentStatusWord, m_uiNodeID, m_uiError, getDeviceError(m_uiError));
-    }
+//    if (m_bFault || m_uiError != 0x0000) {
+//        LOG_WARN("status: %h - Fault detected in node %i. Error (%h): %s", m_uiCurrentStatusWord, m_uiNodeID, m_uiError, getDeviceError(m_uiError));
+//    }
 
     return 0;
 }

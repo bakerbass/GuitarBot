@@ -559,6 +559,7 @@ public:
     void processTrajPoints(float *trajPoint)
     {
         int packetSize = 15;
+        int curr_pos;
         Serial.print("RECEIVED: ");
         for(int i = 0; i<packetSize; i++)
         {
@@ -570,7 +571,20 @@ public:
         for(int x = 0; x < NUM_MOTORS; x++){
             if(x < 17)
             {
-                all_Trajs[x][0] = trajPoint[x];
+                if(x > 5 && x < 12){
+                    curr_pos = m_striker[x + 1].getPosition_ticks();
+                    Serial.println("CURR POS");
+                    Serial.println(curr_pos);
+                    if(curr_pos <= 0 && trajPoint[x] < 0){
+                        all_Trajs[x][0] = 0;
+                    }
+                    else{
+                        all_Trajs[x][0] = trajPoint[x];
+                    }
+                }
+                else{
+                    all_Trajs[x][0] = trajPoint[x];
+                }
             }
 //            else if(x == 14 || x == 15) // picker set to default number for now
 //            {
@@ -1117,11 +1131,11 @@ public:
             if(i >= 15){ //Picker
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
                 if(i == 16){
-                    start_state_PICK = 1.3;
+                    start_state_PICK = 3.5;
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                     }
                 if(i == 17){
-                    start_state_PICK = 8;
+                    start_state_PICK = 7;
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                 }
 
@@ -1215,10 +1229,11 @@ public:
             LOG_ERROR("cannot enable Strikers");
             return;
         }
+        CanBus.attachRxInterrupt(canRxHandle);
 
         m_bPlaying = true;
         RPDOTimer.start();
-        // faultClearTimer.start();
+        //faultClearTimer.start();
         delay(1000);
 
     }
@@ -1371,23 +1386,23 @@ private:
 //    }
 
     static void canRxHandle(can_message_t* arg) {
-        auto id = arg->id - COB_ID_SDO_SC;
-        if (id > 0 && id < NUM_MOTORS + 1) {
-            //LOG_LOG("controller %i, if statement 1", id);
+        // Mask extended ID bits for standard format
+        uint32_t rawId = arg->id & 0x7FF;  // Keep only 11-bit standard ID
+
+        auto id = rawId - (COB_ID_SDO_SC & 0x7FF);
+        if (id > 0 && id <= NUM_MOTORS) {  // Use <= for 1-based indexing
             pInstance->m_striker[id].setRxMsg(*arg);
         }
 
-        id = arg->id - COB_ID_TPDO3;
-        if (id > 0 && id < NUM_MOTORS + 1) {
-            //LOG_LOG("controller %i, if statement 2", id);
+        Serial.println(id);
+        if (id > 0 && id <= NUM_MOTORS + 1) {
             pInstance->m_striker[id].PDO_processMsg(*arg);
         }
 
-        id = arg->id - COB_ID_EMCY;
-        if (id > 0 && id < NUM_MOTORS + 1) {
-            //LOG_LOG("controller %i, if statement 3", id);
-            pInstance->m_striker[id].handleEMCYMsg(*arg);
-        }
+//        id = rawId - (COB_ID_EMCY & 0x7FF);
+//        if (id > 0 && id <= NUM_MOTORS) {
+//            pInstance->m_striker[id].handleEMCYMsg(*arg);
+//        }
     }
 
     static void RPDOTimerIRQHandler() {

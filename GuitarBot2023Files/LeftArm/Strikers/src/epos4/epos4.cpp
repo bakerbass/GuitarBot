@@ -1789,6 +1789,16 @@ int Epos4::PDO_rotate(float fAngle, bool bRadian) {
     return PDO_setPosition(pos);
 }
 
+int Epos4::PDO_readPosition() {
+    can_message_t msg;
+    if (CanBus.readMessage(COB_ID_TPDO3 + m_uiNodeID, &msg) == msg.length);
+
+
+
+
+}
+
+
 int Epos4::PDO_setTorque(int16_t iTorque) {
     // Torque is a percentage given in parts per 1000. For example, setting 500 is 50% of maximum torque rating.
     uint8_t LSB = 0x0F;

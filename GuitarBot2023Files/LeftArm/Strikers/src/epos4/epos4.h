@@ -77,7 +77,7 @@ public:
     // Refer: FW Spec 6.2.101
     int getOpMode(OpMode* opMode = nullptr, char* sOpMode = nullptr);
     char* getOpModeString(OpMode mode) const;
-
+    int sendRTR();
     // Write
     int setOpMode(OpMode opMode, uint8_t uiInterpolationTime = PDO_RATE, int8_t iInterpolationIndex = -3, HomingMethod homingMethod = CurrentThresholdNegative);
 

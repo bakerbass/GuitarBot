@@ -572,10 +572,7 @@ public:
             if(x < 17)
             {
                 if(x > 5 && x < 12){
-                    curr_pos = m_striker[x + 1].getPosition_ticks();
-                    Serial.println("CURR POS");
-                    Serial.println(curr_pos);
-                    if(curr_pos <= 0 && trajPoint[x] < 0){
+                    if(trajPoint[x] == -200){
                         all_Trajs[x][0] = 0;
                     }
                     else{

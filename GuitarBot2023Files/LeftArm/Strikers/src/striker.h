@@ -69,7 +69,7 @@ public:
         return epos.getCurrentPosition_deg();
     }
     float getPosition_ticks(){
-        return epos.getCurrentPosition_ticks();
+        return 0;
     }
 
     void rotate(int pos){

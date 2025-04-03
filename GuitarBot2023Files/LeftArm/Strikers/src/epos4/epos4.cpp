@@ -818,6 +818,14 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
             LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
             return -1;
         }
+
+        // Set Software minimum position
+//        err = writeObj(0x607D, 0x1, 10000);
+//        if (err != 0) {
+//            LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
+//            return -1;
+//        }
+
     }
 
     // Refer App notes -> 7.6
@@ -1544,6 +1552,23 @@ int Epos4::setNMTState(NMTState nmtState) {
     m_currentNMTState = nmtState;
     return 0;
 }
+int Epos4::sendRTR() {
+    can_message_t rtrMsg;
+    rtrMsg.id = (COB_ID_TPDO3 + m_uiNodeID) | 0x40000000;
+    rtrMsg.format = CAN_STD_FORMAT;
+    rtrMsg.length = 4; // Match TPDO3's expected data length (4 bytes for position data)
+    //LOG_LOG("SENDING RTR");
+
+    int n = CanBus.writeMessage(&rtrMsg);
+    if (n != 0) {
+        LOG_ERROR("Failed to send RTR request");
+        return -1;
+    }
+    return 0;
+}
+
+
+
 
 int Epos4::PDO_config() {
     int err;
@@ -1567,6 +1592,28 @@ int Epos4::PDO_config() {
     if (err != 0) {
         LOG_ERROR("Set transmission type failed. Error code: %h", m_uiError);
     }
+    // // Write the value “0” (zero) to subindex 0x00 (disable PDO).
+    err = writeObj(0x1A02, 0x00, 0);
+    if (err != 0) {
+        LOG_ERROR("write zero to 0x00 failed for TPDO3. Error code: %h", m_uiError);
+        return err;
+    }
+
+    err = writeObj(0x1A02, 0x01, 0x60410010);
+    if (err != 0) {
+        LOG_ERROR("Set Statusword Failed for TPDO3. Error code: %h", m_uiError);
+        return err;
+    }
+    err = writeObj(0x1A02, 0x02, 0x60640020);
+    if (err != 0) {
+        LOG_ERROR("Set Actual Position Failed for TPDO3. Error code: %h", m_uiError);
+        return err;
+    }
+    err = writeObj(0x1A02, 0x00, 2);
+    if (err != 0) {
+        LOG_ERROR("Set number of mapped variables failed for TPDO3. Error code: %h", m_uiError);
+        return err;
+    }
 
     /********** RPDO stuffs **********/
     err = PDO_configRPDO3();
@@ -1580,6 +1627,9 @@ int Epos4::PDO_config() {
 
     return kNoError;
 }
+
+
+
 
 int Epos4::PDO_configRPDO3() {
     int err;
@@ -1717,11 +1767,11 @@ int Epos4::PDO_processMsg(can_message_t& msg) {
     m_iEncoderPosition = (((msg.data[5] & 0xFF) << 24) + ((msg.data[4] & 0xFF) << 16) + ((msg.data[3] & 0xFF) << 8) + msg.data[2]) * m_iDirMultiplier;
     m_uiError = ((msg.data[7] & 0xFF) << 8) + msg.data[6];
     // Callback only when the encoder value changes more than a threshold
-    if (abs(m_iEncoderPosition - callbackEncPos) > CALLBACK_ENC_THRESHOLD) {
-        callbackEncPos = m_iEncoderPosition;
-        // LOG_LOG("Encoder position: %i", m_iEncoderPosition);
-    }
-//    LOG_LOG("PDO MESSAGE TRANSMIT");
+//    if (abs(m_iEncoderPosition - callbackEncPos) > CALLBACK_ENC_THRESHOLD) {
+//        callbackEncPos = m_iEncoderPosition;
+//        LOG_LOG("Encoder position: %i", m_iEncoderPosition);
+//    }
+ //   LOG_LOG("PDO MESSAGE TRANSMIT");
 //    LOG_LOG("%i",m_iEncoderPosition);
 
     m_bFault = (m_uiCurrentStatusWord & (1 << 3));
@@ -1789,14 +1839,6 @@ int Epos4::PDO_rotate(float fAngle, bool bRadian) {
     return PDO_setPosition(pos);
 }
 
-int Epos4::PDO_readPosition() {
-    can_message_t msg;
-    if (CanBus.readMessage(COB_ID_TPDO3 + m_uiNodeID, &msg) == msg.length);
-
-
-
-
-}
 
 
 int Epos4::PDO_setTorque(int16_t iTorque) {
@@ -1821,6 +1863,8 @@ int Epos4::PDO_setTorque(int16_t iTorque) {
         LOG_ERROR("CanBus write msg failed.");
         return -1;
     }
+
+    sendRTR();
 
     return 0;
 }

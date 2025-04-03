@@ -572,8 +572,14 @@ public:
             if(x < 17)
             {
                 if(x > 5 && x < 12){
-                    if(trajPoint[x] == -200){
-                        all_Trajs[x][0] = 0;
+                    int curr_pos;
+                    curr_pos = pInstance-> m_striker[x+1].getPosition_ticks();
+                    Serial.println("Current pos at ");
+                    Serial.print(x + 1);
+                    Serial.print(" ");
+                    Serial.println(curr_pos);
+                    if(curr_pos <= 0 && trajPoint[x] < 0){
+                        all_Trajs[x][0] = -20;
                     }
                     else{
                         all_Trajs[x][0] = trajPoint[x];
@@ -1384,13 +1390,17 @@ private:
 
     static void canRxHandle(can_message_t* arg) {
         uint32_t rawId = arg->id & 0x7FF;
+//        Serial.printf("CAN ID: 0x%03X | Data: ", rawId);
+//        for(int i=0; i<arg->length; i++) Serial.printf("%02X ", arg->data[i]);
+//        Serial.println();
 
 
-        // Handle TPDO3 messages (0x380 + nodeID)
+        // Handle TPDO3 messages (0x480 + nodeID)
+//        Serial.println(rawId - 0x380);
         if((rawId & 0x780) == 0x380) { // Check TPDO range
-            Serial.println("TRIGGERED PDO");
+//            Serial.println("TRIGGERED PDO");
             uint8_t nodeID = rawId - 0x380;
-            if(nodeID > 0 && nodeID <= NUM_MOTORS) {
+            if(nodeID > 6 && nodeID <= 12) {
                 pInstance->m_striker[nodeID].PDO_processMsg(*arg);
             }
             return;
@@ -1398,7 +1408,7 @@ private:
 
         // Handle SDO responses
         if((rawId & 0x780) == 0x580) { // SDO server response range
-            Serial.println("TRIGGERED SDO");
+//            Serial.println("TRIGGERED SDO");
             uint8_t nodeID = rawId - 0x580;
             if(nodeID > 0 && nodeID <= NUM_MOTORS) {
                 pInstance->m_striker[nodeID].setRxMsg(*arg);
@@ -1482,13 +1492,8 @@ private:
         Serial.print("Traj Point: ");
         int curr_pos;
         for (int i = 0; i < NUM_MOTORS; ++i) {
-            if(i == 8){
-                pInstance-> m_striker[i].getPosition_ticks();
-                Serial.print(curr_pos);
-            }
-
-//            Serial.print(point[i]);
-//            Serial.print(" ");
+            Serial.print(point[i]);
+            Serial.print(" ");
         }
         Serial.println(" ");
 

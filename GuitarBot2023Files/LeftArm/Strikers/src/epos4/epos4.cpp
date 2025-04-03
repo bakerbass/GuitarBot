@@ -1575,41 +1575,41 @@ int Epos4::PDO_config() {
 
     /********** TPDO 3 stuffs **********/
 
-    // Set COD ID for TPDO3
-    err = writeObj(0x1802, 0x01, COB_ID_TPDO3 + m_uiNodeID);
+    // Set COD ID for TPDO4
+    err = writeObj(0x1801, 0x01, COB_ID_TPDO3 + m_uiNodeID);
     if (err < 0) {
         LOG_ERROR("Set COB ID Failed. Error code: %h", m_uiError);
     }
 
     // Set TPDO3 transmission type to Asynchronous
-    err = writeObj(0x1802, 0x02, 255);
+    err = writeObj(0x1801, 0x02, 255);
     if (err != 0) {
         LOG_ERROR("Set transmission type failed. Error code: %h", m_uiError);
     }
 
     // Set TPDO3 Inhibition time
-    err = writeObj(0x1802, 0x03, 10);
+    err = writeObj(0x1801, 0x03, 20);
     if (err != 0) {
         LOG_ERROR("Set transmission type failed. Error code: %h", m_uiError);
     }
     // // Write the value “0” (zero) to subindex 0x00 (disable PDO).
-    err = writeObj(0x1A02, 0x00, 0);
+    err = writeObj(0x1A01, 0x00, 0);
     if (err != 0) {
         LOG_ERROR("write zero to 0x00 failed for TPDO3. Error code: %h", m_uiError);
         return err;
     }
 
-    err = writeObj(0x1A02, 0x01, 0x60410010);
+    err = writeObj(0x1A01, 0x01, 0x60410010);
     if (err != 0) {
         LOG_ERROR("Set Statusword Failed for TPDO3. Error code: %h", m_uiError);
         return err;
     }
-    err = writeObj(0x1A02, 0x02, 0x60640020);
+    err = writeObj(0x1A01, 0x02, 0x60640020);
     if (err != 0) {
         LOG_ERROR("Set Actual Position Failed for TPDO3. Error code: %h", m_uiError);
         return err;
     }
-    err = writeObj(0x1A02, 0x00, 2);
+    err = writeObj(0x1A01, 0x00, 2);
     if (err != 0) {
         LOG_ERROR("Set number of mapped variables failed for TPDO3. Error code: %h", m_uiError);
         return err;

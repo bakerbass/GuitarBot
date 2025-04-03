@@ -75,7 +75,8 @@
 #define COB_ID_SDO      0x00000600  // COB_ID SDO Client to Server
 #define COB_ID_SDO_SC   0x00000580  // COB_ID SDO Server to Client  
 #define COB_ID_TPDO3_11 0x0380
-#define COB_ID_TPDO3    0xC0000380
+#define COB_ID_TPDO3    0x00000380
+#define COB_ID_TPDO4    0xC0000480
 #define COB_ID_RPDO1    0x00000200
 #define COB_ID_RPDO3    0x00000400
 #define COB_ID_RPDO4    0x00000500

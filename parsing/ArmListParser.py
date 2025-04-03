@@ -464,7 +464,7 @@ class ArmListParser:
 
                     interpolated_points_1 = list(map(list, zip(*interpolated_values_1)))
                     interpolated_values_2 = [
-                        ArmListParser.interp_with_blend(curr_pos[i + 6], 0, num_points, tb_cent)
+                        ArmListParser.interp_with_blend(curr_pos[i + 6], -400, num_points, tb_cent)
                         for i in range(len(target_positions_presser))
                     ]
                     interpolated_points_2 = list(map(list, zip(*interpolated_values_2)))
@@ -480,7 +480,7 @@ class ArmListParser:
                     ]
                     interpolated_points_3 = list(map(list, zip(*interpolated_values_3)))
                     interpolated_values_4 = [
-                        ArmListParser.interp_with_blend(-500, -500, num_points, tb_cent)  # Change to fill later
+                        ArmListParser.interp_with_blend(-400, -400, num_points, tb_cent)  # Change to fill later
                         for i in range(len(target_positions_presser))
                     ]
                     interpolated_points_4 = list(map(list, zip(*interpolated_values_4)))
@@ -496,7 +496,7 @@ class ArmListParser:
                     ]
                     interpolated_points_5 = list(map(list, zip(*interpolated_values_5)))
                     interpolated_values_6 = [
-                        ArmListParser.interp_with_blend(-500, target_positions_presser[i], num_points, tb_cent)
+                        ArmListParser.interp_with_blend(-400, target_positions_presser[i], num_points, tb_cent)
                         for i in range(len(target_positions_presser))
                     ]
                     interpolated_points_6 = list(map(list, zip(*interpolated_values_6)))
@@ -1165,7 +1165,7 @@ class ArmListParser:
             encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
-        presser_encoder_values = [-200, 500, 0]
+        presser_encoder_values = [-300, 500, 0]
         # presser_encoder_values = [-10, -10, -10] # for testing
         for events in lh_events:
             # for lh_events[1][0] AND for lh_events[1][1]

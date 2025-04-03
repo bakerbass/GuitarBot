@@ -1729,6 +1729,11 @@ int Epos4::PDO_configRPDO4() {
          LOG_ERROR("write to 0x02 failed for RPDO4. Error code: %h", m_uiError);
          return err;
      }
+//    err = writeObj(0x1603, 0x03, 0x60640020);   // Torque
+//    if (err != 0) {
+//        LOG_ERROR("write to 0x03 failed for RPDO4. Error code: %h", m_uiError);
+//        return err;
+//    }
 
     // // Write the desired number of mapped objects to subindex 0x00.
      err = writeObj(0x1603, 0x00, 2);

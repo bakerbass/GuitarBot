@@ -1383,23 +1383,36 @@ private:
 //    }
 
     static void canRxHandle(can_message_t* arg) {
-        // Mask extended ID bits for standard format
-        uint32_t rawId = arg->id & 0x7FF;  // Keep only 11-bit standard ID
+        uint32_t rawId = arg->id & 0x7FF;
 
-        auto id = rawId - (COB_ID_SDO_SC & 0x7FF);
-        if (id > 0 && id <= NUM_MOTORS) {  // Use <= for 1-based indexing
-            pInstance->m_striker[id].setRxMsg(*arg);
+
+        // Handle TPDO3 messages (0x380 + nodeID)
+        if((rawId & 0x780) == 0x380) { // Check TPDO range
+            Serial.println("TRIGGERED PDO");
+            uint8_t nodeID = rawId - 0x380;
+            if(nodeID > 0 && nodeID <= NUM_MOTORS) {
+                pInstance->m_striker[nodeID].PDO_processMsg(*arg);
+            }
+            return;
         }
 
-        Serial.println(id);
-        if (id > 0 && id <= NUM_MOTORS + 1) {
-            pInstance->m_striker[id].PDO_processMsg(*arg);
+        // Handle SDO responses
+        if((rawId & 0x780) == 0x580) { // SDO server response range
+            Serial.println("TRIGGERED SDO");
+            uint8_t nodeID = rawId - 0x580;
+            if(nodeID > 0 && nodeID <= NUM_MOTORS) {
+                pInstance->m_striker[nodeID].setRxMsg(*arg);
+            }
+            return;
         }
 
-//        id = rawId - (COB_ID_EMCY & 0x7FF);
-//        if (id > 0 && id <= NUM_MOTORS) {
-//            pInstance->m_striker[id].handleEMCYMsg(*arg);
-//        }
+        // Handle EMCY messages
+        if((rawId & 0x780) == 0x080) { // EMCY message range
+            uint8_t nodeID = rawId - 0x080;
+            if(nodeID > 0 && nodeID <= NUM_MOTORS) {
+                pInstance->m_striker[nodeID].handleEMCYMsg(*arg);
+            }
+        }
     }
 
     static void RPDOTimerIRQHandler() {
@@ -1463,16 +1476,21 @@ private:
                 }
             }
         }
-//        Serial.println("------------------");
-//        Serial.print("Index: ");
-//        Serial.println(idx);
-//        Serial.print("Traj Point: ");
-//        for (int i = 0; i < NUM_MOTORS; ++i) {
-//
-//                Serial.print(point[i]);
-//                Serial.print(" ");
-//        }
-//        Serial.println(" ");
+        Serial.println("------------------");
+        Serial.print("Index: ");
+        Serial.println(idx);
+        Serial.print("Traj Point: ");
+        int curr_pos;
+        for (int i = 0; i < NUM_MOTORS; ++i) {
+            if(i == 8){
+                pInstance-> m_striker[i].getPosition_ticks();
+                Serial.print(curr_pos);
+            }
+
+//            Serial.print(point[i]);
+//            Serial.print(" ");
+        }
+        Serial.println(" ");
 
 
         bool run_bot = true; //false turns off motor, true turns on

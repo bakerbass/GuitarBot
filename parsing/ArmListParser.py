@@ -1165,7 +1165,7 @@ class ArmListParser:
             encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
-        presser_encoder_values = [-300, 500, 0]
+        presser_encoder_values = [-400, 500, 100]
         # presser_encoder_values = [-10, -10, -10] # for testing
         for events in lh_events:
             # for lh_events[1][0] AND for lh_events[1][1]
@@ -1361,8 +1361,8 @@ class ArmListParser:
         result = {}
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
             0 : [3.75, 7.5, 1024],
-            1 : [-3.0, 1.3, 2048],
-            2: [4.5, 8,  2048]
+            1 : [-1.0, 3, 2048],
+            2: [3.5, 7,  2048]
         }
         # NEED TO HANDLE SLIDER/PRESSER
         pick_states = [1, 1, 1, 1, 1, 1]  # curr states positions initialized as all 'up'

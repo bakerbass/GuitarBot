@@ -578,10 +578,12 @@ public:
                     Serial.print(x + 1);
                     Serial.print(" ");
                     Serial.println(curr_pos);
-                    if(curr_pos <= 0 && trajPoint[x] < 0){
+                    if(curr_pos <= 5 && trajPoint[x] < 0){
+                        m_striker[x+1].setPressState(false);
                         all_Trajs[x][0] = -20;
                     }
                     else{
+                        m_striker[x+1].setPressState(true);
                         all_Trajs[x][0] = trajPoint[x];
                     }
                 }
@@ -1486,16 +1488,16 @@ private:
                 }
             }
         }
-        Serial.println("------------------");
-        Serial.print("Index: ");
-        Serial.println(idx);
-        Serial.print("Traj Point: ");
-        int curr_pos;
-        for (int i = 0; i < NUM_MOTORS; ++i) {
-            Serial.print(point[i]);
-            Serial.print(" ");
-        }
-        Serial.println(" ");
+//        Serial.println("------------------");
+//        Serial.print("Index: ");
+//        Serial.println(idx);
+//        Serial.print("Traj Point: ");
+//        int curr_pos;
+//        for (int i = 0; i < NUM_MOTORS; ++i) {
+//            Serial.print(point[i]);
+//            Serial.print(" ");
+//        }
+//        Serial.println(" ");
 
 
         bool run_bot = true; //false turns off motor, true turns on

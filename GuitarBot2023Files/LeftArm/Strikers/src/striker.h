@@ -76,8 +76,11 @@ public:
         epos.PDO_setPosition(pos);
     }
 
-    void applyTorque(int pos){
-        epos.PDO_setTorque(pos);
+    void applyTorque(int torque){
+        if(press_state == false){
+            torque = -20;
+        }
+        epos.PDO_setTorque(torque);
     }
 
 
@@ -388,6 +391,12 @@ public:
         generateTraj(midiVelocity);
         //strike();
     }
+    void setPressState(bool press){
+        press_state = press;
+    }
+    bool getPressState(){
+        return press_state;
+    }
 
     void stopTremolo() {
         m_mode = Command::Normal;
@@ -435,6 +444,7 @@ private:
 
 
     bool m_bInitialized = false;
+    bool press_state = false;
     Command m_mode = Command::Restart;
     static const int kNumPointsForHit = NUM_POINTS_IN_TRAJ_FOR_HIT * PDO_RATE;
     static const int kNumPointsForUp = NUM_POINTS_IN_TRAJ_FOR_UP * PDO_RATE;

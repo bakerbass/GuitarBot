@@ -475,12 +475,12 @@ class ArmListParser:
                     # Second 20 points
                     interpolated_values_3 = [
                         ArmListParser.interp_with_blend(curr_pos[i], target_positions_slider[i],
-                                                        num_points, tb_cent)
+                                                        60, tb_cent)
                         for i in range(len(target_positions_slider))
                     ]
                     interpolated_points_3 = list(map(list, zip(*interpolated_values_3)))
                     interpolated_values_4 = [
-                        ArmListParser.interp_with_blend(-400, -400, num_points, tb_cent)  # Change to fill later
+                        ArmListParser.interp_with_blend(-400, -400, 60, tb_cent)  # Change to fill later
                         for i in range(len(target_positions_presser))
                     ]
                     interpolated_points_4 = list(map(list, zip(*interpolated_values_4)))
@@ -511,7 +511,7 @@ class ArmListParser:
 
 
                 elif event['type'] == 'note':
-                    num_points_note = 25
+                    num_points_note = 60
                     current_type = event['type']
                     current_motor_id = event['motor_id']
                     current_position = event['position']
@@ -526,24 +526,24 @@ class ArmListParser:
                     # q0_presser_motor = current_encoder_position[motor_index + 6] # For all motors
                     q0_presser_motor = current_encoder_position[presser_motor_ID] # CHANGE ME LATER FOR ALL MOTORS
                     qf_slider = int(event['position'])
-                    qf_presser = 500
+                    qf_presser = 650
                     if int(event['position']) == -1: # open string
                         qf_slider = q0_slider_motor
                         qf_presser = -200
                     if prev_type == 'chord' or not(current_type == prev_type and prev_position == current_position and prev_motor_id == current_motor_id): # If the prior is not the same MIDI note
                         print("DIFFERENT NOTE")
                         s1 = ArmListParser.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
-                        p1 = ArmListParser.interp_with_blend(q0_presser_motor, -10, num_points, tb_cent)
+                        p1 = ArmListParser.interp_with_blend(q0_presser_motor, 650, num_points, tb_cent)
                         slider_points.extend(s1)
                         presser_points.extend(p1)
 
                         s2 = ArmListParser.interp_with_blend(q0_slider_motor, qf_slider, num_points_note, tb_cent)
-                        p2 = ArmListParser.interp_with_blend(-10, -10, num_points, tb_cent)
+                        p2 = ArmListParser.interp_with_blend(650, 650, 60, tb_cent)
                         slider_points.extend(s2)
                         presser_points.extend(p2)
 
                         s3 = ArmListParser.interp_with_blend(qf_slider, qf_slider, num_points, tb_cent)
-                        p3 = ArmListParser.interp_with_blend(-10, qf_presser, num_points, tb_cent)
+                        p3 = ArmListParser.interp_with_blend(650, qf_presser, num_points, tb_cent)
                         slider_points.extend(s3)
                         presser_points.extend(p3)
 
@@ -1165,7 +1165,7 @@ class ArmListParser:
             encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
-        presser_encoder_values = [-400, 500, 100]
+        presser_encoder_values = [-500, 500, 100]
         # presser_encoder_values = [-10, -10, -10] # for testing
         for events in lh_events:
             # for lh_events[1][0] AND for lh_events[1][1]
@@ -1361,7 +1361,7 @@ class ArmListParser:
         result = {}
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
             0 : [3.75, 7.5, 1024],
-            1 : [-1.0, 3, 2048],
+            1 : [0, 3.5, 2048],
             2: [3.5, 7,  2048]
         }
         # NEED TO HANDLE SLIDER/PRESSER

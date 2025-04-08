@@ -574,17 +574,19 @@ public:
                 if(x > 5 && x < 12){
                     int curr_pos;
                     curr_pos = pInstance-> m_striker[x+1].getPosition_ticks();
-                    Serial.println("Current pos at ");
+                    Serial.print("Current pos at ");
                     Serial.print(x + 1);
                     Serial.print(" ");
-                    Serial.println(curr_pos);
+                    Serial.print(curr_pos);
                     if(curr_pos <= 5 && trajPoint[x] < 0){
                         m_striker[x+1].setPressState(false);
+                        Serial.println(", PRESS STATE FALSE");
                         all_Trajs[x][0] = -20;
                     }
                     else{
                         m_striker[x+1].setPressState(true);
                         all_Trajs[x][0] = trajPoint[x];
+                        Serial.println(", PRESS STATE TRUE");
                     }
                 }
                 else{
@@ -595,6 +597,7 @@ public:
 //            {
 //                all_Trajs[x][0] = 762; //default value in encoder ticks, same as in start()
 //            }
+        Serial.println("------------------------------------");
         }
 
         //Serial.println("PROCESSED TRAJ: ");

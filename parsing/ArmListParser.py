@@ -401,7 +401,7 @@ class ArmListParser:
         else:
             #print("LAST LH MOTOR POSITION: ", lh_motor_positions[-1], lh_motor_positions[-1][1])
             #print("LAST PICK MOTOR POSITION: ", lh_pick_pos[-1], lh_pick_pos[-1][2])
-            max_timestamp = max(lh_motor_positions[-1][1] + 0.6, lh_pick_pos[-1][2] + .325) # 6
+            max_timestamp = max(lh_motor_positions[-1][1] + 0.3, lh_pick_pos[-1][2] + .325) # 6
 
         full_matrix = {}
         for t in np.arange(0, max_timestamp + 0.005, 0.005):
@@ -475,14 +475,13 @@ class ArmListParser:
                     # Second 20 points
                     interpolated_values_3 = [
                         ArmListParser.interp_with_blend(curr_pos[i], target_positions_slider[i],
-                                                        60, tb_cent)
+                                                        40, tb_cent)
                         for i in range(len(target_positions_slider))
                     ]
                     interpolated_points_3 = list(map(list, zip(*interpolated_values_3)))
                     interpolated_values_4 = [
-                        ArmListParser.interp_with_blend(-400, -400, 60, tb_cent)  # Change to fill later
-                        for i in range(len(target_positions_presser))
-                    ]
+                        ArmListParser.interp_with_blend(-400, -400, 40, tb_cent)  # Change to fill later
+                        for i in range(len(target_positions_presser))]
                     interpolated_points_4 = list(map(list, zip(*interpolated_values_4)))
 
                     s_20 = [points1 + points2 for points1, points2 in zip(interpolated_points_3, interpolated_points_4)]

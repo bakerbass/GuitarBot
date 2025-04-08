@@ -1187,13 +1187,13 @@ int Epos4::clearFault() {
 
 int Epos4::setCurrentControlParameters() {
     int n;
-    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 781067);
+    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 1575853); // 781067
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;
     }
 
-    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_I_GAIN, 1386330);
+    n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_I_GAIN, 4837093); // 1386330
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;
@@ -1289,7 +1289,7 @@ int Epos4::setCurrentControlParameters_EC60() {
 
 int Epos4::setPositionControlParameters() {
     int n;
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 830000);
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 6933308); //830000
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;
@@ -1302,25 +1302,25 @@ int Epos4::setPositionControlParameters() {
         return -1;
     }
 
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_I_GAIN, 290000);
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_I_GAIN, 139254287); //290000
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;
     }
 
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 70000);
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_D_GAIN, 104848); //70000
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;
     }
 
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_V_GAIN, 0);
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_V_GAIN, 10219); // 0
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;
     }
 
-    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_A_GAIN, 0);
+    n = writeObj(POS_CTRL_PARAM_ADDR, PC_FF_A_GAIN, 637); //0
     if (n != 0) {
         LOG_ERROR("Write Obj failed. Error code: ", m_uiError);
         return -1;

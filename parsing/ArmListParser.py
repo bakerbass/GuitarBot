@@ -1161,7 +1161,7 @@ class ArmListParser:
         slider_encoder_values = []
         mult = -1
         for value in slider_mm_values:
-            encoder_tick = (value * 2048) / 9.4
+            encoder_tick = (value * 2048) / 9.4 + 2000
             slider_encoder_values.append(encoder_tick)
 
         presser_encoder_values = [-500, 500, 100]
@@ -1456,7 +1456,7 @@ class ArmListParser:
             if fret == 0:
                 lh_enc_val = -1
             else:
-                lh_enc_val = ((slider_mm_values[fret - 1] * 2048) / 9.4) * string_ranges[motor_id][2]
+                lh_enc_val = ((slider_mm_values[fret - 1] * 2048) / 9.4) * string_ranges[motor_id][2] + 2000
             curr_lhp_event = [motor_id, lh_enc_val, timestamp - .3]
             lh_pick_events.append(curr_lhp_event)
 

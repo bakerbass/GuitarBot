@@ -597,7 +597,6 @@ public:
 //            {
 //                all_Trajs[x][0] = 762; //default value in encoder ticks, same as in start()
 //            }
-        Serial.println("------------------------------------");
         }
 
         //Serial.println("PROCESSED TRAJ: ");

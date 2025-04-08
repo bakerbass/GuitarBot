@@ -21,10 +21,10 @@ UDP_PORT = 12000
 
 # pluck_message = [[56, 1, 2, 5]]
 # Final Countdown
-chords_message = [["F#m", 2.0],["On", 4.0]]
+chords_message = [["On", 3.0]]
 # chords_message = [["F#m", 2.0], ["On", 4.0]]
 strum_message =  [["UP", 0.0]]
-pluck_message =  [[59, 1, 10, 1]]
+pluck_message =  [[62, 1, 10, 1]]
 # Testing Sliding
 # chords_message = [["On", 12]]
 # strum_message =  [["UP", 0]]

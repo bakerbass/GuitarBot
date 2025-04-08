@@ -78,7 +78,7 @@ public:
 
     void applyTorque(int torque){
         if(press_state == false){
-            torque = 10;
+            torque = -20;
         }
         epos.PDO_setTorque(torque);
     }

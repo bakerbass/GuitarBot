@@ -1161,7 +1161,7 @@ class ArmListParser:
         slider_encoder_values = []
         mult = -1
         for value in slider_mm_values:
-            encoder_tick = (value * 2048) / 9.4 + 2000
+            encoder_tick = (value * 2048) / 9.4
             slider_encoder_values.append(encoder_tick)
 
         presser_encoder_values = [-500, 500, 100]

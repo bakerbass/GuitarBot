@@ -131,6 +131,7 @@ public:
 
     // Configure mapping for each PDO
     int PDO_config();
+    int PDO_configRPDO2();
     int PDO_configRPDO3();
     int PDO_configRPDO4();
     // Set Control word through PDO. Uses RPDO 1 - object 1
@@ -140,6 +141,7 @@ public:
     int PDO_processMsg(can_message_t& msg);
     // Set target position through PDO. Uses RPDO 3 - object 2
     int PDO_setPosition(int32_t position);
+    int PDO_setOpMode(OpMode mode);
     int PDO_rotate(float fAngle, bool bRadian = true);
     // Set target torque through PDO. Uses RPDO 4 - object 2
     int PDO_setTorque(int16_t iTorque);

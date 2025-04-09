@@ -578,13 +578,19 @@ public:
                     Serial.print(x + 1);
                     Serial.print(" ");
                     Serial.print(curr_pos);
-                    if(curr_pos <= 5 && trajPoint[x] < 0){
-                        m_striker[x+1].setPressState(false);
+                    if(curr_pos <= 15 && trajPoint[x] < 0){
+                        if(m_striker[x+1].getPressState()){
+                            m_striker[x+1].setModePOSITION();
+                            Serial.print(", Setting Position since ");
+                        }
                         Serial.println(", PRESS STATE FALSE");
-                        all_Trajs[x][0] = -20;
+                        all_Trajs[x][0] = 0;
                     }
                     else{
-                        m_striker[x+1].setPressState(true);
+                        if((!m_striker[x+1].getPressState() && curr_pos > 15) || trajPoint[x] > 0){
+                            m_striker[x+1].setModeTORQUE();
+                            Serial.print(", Setting Torque since ");
+                        }
                         all_Trajs[x][0] = trajPoint[x];
                         Serial.println(", PRESS STATE TRUE");
                     }
@@ -1510,7 +1516,12 @@ private:
                 // drive actuators here...
                 for (int i = 1; i < NUM_MOTORS + 1; ++i){
                     if(i > 6 && i < 13){
-                        pInstance->m_striker[i].applyTorque(point[i - 1]);
+                        if(!pInstance->m_striker[i].getPressState()){
+                            pInstance->m_striker[i].rotate(0);
+                        }
+                        else{
+                            pInstance->m_striker[i].applyTorque(point[i - 1]);
+                        }
                     }
                     else{
                         pInstance->m_striker[i].rotate(point[i - 1]);

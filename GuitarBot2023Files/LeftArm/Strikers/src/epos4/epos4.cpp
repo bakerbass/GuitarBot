@@ -788,6 +788,15 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
             LOG_ERROR("setHomingCurrentThreshold");
             return -1;
         }
+//        n = setITP(uiInterpolationTime, iInterpolationIndex);
+//        if (n != 0) return -1;
+//
+//        n = setProfile();
+//        if (n != 0) {
+//            LOG_ERROR("setProfile");
+//            return -1;
+//        }
+
 
         break;
 
@@ -1588,7 +1597,7 @@ int Epos4::PDO_config() {
     }
 
     // Set TPDO3 Inhibition time
-    err = writeObj(0x1801, 0x03, 20);
+    err = writeObj(0x1801, 0x03, 40);
     if (err != 0) {
         LOG_ERROR("Set transmission type failed. Error code: %h", m_uiError);
     }
@@ -1616,6 +1625,10 @@ int Epos4::PDO_config() {
     }
 
     /********** RPDO stuffs **********/
+    err = PDO_configRPDO2();
+    if (err != 0) {
+        LOG_ERROR("Failed to configure RPDO2. Error code: %h", m_uiError);
+    }
     err = PDO_configRPDO3();
     if (err != 0) {
         LOG_ERROR("Failed to configure RPDO3. Error code: %h", m_uiError);
@@ -1627,7 +1640,59 @@ int Epos4::PDO_config() {
 
     return kNoError;
 }
+int Epos4::PDO_configRPDO2() {
+    int err;
 
+    // Set COB ID for RPDO2
+    err = writeObj(0x1401, 0x01, COB_ID_RPDO2 + m_uiNodeID);
+    if (err != 0) {
+        LOG_ERROR("Set COB ID Failed for RPDO3. Error code: %h", m_uiError);
+        return err;
+    }
+
+    // Set RPDO2 transmission type to Asynchronous
+    err = writeObj(0x1401, 0x02, 255);
+    if (err != 0) {
+        LOG_ERROR("Set transmission type failed for RPDO3. Error code: %h", m_uiError);
+        return err;
+    }
+
+    /*
+    To be able to change the PDO mapping, the following procedure must be performed:
+    a) Write the value “0” (zero) to subindex 0x00 (disable PDO).
+    b) Modify the desired objects in subindex 0x01…0x0n.
+    c) Write the desired number of mapped objects to subindex 0x00.
+    */
+
+    // // Write the value “0” (zero) to subindex 0x00 (disable PDO).
+     err = writeObj(0x1601, 0x00, 0);
+     if (err != 0) {
+         LOG_ERROR("write zero to 0x00 failed for RPDO2. Error code: %h", m_uiError);
+         return err;
+     }
+
+    // // Modify the desired objects in subindex 0x01…0x0n.
+     err = writeObj(0x1601, 0x01, 0x60400010);   // Controlword
+     if (err != 0) {
+         LOG_ERROR("write to 0x01 failed for RPDO2. Error code: %h", m_uiError);
+         return err;
+     }
+
+     err = writeObj(0x1601, 0x02, 0x60600008);   // OP Mode
+     if (err < 0) {
+         LOG_ERROR("write to 0x02 failed for RPDO2. Error code: %h", m_uiError);
+         return err;
+     }
+
+     // Write the desired number of mapped objects to subindex 0x00.
+     err = writeObj(0x1601, 0x00, 2);
+     if (err != 0) {
+         LOG_ERROR("write length failed for RPDO2. Error code: %h", m_uiError);
+         return err;
+     }
+
+    return 0;
+}
 
 
 
@@ -1844,6 +1909,28 @@ int Epos4::PDO_rotate(float fAngle, bool bRadian) {
     return PDO_setPosition(pos);
 }
 
+int Epos4::PDO_setOpMode(OpMode mode) {
+    // PDO to quickly set Op Mode, notable for pressers.
+    uint8_t LSB = 0x0F;
+    if (m_bFault)
+        LSB = 0x8F;
+
+    m_txMsg.id = COB_ID_RPDO2 + m_uiNodeID;
+    m_txMsg.format = CAN_STD_FORMAT;
+    m_txMsg.length = 3;
+    m_txMsg.data[0] = LSB;        // Control Word LSB
+    m_txMsg.data[1] = 0x00;       // Control Word MSB
+    m_txMsg.data[2] = (uint8_t)mode; // Mode (1 byte)
+    int n = CanBus.writeMessage(&m_txMsg);
+    //LOG_LOG("SETTING TORQUE");
+
+    if (n != m_txMsg.length) {
+        LOG_ERROR("CanBus write msg failed.");
+        return -1;
+    }
+
+    return 0;
+}
 
 
 int Epos4::PDO_setTorque(int16_t iTorque) {
@@ -1869,7 +1956,7 @@ int Epos4::PDO_setTorque(int16_t iTorque) {
         return -1;
     }
 
-    sendRTR();
+    //sendRTR();
 
     return 0;
 }

@@ -75,6 +75,15 @@ public:
     void rotate(int pos){
         epos.PDO_setPosition(pos);
     }
+    void setModePOSITION(){
+        epos.PDO_setOpMode(CyclicSyncPosition);
+        press_state = false;
+        epos.PDO_setPosition(0);
+    }
+    void setModeTORQUE(){
+        epos.PDO_setOpMode(OpMode::CyclicSyncTorque);
+        press_state = true;
+    }
 
     void applyTorque(int torque){
         if(press_state == false){

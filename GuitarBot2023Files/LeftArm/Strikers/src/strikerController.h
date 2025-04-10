@@ -1148,7 +1148,7 @@ public:
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                     }
                 if(i == 17){
-                    start_state_PICK = 7;
+                    start_state_PICK = 6;
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                 }
 

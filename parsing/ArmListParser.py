@@ -983,7 +983,7 @@ class ArmListParser:
         return lh_interpolated_dictionary, rh_interpolated_dictionary, pick_interpolated_dictionary
 
     @staticmethod
-    def parseAllMIDI(chords, strum, pluck, initial_point, graph = False):
+    def parseAllMIDI(chords, strum, pluck, initial_point, graph = True):
         #Initialize full dictionary
         allpoints = {}
         #Dictionaries for LH and RH
@@ -1361,7 +1361,7 @@ class ArmListParser:
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
             0 : [3.75, 7.5, 1024],
             1 : [0, 3.5, 2048],
-            2: [3.5, 7,  2048]
+            2: [2.5, 5.5, 2048]
         }
         # NEED TO HANDLE SLIDER/PRESSER
         pick_states = [1, 1, 1, 1, 1, 1]  # curr states positions initialized as all 'up'

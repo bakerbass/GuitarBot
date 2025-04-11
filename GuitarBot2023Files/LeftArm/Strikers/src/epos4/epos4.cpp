@@ -1597,7 +1597,7 @@ int Epos4::PDO_config() {
     }
 
     // Set TPDO3 Inhibition time
-    err = writeObj(0x1801, 0x03, 40);
+    err = writeObj(0x1801, 0x03, 200);
     if (err != 0) {
         LOG_ERROR("Set transmission type failed. Error code: %h", m_uiError);
     }

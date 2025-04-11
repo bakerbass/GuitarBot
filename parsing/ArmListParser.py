@@ -391,7 +391,7 @@ class ArmListParser:
         return curve
 
     @staticmethod
-    def lh_interpolate(lh_motor_positions, lh_pick_pos, initial_point, num_points=20, tb_cent=0.2, plot=False):
+    def lh_interpolate(lh_motor_positions, lh_pick_pos, initial_point, num_points=10, tb_cent=0.2, plot=False):
         # initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10]  # Initial position, remember to make dynamic later.
         #print("lh_pick_pos: ", lh_pick_pos)
         initial_point = initial_point[0:12]
@@ -401,7 +401,7 @@ class ArmListParser:
         else:
             #print("LAST LH MOTOR POSITION: ", lh_motor_positions[-1], lh_motor_positions[-1][1])
             #print("LAST PICK MOTOR POSITION: ", lh_pick_pos[-1], lh_pick_pos[-1][2])
-            max_timestamp = max(lh_motor_positions[-1][1] + 0.3, lh_pick_pos[-1][2] + .325) # 6
+            max_timestamp = max(lh_motor_positions[-1][1] + 0.6, lh_pick_pos[-1][2] + .6) # 6
 
         full_matrix = {}
         for t in np.arange(0, max_timestamp + 0.005, 0.005):
@@ -495,7 +495,7 @@ class ArmListParser:
                     ]
                     interpolated_points_5 = list(map(list, zip(*interpolated_values_5)))
                     interpolated_values_6 = [
-                        ArmListParser.interp_with_blend(-400, target_positions_presser[i], num_points, tb_cent)
+                        ArmListParser.interp_with_blend(-500, target_positions_presser[i], num_points, tb_cent)
                         for i in range(len(target_positions_presser))
                     ]
                     interpolated_points_6 = list(map(list, zip(*interpolated_values_6)))
@@ -606,7 +606,7 @@ class ArmListParser:
         rh_points = []
         rh_points_only = []
         prev_timestamp = 0
-        speed = 55
+        speed = 75
 
         #1. Check for any deflections
         rh_motor_positions = ArmListParser.checkDeflect(rh_motor_positions, deflections)
@@ -1161,7 +1161,7 @@ class ArmListParser:
         slider_encoder_values = []
         mult = -1
         for value in slider_mm_values:
-            encoder_tick = (value * 2048) / 9.4
+            encoder_tick = (value * 2048) / 9.4 - 2000
             slider_encoder_values.append(encoder_tick)
 
         presser_encoder_values = [-500, 500, 100]
@@ -1361,7 +1361,7 @@ class ArmListParser:
         motorInformation = {  # motor_id : [down_pluck mm qf, up_pluck mm qf, encoder resolution]
             0 : [3.75, 7.5, 1024],
             1 : [0, 3.5, 2048],
-            2: [2.5, 5.5, 2048]
+            2: [2.5, 6, 2048]
         }
         # NEED TO HANDLE SLIDER/PRESSER
         pick_states = [1, 1, 1, 1, 1, 1]  # curr states positions initialized as all 'up'
@@ -1456,7 +1456,7 @@ class ArmListParser:
             if fret == 0:
                 lh_enc_val = -1
             else:
-                lh_enc_val = ((slider_mm_values[fret - 1] * 2048) / 9.4) * string_ranges[motor_id][2] + 2000
+                lh_enc_val = ((slider_mm_values[fret - 1] * 2048) / 9.4 - 2000) * string_ranges[motor_id][2]
             curr_lhp_event = [motor_id, lh_enc_val, timestamp - .3]
             lh_pick_events.append(curr_lhp_event)
 

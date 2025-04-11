@@ -574,26 +574,27 @@ public:
                 if(x > 5 && x < 12){
                     int curr_pos;
                     curr_pos = pInstance-> m_striker[x+1].getPosition_ticks();
-                    Serial.print("Current pos at ");
-                    Serial.print(x + 1);
-                    Serial.print(" ");
-                    Serial.print(curr_pos);
-                    if(curr_pos <= 15 && trajPoint[x] < 0){
+                    //Serial.print("Current pos at ");
+//                    Serial.print(x + 1);
+//                    Serial.print(" ");
+//                    Serial.print(curr_pos);
+                    if(curr_pos <= 15 && trajPoint[x] <= 0){
                         if(m_striker[x+1].getPressState()){
                             m_striker[x+1].setModePOSITION();
-                            Serial.print(", Setting Position since ");
+                            //Serial.print(", Setting Position since ");
                         }
-                        Serial.println(", PRESS STATE FALSE");
+                        //Serial.println(", PRESS STATE FALSE");
                         all_Trajs[x][0] = 0;
                     }
                     else{
-                        if((!m_striker[x+1].getPressState() && curr_pos > 15) || trajPoint[x] > 0){
+                        if(!m_striker[x+1].getPressState()){
                             m_striker[x+1].setModeTORQUE();
-                            Serial.print(", Setting Torque since ");
+                            //Serial.print(", Setting Torque since ");
                         }
-                        all_Trajs[x][0] = trajPoint[x];
-                        Serial.println(", PRESS STATE TRUE");
+                        //Serial.print(", is already in Torque mode; ");
                     }
+                    all_Trajs[x][0] = trajPoint[x];
+                    //Serial.println(", PRESS STATE TRUE");
                 }
                 else{
                     all_Trajs[x][0] = trajPoint[x];

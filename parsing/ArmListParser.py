@@ -8,6 +8,7 @@ import copy
 
 class ArmListParser:
     current_fret_positions = [0, 0, 0, 0, 0, 0]  # begins by preferring voicings near first position
+    slide_toggle = None
 
     @staticmethod
     def _get_chords_M(filepath, chord_letter, chord_type):
@@ -432,11 +433,12 @@ class ArmListParser:
 
         # Process lh_pick_pos
 
-        for motor_id, position, timestamp in lh_pick_pos:
+        for motor_id, position, slide_toggle, timestamp in lh_pick_pos:
             full_LH.append({
                 'type': 'note',
                 'motor_id': motor_id,
                 'position': position,
+                'slide_toggle': slide_toggle,
                 'timestamp': timestamp
             })
 
@@ -456,14 +458,14 @@ class ArmListParser:
                     target_positions_slider = event['positions'][:6]  # First 6 values of the nested list
                     target_positions_presser = event['positions'][6:12]  # last 6
                     curr_pos = current_encoder_position.copy()
-                    interpolated_values_1 = [
+                    interpolated_values_1 = [ # Hold slider 10 points
                         ArmListParser.interp_with_blend(curr_pos[i], curr_pos[i],
                                                         num_points, tb_cent)  # Change to fill later
                         for i in range(len(target_positions_slider))
                     ]
 
                     interpolated_points_1 = list(map(list, zip(*interpolated_values_1)))
-                    interpolated_values_2 = [
+                    interpolated_values_2 = [ # Unpress pressers for 10 points
                         ArmListParser.interp_with_blend(curr_pos[i + 6], -500, num_points, tb_cent)
                         for i in range(len(target_positions_presser))
                     ]
@@ -473,13 +475,13 @@ class ArmListParser:
                     points.extend(f_20)
 
                     # Second 20 points
-                    interpolated_values_3 = [
+                    interpolated_values_3 = [ # Move sliders 40 points
                         ArmListParser.interp_with_blend(curr_pos[i], target_positions_slider[i],
                                                         40, tb_cent)
                         for i in range(len(target_positions_slider))
                     ]
                     interpolated_points_3 = list(map(list, zip(*interpolated_values_3)))
-                    interpolated_values_4 = [
+                    interpolated_values_4 = [ # Hold Unpress for 40 points
                         ArmListParser.interp_with_blend(-500, -500, 40, tb_cent)  # Change to fill later
                         for i in range(len(target_positions_presser))]
                     interpolated_points_4 = list(map(list, zip(*interpolated_values_4)))
@@ -488,13 +490,13 @@ class ArmListParser:
                     points.extend(s_20)
 
                     # Third 20 points
-                    interpolated_values_5 = [
+                    interpolated_values_5 = [ # Hold slider for 10 points
                         ArmListParser.interp_with_blend(target_positions_slider[i], target_positions_slider[i],
                                                         num_points, tb_cent)  # Change to fill later
                         for i in range(len(target_positions_slider))
                     ]
                     interpolated_points_5 = list(map(list, zip(*interpolated_values_5)))
-                    interpolated_values_6 = [
+                    interpolated_values_6 = [ # Press for 10 points
                         ArmListParser.interp_with_blend(-500, target_positions_presser[i], num_points, tb_cent)
                         for i in range(len(target_positions_presser))
                     ]
@@ -514,6 +516,7 @@ class ArmListParser:
                     current_type = event['type']
                     current_motor_id = event['motor_id']
                     current_position = event['position']
+                    slide_toggle = event['slide_toggle']
 
                     slider_points = []
                     presser_points = []
@@ -525,26 +528,57 @@ class ArmListParser:
                     # q0_presser_motor = current_encoder_position[motor_index + 6] # For all motors
                     q0_presser_motor = current_encoder_position[presser_motor_ID] # CHANGE ME LATER FOR ALL MOTORS
                     qf_slider = int(event['position'])
-                    qf_presser = 650
+                    qf_presser = 600
                     if int(event['position']) == -1: # open string
                         qf_slider = q0_slider_motor
-                        qf_presser = -200
+                        qf_presser = -500
                     if prev_type == 'chord' or not(current_type == prev_type and prev_position == current_position and prev_motor_id == current_motor_id): # If the prior is not the same MIDI note
                         print("DIFFERENT NOTE")
-                        s1 = ArmListParser.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
-                        p1 = ArmListParser.interp_with_blend(q0_presser_motor, 650, num_points, tb_cent)
-                        slider_points.extend(s1)
-                        presser_points.extend(p1)
 
-                        s2 = ArmListParser.interp_with_blend(q0_slider_motor, qf_slider, num_points_note, tb_cent)
-                        p2 = ArmListParser.interp_with_blend(650, 650, 60, tb_cent)
-                        slider_points.extend(s2)
-                        presser_points.extend(p2)
+                        print("qf presser: ", qf_presser)
+                        # If sliding
+                        if slide_toggle:
+                            print("SLIDING")
+                            # Hold slider 10 points, press to 650
+                            s1 = ArmListParser.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
+                            p1 = ArmListParser.interp_with_blend(q0_presser_motor, 600, num_points, tb_cent)
+                            slider_points.extend(s1)
+                            presser_points.extend(p1)
 
-                        s3 = ArmListParser.interp_with_blend(qf_slider, qf_slider, num_points, tb_cent)
-                        p3 = ArmListParser.interp_with_blend(650, qf_presser, num_points, tb_cent)
-                        slider_points.extend(s3)
-                        presser_points.extend(p3)
+                            # Move slider 60 points, keep pressing
+                            s2 = ArmListParser.interp_with_blend(q0_slider_motor, qf_slider, num_points_note, tb_cent)
+                            p2 = ArmListParser.interp_with_blend(600, 600, 60, tb_cent)
+                            slider_points.extend(s2)
+                            presser_points.extend(p2)
+
+                            # Hold slide 10 points, keep pressing (unless open string)
+                            s3 = ArmListParser.interp_with_blend(qf_slider, qf_slider, num_points, tb_cent)
+                            p3 = ArmListParser.interp_with_blend(600, qf_presser, num_points, tb_cent)
+                            slider_points.extend(s3)
+                            presser_points.extend(p3)
+
+                        else: # Not sliding
+                            print("NOT SLIDING")
+                            qf_presser_unpress = -500
+                            qf_presser_press = 650
+                            # Hold slider 10 points, unpress to -500 for 20 points
+                            s1 = ArmListParser.interp_with_blend(q0_slider_motor, q0_slider_motor, 10, tb_cent)
+                            p1 = ArmListParser.interp_with_blend(q0_presser_motor, qf_presser_unpress, 10, tb_cent)
+                            slider_points.extend(s1)
+                            presser_points.extend(p1)
+
+                            # Move slider 40 points, hold presser
+                            s2 = ArmListParser.interp_with_blend(q0_slider_motor, qf_slider, 40, tb_cent)
+                            p2 = ArmListParser.interp_with_blend(qf_presser_unpress, qf_presser_unpress, 40, tb_cent)
+                            slider_points.extend(s2)
+                            presser_points.extend(p2)
+
+                            # Hold slider 10 points, press
+                            s3 = ArmListParser.interp_with_blend(qf_slider, qf_slider, 10, tb_cent)
+                            p3 = ArmListParser.interp_with_blend(qf_presser_unpress, qf_presser, 10, tb_cent)
+                            slider_points.extend(s3)
+                            presser_points.extend(p3)
+
 
                     else: # Same note back to back
                         print("Same NOTE")
@@ -974,14 +1008,19 @@ class ArmListParser:
         return lh_motor_positions, rh_motor_positions
 
     @staticmethod
-    def interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj, initial_point):
+    def interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj, slide_toggles, initial_point):
 
         rh_interpolated_dictionary = ArmListParser.rh_interpolate(rh_positions_adj, deflections, initial_point)
-        pick_interpolated_dictionary, lh_pick_pos = ArmListParser.interpPick(picker_motor_positions_adj, initial_point)
+        pick_interpolated_dictionary, lh_pick_pos = ArmListParser.interpPick(picker_motor_positions_adj, slide_toggles, initial_point)
         lh_interpolated_dictionary = ArmListParser.lh_interpolate(lh_positions_adj, lh_pick_pos, initial_point, plot=False)
 
         return lh_interpolated_dictionary, rh_interpolated_dictionary, pick_interpolated_dictionary
 
+    '''
+    Main Dashboard Function
+    Inputs: Raw chord, strum, pluck commands
+    Outputs: Interpolated dictionary for RobotController to send to bot
+    '''
     @staticmethod
     def parseAllMIDI(chords, strum, pluck, initial_point, graph = True):
         #Initialize full dictionary
@@ -991,7 +1030,8 @@ class ArmListParser:
         #1. Get events + Timestamps
         lh_motor_positions = ArmListParser.parseleftMIDI(chords)
         rh_motor_positions, deflections = ArmListParser.parserightMIDI(strum)
-        picker_motor_positions = ArmListParser.parsePickMIDI(pluck)
+        picker_motor_positions, slide_toggles = ArmListParser.parsePickMIDI(pluck)
+        print("Slide Toggles: ", slide_toggles)
 
         #2. PrepMovements (Adjust timestamps) LH changes occur before a strum,
         lh_positions_adj, rh_positions_adj = ArmListParser.prepMovements(lh_motor_positions, rh_motor_positions)
@@ -1004,7 +1044,7 @@ class ArmListParser:
         print("Picker events")
         ArmListParser.print_Events(picker_motor_positions_adj)
         #3. Interpolate (dedicated interp function)
-        lh_dictionary, rh_dictionary, pick_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj, initial_point)
+        lh_dictionary, rh_dictionary, pick_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj, slide_toggles, initial_point)
 
         print("Picker Dictionary: ")  # only up to 6
         i = 0
@@ -1234,6 +1274,7 @@ class ArmListParser:
     @staticmethod
     def parsePickMIDI(picks):
         pick_events = []
+        slide_toggles = []
         # MIDI note ranges for each string
         # string_ranges = [ # for all pluckers
         #     (40, 50),  # String 1
@@ -1254,7 +1295,8 @@ class ArmListParser:
 
         active_pickers = [-.5] * len(string_ranges)
         last_notes = [None] * len(string_ranges)
-        for note, duration, speed, timestamp in picks:
+        for note, duration, speed, slide_toggle, timestamp in picks:
+            slide_toggles.append(slide_toggle)
             assigned = False
             timestamp = round(timestamp * 200) / 200
             duration = round(duration, 3)
@@ -1326,7 +1368,7 @@ class ArmListParser:
             full_event = [curr_event, timestamp]
             pick_motor_positions.append(full_event)
 
-        return pick_motor_positions
+        return pick_motor_positions, slide_toggles
 
     @staticmethod
     def prepPicker(lh_motor_positions, pick_motor_positions):
@@ -1353,7 +1395,7 @@ class ArmListParser:
 
 
     @staticmethod
-    def interpPick(pick_events, initial_point, num_points=20, tb_cent=0.2):
+    def interpPick(pick_events, slide_toggles, initial_point, num_points=20, tb_cent=0.2):
         # initial_point = [762, 873, 1743]  # encoder ticks for Low E and D strings
         initial_point = initial_point[14:]
         current_positions = initial_point.copy()
@@ -1369,7 +1411,7 @@ class ArmListParser:
         events_list = []
         lh_pick_events = []
 
-        for event in pick_events:
+        for i, event in enumerate(pick_events):
             picker_actions, timestamp = event[0], event[1]
             event_points = [0]
             motor_id, note, qf_encoder_picker, duration, speed = event[0]
@@ -1452,12 +1494,13 @@ class ArmListParser:
             slider_mm_values = [19, 54, 87, 114, 141, 165, 188, 212, 234]
             # slider_mm_values = [23, 23, 23, 23, 23, 23, 23, 23, 23] # for testing
 
+            # LH Pick Events Format: [[motor ID, lh qf encoder value, slide toggle, timestamp]]
             fret = note - string_ranges[motor_id][0]
             if fret == 0:
                 lh_enc_val = -1
             else:
                 lh_enc_val = ((slider_mm_values[fret - 1] * 2048) / 9.4 - 2000) * string_ranges[motor_id][2]
-            curr_lhp_event = [motor_id, lh_enc_val, timestamp - .3]
+            curr_lhp_event = [motor_id, lh_enc_val, slide_toggles[i], timestamp - .3]
             lh_pick_events.append(curr_lhp_event)
 
 

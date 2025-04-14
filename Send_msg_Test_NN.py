@@ -7,7 +7,7 @@ UDP_PORT = 12000
 # FORMAT
 # chords_message = [[Chord, timestamp]]
 # strum_message = [["DOWN"/"UP"], timestamp]
-# pluck_message = [[note (midi value), duration, speed, timestamp]]
+# pluck_message = [[note (midi value), duration, speed, slide_toggle, timestamp]]
 
 # chords_message = [["A", 0.0], ["D", 4.0], ["E", 5.0], ["A", 6.0], ["On", 8.0]] # Marcus Demo 3/6/2025
 # strum_message = [ ["DOWN", 1.0], ["UP", 2.0], ["DOWN", 4.0], ["UP", 5.0], ["DOWN", 6.0]] # Marcus Demo 3/6/2025
@@ -22,15 +22,27 @@ UDP_PORT = 12000
 # pluck_message = [[56, 1, 2, 5]]
 # Final Countdown
 # chords_message = [["On", 3.0]]
-chords_message = [["F#m", 1.0], ["D", 2.0], ["Bm", 4.0], ["E", 6.0], ["Fdim7", 7.0],["F#m", 8.0], ["D", 10.0], ["Bm", 12.0], ["On", 14.0]]
-strum_message =  [["UP", 0.0], ["UP", 2.0], ["DOWN", 4.0], ["UP", 6.0], ["DOWN", 7.0], ["UP", 8.0], ["DOWN", 10.0], ["UP", 12.0]]
-pluck_message =  [[59, 1, 10, 0]]
+# chords_message = [["F#m", 1.0], ["D", 2.0], ["Bm", 4.0], ["E", 6.0], ["Fdim7", 7.0],["F#m", 8.0], ["D", 10.0], ["Bm", 12.0], ["On", 14.0]]
+# strum_message =  [["UP", 0.0], ["UP", 2.0], ["DOWN", 4.0], ["UP", 6.0], ["DOWN", 7.0], ["UP", 8.0], ["DOWN", 10.0], ["UP", 12.0]]
+# pluck_message =  [[59, 1, 10, 0]]
+
 # Testing Sliding
-# chords_message = [["On", 6]]
-# strum_message =  [["DOWN", 0], ["UP", 2]]
-# pluck_message = [[55, 1, 10, 0]]
+# chords_message = [["On", 12]]
+# strum_message =  [["UP", 0]]
+# # pluck_message = [[55, 1, 10, 0]]
 # pluck_message = [[59, 4, 10, 1], [65, 4, 10, 3.5], [63, 4, 10, 6], [67, 4, 10, 8.5], [63, 4, 10, 11]]
 
+# Testing Sliding Toggle
+# chords_message = [["On", 10]]
+# strum_message =  [["UP", 0]]
+# pluck_message = [[59, 1, 7, 0, 1], [60, 1, 7, 1, 2], [61, 1, 7, 1, 3], [62, 1, 7, 0, 4], [63, 1, 7, 0, 5], [64, 1, 7, 0, 6], [65, 1, 7, 0, 7], [66, 7, 4, 0, 8], [67, 1, 7, 0, 9]]
+# pluck_message = [[59, 4, 10, 1, 1], [65, 4, 10, 1, 3.5], [63, 4, 10, 1, 6], [67, 4, 10, 1, 8.5], [63, 4, 10, 1, 11]]
+# pluck_message = [[59, 4, 10, 0, 1], [65, 4, 10, 0, 3.5], [63, 4, 10, 0, 6], [67, 4, 10, 0, 8.5], [63, 4, 10, 0, 11]]
+# pluck_message = [[59, 4, 10, 0, 1], [65, 4, 10, 0, 3.5], [63, 4, 10, 0, 6], [67, 4, 10, 0, 8.5], [63, 4, 10, 0, 11], [59, 4, 10, 1, 15], [65, 4, 10, 1, 20], [63, 4, 10, 1, 25], [67, 4, 10, 1, 29.5], [63, 4, 10, 1, 34]]
+
+chords_message = [["On", 50]]
+strum_message =  [["UP", 0]]
+pluck_message = [[40, 0.1, 10, 0, 1], [40, 0.1, 10, 0, 5], [40, 0.1, 10, 0, 10], [40, 0.1, 10, 0, 15], [40, 0.1, 10, 0, 20], [40, 0.1, 10, 0, 25], [40, 0.1, 10, 0, 30], [40, 0.1, 10, 0, 35], [40, 0.1, 10, 0, 40], [40, 0.1, 10, 0, 45]]
 
 #
 # chords_message_2 = [["On", 2]]

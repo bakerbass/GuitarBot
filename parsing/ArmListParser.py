@@ -562,8 +562,8 @@ class ArmListParser:
                             qf_presser_unpress = -500
                             qf_presser_press = 650
                             # Hold slider 10 points, unpress to -500 for 20 points
-                            s1 = ArmListParser.interp_with_blend(q0_slider_motor, q0_slider_motor, 10, tb_cent)
-                            p1 = ArmListParser.interp_with_blend(q0_presser_motor, qf_presser_unpress, 10, tb_cent)
+                            s1 = ArmListParser.interp_with_blend(q0_slider_motor, q0_slider_motor, 20, tb_cent)
+                            p1 = ArmListParser.interp_with_blend(q0_presser_motor, qf_presser_unpress, 20, tb_cent)
                             slider_points.extend(s1)
                             presser_points.extend(p1)
 
@@ -574,8 +574,8 @@ class ArmListParser:
                             presser_points.extend(p2)
 
                             # Hold slider 10 points, press
-                            s3 = ArmListParser.interp_with_blend(qf_slider, qf_slider, 10, tb_cent)
-                            p3 = ArmListParser.interp_with_blend(qf_presser_unpress, qf_presser, 10, tb_cent)
+                            s3 = ArmListParser.interp_with_blend(qf_slider, qf_slider, 20, tb_cent)
+                            p3 = ArmListParser.interp_with_blend(qf_presser_unpress, qf_presser, 20, tb_cent)
                             slider_points.extend(s3)
                             presser_points.extend(p3)
 
@@ -1458,7 +1458,6 @@ class ArmListParser:
                     # 11 is a good value for all
                     # Changing it too much conflicts with fill points for speed
                     num_points = 11
-                    print("num_points: ", num_points)
                     points1 = ArmListParser.interp_with_sine_blend(start_pos, qf_encoder_picker, num_points)  # (move)
                     points2 = ArmListParser.interp_with_sine_blend(qf_encoder_picker, qf_encoder_picker, fill_points)  # (fill)
                     start_pos = (motorInformation[motor_id][pick_states[motor_id]] * motorInformation[motor_id][2]) / 9.4
@@ -1500,7 +1499,7 @@ class ArmListParser:
                 lh_enc_val = -1
             else:
                 lh_enc_val = ((slider_mm_values[fret - 1] * 2048) / 9.4 - 2000) * string_ranges[motor_id][2]
-            curr_lhp_event = [motor_id, lh_enc_val, slide_toggles[i], timestamp - .3]
+            curr_lhp_event = [motor_id, lh_enc_val, slide_toggles[i], timestamp - .4]
             lh_pick_events.append(curr_lhp_event)
 
 

@@ -1124,7 +1124,7 @@ public:
     void start() {
         float start_state_SS = -110;
         float start_state_SP = 9;
-        float start_state_PICK = 7.5;
+        float start_state_PICK = 8;
         float pos2pulse = 0;
 
         float temp_traj_1[50];
@@ -1145,7 +1145,7 @@ public:
             if(i >= 15){ //Picker
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
                 if(i == 16){
-                    start_state_PICK = 3.5;
+                    start_state_PICK = 4.0;
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                     }
                 if(i == 17){

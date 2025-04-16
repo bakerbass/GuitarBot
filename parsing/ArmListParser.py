@@ -568,8 +568,8 @@ class ArmListParser:
                             presser_points.extend(p1)
 
                             # Move slider 40 points, hold presser
-                            s2 = ArmListParser.interp_with_blend(q0_slider_motor, qf_slider, 40, tb_cent)
-                            p2 = ArmListParser.interp_with_blend(qf_presser_unpress, qf_presser_unpress, 40, tb_cent)
+                            s2 = ArmListParser.interp_with_blend(q0_slider_motor, qf_slider, 25, tb_cent)
+                            p2 = ArmListParser.interp_with_blend(qf_presser_unpress, qf_presser_unpress, 25, tb_cent)
                             slider_points.extend(s2)
                             presser_points.extend(p2)
 

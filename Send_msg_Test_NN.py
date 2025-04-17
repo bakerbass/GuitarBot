@@ -187,6 +187,7 @@ def create_tremolo_message():
 # strum_message =  [["UP", 0]]
 # pluck_message = [[59, 5, 1, 0, 1], [59, 5, 10, 0, 6], [50, 5, 1, 0, 1], [50, 5, 10, 0, 6]]
 
+
 # 2. Glissando Multiple Strings
 # chords_message = [["On", 9]]
 # strum_message =  [["UP", 0]]
@@ -194,8 +195,8 @@ def create_tremolo_message():
 
 # # 3. Short Song
 # , ["Dsus2", 5],["Cmaj7", 9],  ["Am", 13], ["On", 17]
-chords_message = [["Dsus2", 1], ["On", 18]]
-strum_message =  [["DOWN", 1], ["UP", 18]]
+chords_message = [["On", 18]]
+strum_message =  [["UP", 0]]
 pluck_message = [[50, .5, 10, 0, 1.5], [50, .1, 1, 0, 2.5], [50, .1, 1, 0, 3],
                  [50, .5, 10, 0, 3.5], [50, .1, 1, 0, 4.5], [50, .1, 1, 0, 5],
                  [54, .5, 10, 0, 5.5], [54, .1, 1, 0, 6.5], [54, .1, 1, 0, 7],

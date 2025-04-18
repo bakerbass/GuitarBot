@@ -191,11 +191,11 @@ def create_tremolo_message():
 # 2. Glissando Multiple Strings
 # chords_message = [["On", 9]]
 # strum_message =  [["UP", 0]]
-# pluck_message = [[59, 1, 7, 1, 1], [60, 1, 7, 1, 2], [61, 1, 7, 1, 3], [62, 1, 7, 1, 4], [63, 1, 7, 1, 5], [64, 1, 7, 1, 6], [65, 1, 7, 1, 7], [50, 1, 7, 1, 1], [51, 1, 7, 1, 2], [52, 1, 7, 1, 3], [53, 1, 7, 1, 4], [54, 1, 7, 1, 5], [55, 1, 7, 1, 6], [56, 1, 7, 1, 7]]
+# pluck_message = [[59, 3, 7, 1, 1], [61, 3, 7, 1, 3], [63, 3, 7, 1, 5], [65, 2, 7, 1, 7], [50, 3, 7, 1, 1], [52, 3, 7, 1, 3], [54, 3, 7, 1, 5], [56, 2, 7, 1, 7]]
 
 # # 3. Short Song
 # , ["Dsus2", 5],["Cmaj7", 9],  ["Am", 13], ["On", 17]
-chords_message = [["On", 18]]
+chords_message = [["On", 0]]
 strum_message =  [["UP", 0]]
 pluck_message = [[50, .5, 10, 0, 1.5], [50, .1, 1, 0, 2.5], [50, .1, 1, 0, 3],
                  [50, .5, 10, 0, 3.5], [50, .1, 1, 0, 4.5], [50, .1, 1, 0, 5],
@@ -211,6 +211,23 @@ pluck_message = [[50, .5, 10, 0, 1.5], [50, .1, 1, 0, 2.5], [50, .1, 1, 0, 3],
                  [62, .5, 1, 0, 9.5], [62, .6, 1, 0, 10.5], [62, 1, 10, 0, 11.5],
                  [66, 1, 10, 1, 13], [66, .6, 2, 1, 14], [66, .6, 2, 1, 15]]
 
+chords_message_2 = [["On", 11]]
+strum_message_2 = [["UP", 0.0]]
+pluck_message_2 = [[64, 1, 10, 0, 0], [55, 1, 10, 0, 0],
+                   # Phrase Smoothing
+                   [64, 2, 10, 0, .5], [67, 2, 5, 1, 2], [66, 1.5, 5, 0, 3],
+                   [64, 1, 5, 0, 5], [62, 1, 5, 0, 7], [62, 1, 5, 0, 8], [62, .6, 10, 0, 10],
+                   # String Seperator
+                   [55, 2, 10, 0, .5], [52, 2, 5, 1, 2], [54, 2, 2, 0, 4],
+                   [55, .5, 10, 1, 6], [50, 2, 3, 1, 7], [50, 1.5, 5, 0, 9]]
+
+# chords_message = [["On", 0]]
+# strum_message = [["UP", 0.0]]
+# pluck_message = [[59, 1, 10, 0, 2]]  # Pressing start on one of the strings in the UI will interpolate one tremolo and keep appending it until a stop message is received
+#
+# chords_message_2 = [["On", 4]]
+# strum_message_2 = [["UP", 0.0]]
+# pluck_message_2 = [[59, 1, 10, 0, 0]]
 
 def send_osc_message(client, address, data):
     print(f"Sending OSC message to {address}: {data}")
@@ -223,16 +240,25 @@ def main():
     send_osc_message(client, "/Strum", strum_message)
     # pluck_message = create_tremolo_message()
     send_osc_message(client, "/Pluck", pluck_message)
-    # time.sleep(10)
-    # send_osc_message(client, "/Chords", chords_message_2)
-    # send_osc_message(client, "/Strum", strum_message_2)
-    # # pluck_message = create_tremolo_message()
-    # send_osc_message(client, "/Pluck", pluck_message_2)
+    time.sleep(1)
+    send_osc_message(client, "/Chords", chords_message_2)
+    send_osc_message(client, "/Strum", strum_message_2)
+    # pluck_message = create_tremolo_message()
+    send_osc_message(client, "/Pluck", pluck_message_2)
     # time.sleep(1)
 
     # send_osc_message(client, "/Chords", chords_message_2)
     # send_osc_message(client, "/Strum", strum_message_2)
     # send_osc_message(client, "/Pluck", pluck_message_2)
+
+    counter = 0
+
+    # while counter < 5:
+    #     send_osc_message(client, "/Chords", chords_message)
+    #     send_osc_message(client, "/Strum", strum_message)
+    #     send_osc_message(client, "/Pluck", pluck_message)
+    #     counter += 1
+    #     time.sleep(1)
 
 
 if __name__ == "__main__":

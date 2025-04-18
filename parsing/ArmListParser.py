@@ -397,12 +397,14 @@ class ArmListParser:
         #print("lh_pick_pos: ", lh_pick_pos)
         initial_point = initial_point[0:12]
         current_encoder_position = []
+        sorted_lh_pick_pos = sorted(lh_pick_pos, key=lambda x: x[-1])
         if not lh_pick_pos:
             max_timestamp = lh_motor_positions[-1][1] + 0.6
         else:
             #print("LAST LH MOTOR POSITION: ", lh_motor_positions[-1], lh_motor_positions[-1][1])
             #print("LAST PICK MOTOR POSITION: ", lh_pick_pos[-1], lh_pick_pos[-1][2])
-            max_timestamp = max(lh_motor_positions[-1][1] + 0.6, lh_pick_pos[-1][2] + .6) # 6
+
+            max_timestamp = max(lh_motor_positions[-1][1] + 0.6, sorted_lh_pick_pos[-1][3] + .6) # 6
 
         full_matrix = {}
         for t in np.arange(0, max_timestamp + 0.005, 0.005):
@@ -1037,20 +1039,20 @@ class ArmListParser:
         lh_positions_adj, rh_positions_adj = ArmListParser.prepMovements(lh_motor_positions, rh_motor_positions)
         # Make sure no LH movements happen at the same time as a picker movement.
         picker_motor_positions_adj = ArmListParser.prepPicker(lh_motor_positions, picker_motor_positions)
-        print("LH events")
-        ArmListParser.print_Events(lh_positions_adj)
-        print("RH events")
-        ArmListParser.print_Events(rh_positions_adj)
-        print("Picker events")
-        ArmListParser.print_Events(picker_motor_positions_adj)
+        # print("LH events")
+        # ArmListParser.print_Events(lh_positions_adj)
+        # print("RH events")
+        # ArmListParser.print_Events(rh_positions_adj)
+        # print("Picker events")
+        # ArmListParser.print_Events(picker_motor_positions_adj)
         #3. Interpolate (dedicated interp function)
         lh_dictionary, rh_dictionary, pick_dictionary = ArmListParser.interpolateEvents(lh_positions_adj, rh_positions_adj, deflections, picker_motor_positions_adj, slide_toggles, initial_point)
 
-        print("Picker Dictionary: ")  # only up to 6
-        i = 0
-        for key, value in pick_dictionary.items():
-            print(f"{i}| {key} : {value}")
-            i += 1
+        # print("Picker Dictionary: ")  # only up to 6
+        # i = 0
+        # for key, value in pick_dictionary.items():
+        #     print(f"{i}| {key} : {value}")
+        #     i += 1
         # Find the maximum timestamp across all dictionaries
         max_timestamp = max(max(lh_dictionary.keys()), max(rh_dictionary.keys()), max(pick_dictionary.keys()))
         print("Max Timestamp ParseAllMidi: ", max_timestamp)
@@ -1077,10 +1079,10 @@ class ArmListParser:
                     pick_interpolated.get(timestamp, [])
             )
         i = 0
-        print("Full Matrix: ")
-        for key, value in combined_dict.items():
-            print(f"{i}| {key} : {value}")
-            i += 1
+        # print("Full Matrix: ")
+        # for key, value in combined_dict.items():
+        #     print(f"{i}| {key} : {value}")
+        #     i += 1
         if graph:
             fig = go.Figure()
 

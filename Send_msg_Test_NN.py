@@ -243,7 +243,7 @@ def main():
     time.sleep(1)
     send_osc_message(client, "/Chords", chords_message_2)
     send_osc_message(client, "/Strum", strum_message_2)
-    # pluck_message = create_tremolo_message()
+    # # pluck_message = create_tremolo_message()
     send_osc_message(client, "/Pluck", pluck_message_2)
     # time.sleep(1)
 

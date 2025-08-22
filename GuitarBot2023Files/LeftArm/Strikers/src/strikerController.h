@@ -83,7 +83,7 @@ public:
             }
 
         }
-
+        // DEPRECATED
         //HOME STRUMMER SLIDER
         MotorSpec spec3 = EC45_StrummerSlider;
         err = kNoError;
@@ -99,7 +99,7 @@ public:
             }
 
         }
-
+        // DEPRECATED
         // HOME STRUMMER PICKER
         MotorSpec spec4 = EC45_StrummerPicker;
         err = kNoError;
@@ -122,7 +122,7 @@ public:
         err = kNoError;
         for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i < NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS + 1; ++i) {
             LOG_LOG("Plucker %i", i);
-            if(i == 15){ //
+            if(i == 13){ //
                 err = m_striker[i].init(i, spec5);
             }
             else{
@@ -188,41 +188,41 @@ public:
         while (isHoming_all) {
             delay(50);
             //CHANGE ME
-            isHoming_1 = m_striker[15].homingStatus();
-            isHoming_2 = m_striker[16].homingStatus();
-            isHoming_3 = m_striker[17].homingStatus();
+            isHoming_1 = m_striker[13].homingStatus();
+            isHoming_2 = m_striker[14].homingStatus();
+            isHoming_3 = m_striker[15].homingStatus();
             isHoming_all = isHoming_1 || isHoming_2 || isHoming_3;
             if (ii++ > 200) break;
         }
-        LOG_LOG("Homing for pluckers complete, starting strummer. ");
-//        delay(20000);
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS +NUM_STRUMMER_PICKERS + 1; ++i) {
-            m_striker[i].startHome(i);
-        }
-        bool checkHome = false;
-        isHoming_2 = true;
-        isHoming_all = isHoming_1 || isHoming_2;
-        while (isHoming_all) {
-            delay(50);
-            isHoming_1 = m_striker[14].homingStatus();
-            if(!checkHome && !isHoming_1){
-                checkHome = true;
-                m_striker[13].startHome(13);
-            }
-
-            if(checkHome){
-                isHoming_2 = m_striker[13].homingStatus();
-            }
-
-            isHoming_all = isHoming_1 || isHoming_2;
-
-            //Serial.println(ii);
-
-            if (ii++ > 200) break;
-        }
+//        LOG_LOG("Homing for pluckers complete, starting strummer. ");
+////        delay(20000);
+//        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
+//            m_striker[i].startHome(i);
+//        }
+//        bool checkHome = false;
+//        isHoming_2 = true;
+//        isHoming_all = isHoming_1 || isHoming_2;
+//        while (isHoming_all) {
+//            delay(50);
+//            isHoming_1 = m_striker[14].homingStatus();
+//            if(!checkHome && !isHoming_1){
+//                checkHome = true;
+//                m_striker[13].startHome(13);
+//            }
+//
+//            if(checkHome){
+//                isHoming_2 = m_striker[13].homingStatus();
+//            }
+//
+//            isHoming_all = isHoming_1 || isHoming_2;
+//
+//            //Serial.println(ii);
+//
+//            if (ii++ > 200) break;
+//        }
 
         Serial.println("finished initializing and homing all controllers.");
-//        delay(45000);
+        //delay(45000);
         //Init all variables needed
         Util::fill(pickerStates, NUM_PLUCKERS, 0); // Initializes picker states to be 0 (pickers start at the up state)
         Util::fill(prev_frets, 6, 100); //Dummy inital values
@@ -1142,13 +1142,13 @@ public:
             float q0 = 0;
             float qf = pos2pulse;
 
-            if(i >= 15){ //Picker
+            if(i >= 13){ //Picker
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
-                if(i == 16){
+                if(i == 14){
                     start_state_PICK = 4.0;
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                     }
-                if(i == 17){
+                if(i == 15){
                     start_state_PICK = 6;
                     pos2pulse = (start_state_PICK * 2048) / 9.4;
                 }
@@ -1167,38 +1167,38 @@ public:
                     all_Trajs[i - 1][index++] = temp_traj_2[x];
                 }
             }
-            else if(i == 13){ //Strum Slider
-                pos2pulse = (start_state_SS * 2048) / 9.4;
-                qf = pos2pulse;
-                temp_point[i - 1] = pos2pulse;
-
-                Util::interpWithBlend(q0, qf, 50, .05, temp_traj_1);
-                Util::fill(temp_traj_2, 50, qf);
-                int index = 0;
-                for (int x = 0; x < 50; x++) {
-                    all_Trajs[i - 1][index++] = temp_traj_1[x];
-                }
-                for (int x = 0; x < 50; x++) {
-                    all_Trajs[i - 1][index++] = temp_traj_2[x];
-//                    Serial.println(index);
-//                    Serial.println(temp_traj_2[x]);
-                }
-            }
-            else if(i == 14){ // Strum Picker
-                pos2pulse = (start_state_SP * 2048) / 9.4;
-                qf = pos2pulse;
-                temp_point[i - 1] = pos2pulse;
-                Util::fill(temp_traj_1, 50, q0);
-                Util::interpWithBlend(q0, qf, 50, .05, temp_traj_2);
-
-                int index = 0;
-                for (int x = 0; x < 50; x++) {
-                    all_Trajs[i - 1][index++] = temp_traj_1[x];
-                }
-                for (int x = 0; x < 50; x++) {
-                    all_Trajs[i - 1][index++] = temp_traj_2[x];
-                }
-            }
+//            else if(i == 13){ //Strum Slider
+//                pos2pulse = (start_state_SS * 2048) / 9.4;
+//                qf = pos2pulse;
+//                temp_point[i - 1] = pos2pulse;
+//
+//                Util::interpWithBlend(q0, qf, 50, .05, temp_traj_1);
+//                Util::fill(temp_traj_2, 50, qf);
+//                int index = 0;
+//                for (int x = 0; x < 50; x++) {
+//                    all_Trajs[i - 1][index++] = temp_traj_1[x];
+//                }
+//                for (int x = 0; x < 50; x++) {
+//                    all_Trajs[i - 1][index++] = temp_traj_2[x];
+////                    Serial.println(index);
+////                    Serial.println(temp_traj_2[x]);
+//                }
+//            }
+//            else if(i == 14){ // Strum Picker
+//                pos2pulse = (start_state_SP * 2048) / 9.4;
+//                qf = pos2pulse;
+//                temp_point[i - 1] = pos2pulse;
+//                Util::fill(temp_traj_1, 50, q0);
+//                Util::interpWithBlend(q0, qf, 50, .05, temp_traj_2);
+//
+//                int index = 0;
+//                for (int x = 0; x < 50; x++) {
+//                    all_Trajs[i - 1][index++] = temp_traj_1[x];
+//                }
+//                for (int x = 0; x < 50; x++) {
+//                    all_Trajs[i - 1][index++] = temp_traj_2[x];
+//                }
+//            }
             else
             {
                 Util::interpWithBlend(q0, -1, 100, .05, temp_traj_3);
@@ -1497,16 +1497,16 @@ private:
                 }
             }
         }
-//        Serial.println("------------------");
-//        Serial.print("Index: ");
-//        Serial.println(idx);
-//        Serial.print("Traj Point: ");
-//        int curr_pos;
-//        for (int i = 0; i < NUM_MOTORS; ++i) {
-//            Serial.print(point[i]);
-//            Serial.print(" ");
-//        }
-//        Serial.println(" ");
+        Serial.println("------------------");
+        Serial.print("Index: ");
+        Serial.println(idx);
+        Serial.print("Traj Point: ");
+        int curr_pos;
+        for (int i = 0; i < NUM_MOTORS; ++i) {
+            Serial.print(point[i]);
+            Serial.print(" ");
+        }
+        Serial.println(" ");
 
 
         bool run_bot = true; //false turns off motor, true turns on

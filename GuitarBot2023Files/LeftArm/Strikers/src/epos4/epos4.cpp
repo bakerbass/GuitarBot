@@ -741,18 +741,18 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
         }
         n = SetHomeOffset(50000); //52000
 
-        if(m_uiNodeID >= 15){
+        if(m_uiNodeID >= 13){
             n = SetHomeOffset(0);
         }
         if(m_uiNodeID > 6 && m_uiNodeID < 13){
             n = SetHomeOffset(-25); //-25
         }
-        if(m_uiNodeID == 13){   // Strummer slider
-            n = SetHomeOffset(29500);
-        }
-        if(m_uiNodeID == 14){   // Strummer picker
-            n = SetHomeOffset(100);
-        }
+//        if(m_uiNodeID == 13){   // Strummer slider
+//            n = SetHomeOffset(29500);
+//        }
+//        if(m_uiNodeID == 14){   // Strummer picker
+//            n = SetHomeOffset(100);
+//        }
 
         if(n != 0 ) {
             LOG_ERROR("setHomeOffset");
@@ -777,11 +777,11 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
 //        if(m_uiNodeID == 7){
 //            n = setHomingCurrentThreshold(1500);; //-25
 //        }
-        if(m_uiNodeID == 14){ //Strummer-Picker
-//            n = setHomingCurrentThreshold(400);
-            n = setHomingCurrentThreshold(300);
-        }
-        if(m_uiNodeID >= 15){//Picker
+//        if(m_uiNodeID == 14){ //Strummer-Picker
+////            n = setHomingCurrentThreshold(400);
+//            n = setHomingCurrentThreshold(300);
+//        }
+        if(m_uiNodeID >= 13){//Picker
             n = setHomingCurrentThreshold(500);
         }
         if (n != 0) {

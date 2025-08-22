@@ -4,7 +4,7 @@
 ---
 Project repo for GuitarBot.
 
-**Contributors:** Amit Rogel, Marcus Parker, Jack Keller, **add contributors here**.
+**Contributors:** Amit Rogel, Marcus Parker, Jack Keller, Derrick Joyce **add contributors here**.
 
 ## Environment Setup
 1. Clone this repository.

@@ -1075,19 +1075,19 @@ class ArmListParser:
         for timestamp in all_timestamps:
             combined_dict[timestamp] = (
                     lh_interpolated.get(timestamp, []) +
-                    rh_interpolated.get(timestamp, []) +
+                    # rh_interpolated.get(timestamp, []) +
                     pick_interpolated.get(timestamp, [])
             )
         i = 0
-        # print("Full Matrix: ")
-        # for key, value in combined_dict.items():
-        #     print(f"{i}| {key} : {value}")
-        #     i += 1
+        print("Full Matrix: ")
+        for key, value in combined_dict.items():
+            print(f"{i}| {key} : {value}")
+            i += 1
         if graph:
             fig = go.Figure()
 
             #Add a trace for each motor
-            for motor in range(17):
+            for motor in range(15):
                 # if motor > 13:
                     y_values = [values[motor] for values in combined_dict.values()]
                     fig.add_trace(go.Scatter(x=list(combined_dict.keys()), y=y_values, mode='lines', name=f'Motor {motor + 1}'))

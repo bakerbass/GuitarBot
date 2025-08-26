@@ -183,9 +183,9 @@ def create_tremolo_message():
 
 # MARCUS DEMOS POSTER DAY
 # 1. Pluck Speeds
-# chords_message = [["On", 13]]
+# chords_message = [["On", 8]]
 # strum_message =  [["UP", 0]]
-# pluck_message = [[59, 5, 1, 0, 1], [59, 5, 10, 0, 6], [50, 5, 1, 0, 1], [50, 5, 10, 0, 6]]
+# pluck_message = [[59, 2, 1, 0, 1], [59, 2, 10, 0, 4], [50, 2, 1, 0, 1], [50, 2, 10, 0, 4]]
 
 
 # 2. Glissando Multiple Strings
@@ -247,10 +247,10 @@ def main():
     # pluck_message = create_tremolo_message()
     send_osc_message(client, "/Pluck", pluck_message)
     time.sleep(1)
-    # send_osc_message(client, "/Chords", chords_message_2)
-    # send_osc_message(client, "/Strum", strum_message_2)
-    # # # pluck_message = create_tremolo_message()
-    # send_osc_message(client, "/Pluck", pluck_message_2)
+    send_osc_message(client, "/Chords", chords_message_2)
+    send_osc_message(client, "/Strum", strum_message_2)
+    # # pluck_message = create_tremolo_message()
+    send_osc_message(client, "/Pluck", pluck_message_2)
     # # time.sleep(1)
 
     # send_osc_message(client, "/Chords", chords_message_2)

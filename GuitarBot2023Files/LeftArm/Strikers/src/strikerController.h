@@ -1309,17 +1309,6 @@ public:
         return kNoError;
     }
 
-
-    int strike(uint8_t idCode) {
-        for (int i = 1; i < NUM_STRIKERS + NUM_PRESSERS + 1; ++i) {
-            if (idCode == i) {
-                // LOG_LOG("(idcode: %h) Striking: %i", idCode, i);
-                m_striker[i].strike();
-                //(pInstance->pPresserCallBack)(8, 400);
-            }
-        }
-    }
-
 //    void poll() {
 //        m_socket.poll();
 //    }

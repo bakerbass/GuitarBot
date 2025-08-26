@@ -141,7 +141,7 @@ public:
 //        delay(20000);
         for (int i = 1; i < NUM_STRIKERS + 1; ++i) {
             m_striker[i].startHome(i);
-            }
+        }
         int ii = 0;
         bool isHoming_all = true;
         bool isHoming_1 = true;

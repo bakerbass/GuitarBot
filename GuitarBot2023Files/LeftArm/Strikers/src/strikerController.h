@@ -13,7 +13,7 @@
 #include <ArduinoEigen.h>
 #include "networkHandler.h"
 #include <iostream>
-
+#include <algorithm>
 
 class StrikerController {
 public:
@@ -139,61 +139,22 @@ public:
         }
 
 //        delay(20000);
-        for (int i = 1; i < NUM_STRIKERS + 1; ++i) {
+        for (int i = 1; i <= NUM_STRIKERS; ++i) {
             m_striker[i].startHome(i);
         }
-        int ii = 0;
-        bool isHoming_all = true;
-        bool isHoming_1 = true;
-        bool isHoming_2 = true;
-        bool isHoming_3 = true;
-        bool isHoming_4 = true;
-        bool isHoming_5 = true;
-        bool isHoming_6 = true;
-
-        while (isHoming_all) {
-            delay(50);
-            isHoming_1 = m_striker[1].homingStatus();
-            isHoming_2 = m_striker[2].homingStatus();
-            isHoming_3 = m_striker[3].homingStatus();
-            isHoming_4 = m_striker[4].homingStatus();
-            isHoming_5 = m_striker[5].homingStatus();
-            isHoming_6 = m_striker[6].homingStatus();
-            isHoming_all = isHoming_1 || isHoming_2 || isHoming_3 || isHoming_4 || isHoming_5 || isHoming_6;
-
-            if (ii++ > 200) break;
-        }
+        checkHomingInRange(1, NUM_STRIKERS)
         delay(500);
 
         LOG_LOG("Homing for sliders complete, starting pressers. ");
-        for (int i = NUM_STRIKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + 1; ++i) {
+        for (int i = NUM_STRIKERS + 1; i <= NUM_PRESSERS + NUM_STRIKERS; ++i) {
             m_striker[i].startHome(i);
-            }
-        while (isHoming_all) {
-            delay(50);
-            isHoming_1 = m_striker[7].homingStatus();
-            isHoming_2 = m_striker[8].homingStatus();
-            isHoming_3 = m_striker[9].homingStatus();
-            isHoming_4 = m_striker[10].homingStatus();
-            isHoming_5 = m_striker[11].homingStatus();
-            isHoming_6 = m_striker[12].homingStatus();
-            isHoming_all = isHoming_1 || isHoming_2 || isHoming_3 || isHoming_4 || isHoming_5 || isHoming_6;
-
-            //if (ii++ > 200) break;
         }
+        checkHomingInRange(NUM_STRIKERS + 1, NUM_PRESSERS  + NUM_STRIKERS)
         LOG_LOG("Homing for pressers complete, starting pluckers. ");
-        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS + 1; ++i) {
+        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i <= NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS; ++i) {
             m_striker[i].startHome(i);
         }
-        while (isHoming_all) {
-            delay(50);
-            //CHANGE ME
-            isHoming_1 = m_striker[13].homingStatus();
-            isHoming_2 = m_striker[14].homingStatus();
-            isHoming_3 = m_striker[15].homingStatus();
-            isHoming_all = isHoming_1 || isHoming_2 || isHoming_3;
-            if (ii++ > 200) break;
-        }
+        checkHomingInRange(NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1, NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS);
 //        LOG_LOG("Homing for pluckers complete, starting strummer. ");
 ////        delay(20000);
 //        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
@@ -1524,6 +1485,45 @@ private:
         pInstance->m_currentPoint = point;
     }
 
+    static int checkHomingInRange(uint8_t start, uint8_t end) {
+        // dummy-proof so that end >= start
+        if (end < start) std::swap(start, end);
+
+        // Bound check
+        if (start < 1 || end > NUM_MOTORS || start > end) {
+            Serial.println("Homing Error: Invalid motor range");
+            return 2;
+        }
+
+        // Build queue of motors that still need homing
+        std::queue<uint8_t> q;
+        for (uint8_t i = start; i <= end; ++i) q.push(i);
+
+        const unsigned long pollDelayMs = 50;
+
+        while (!q.empty()) {
+            // Grab first motor in queue
+            uint8_t node = q.front();
+            // Pop it off. We will push it back into queue if it is not done homing.
+            q.pop();
+
+            // Check homing status; if still homing, requeue; if finished, it is already out of the queue
+            bool isHoming = m_striker[node].homingStatus();
+            if (isHoming) {
+                q.push(node);
+            } 
+            else {
+                // finished homing for this node; do not requeue
+                // Serial.print("Node "); Serial.print(node); Serial.println(" homed.");
+            }
+
+            // Polling delay
+            delay(pollDelayMs);
+        }
+
+        // all finished
+        return 0;
+    }
     // static void clearFaultTimerIRQHandler() {
     //     for (int i = 1; i < NUM_STRIKERS + 1; ++i) {
     //         pInstance->m_striker[i].checkAndRecover();

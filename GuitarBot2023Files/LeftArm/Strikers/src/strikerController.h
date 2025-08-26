@@ -142,14 +142,14 @@ public:
         for (int i = 1; i <= NUM_STRIKERS; ++i) {
             m_striker[i].startHome(i);
         }
-        checkHomingInRange(1, NUM_STRIKERS)
+        checkHomingInRange(1, NUM_STRIKERS);
         delay(500);
 
         LOG_LOG("Homing for sliders complete, starting pressers. ");
         for (int i = NUM_STRIKERS + 1; i <= NUM_PRESSERS + NUM_STRIKERS; ++i) {
             m_striker[i].startHome(i);
         }
-        checkHomingInRange(NUM_STRIKERS + 1, NUM_PRESSERS  + NUM_STRIKERS)
+        checkHomingInRange(NUM_STRIKERS + 1, NUM_PRESSERS  + NUM_STRIKERS);
         LOG_LOG("Homing for pressers complete, starting pluckers. ");
         for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; i <= NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS; ++i) {
             m_striker[i].startHome(i);

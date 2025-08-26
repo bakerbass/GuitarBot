@@ -3,12 +3,13 @@ import queue
 import time
 import socket
 import RobotController
-from UI.messaging.udp_definitions import *
-# from parsing.ArmListParser import ArmListParser
+# from UI.messaging.udp_definitions import *
+from parsing.ArmListParser import ArmListParser
 from pythonosc.osc_message import OscMessage
 from pythonosc.parsing import osc_types
-import GuitarBotParser
+from GuitarBotParser import GuitarBotParser
 import numpy as np
+
 
 # For External
 # UDP_IP = "192.168.1.1"

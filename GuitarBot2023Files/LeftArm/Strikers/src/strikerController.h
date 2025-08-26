@@ -1485,7 +1485,7 @@ private:
         pInstance->m_currentPoint = point;
     }
 
-    static int checkHomingInRange(uint8_t start, uint8_t end) {
+    int checkHomingInRange(uint8_t start, uint8_t end) {
         // dummy-proof so that end >= start
         if (end < start) std::swap(start, end);
 

@@ -183,7 +183,7 @@ public:
 //        }
 
         Serial.println("finished initializing and homing all controllers.");
-        //delay(45000);
+        delay(45000);
         //Init all variables needed
         Util::fill(pickerStates, NUM_PLUCKERS, 0); // Initializes picker states to be 0 (pickers start at the up state)
         Util::fill(prev_frets, 6, 100); //Dummy inital values
@@ -1496,21 +1496,21 @@ private:
         }
 
         // Build queue of motors that still need homing
-        std::queue<uint8_t> q;
-        for (uint8_t i = start; i <= end; ++i) q.push(i);
+        ArduinoQueue<int> q;
+        for (uint8_t i = start; i <= end; ++i) q.enqueue(i);
 
         const unsigned long pollDelayMs = 50;
 
-        while (!q.empty()) {
+        while (!q.isEmpty()) {
             // Grab first motor in queue
-            uint8_t node = q.front();
+            uint8_t node = q.getHead();
             // Pop it off. We will push it back into queue if it is not done homing.
-            q.pop();
+            q.dequeue();
 
             // Check homing status; if still homing, requeue; if finished, it is already out of the queue
             bool isHoming = m_striker[node].homingStatus();
             if (isHoming) {
-                q.push(node);
+                q.enqueue(node);
             } 
             else {
                 // finished homing for this node; do not requeue
@@ -1522,6 +1522,7 @@ private:
         }
 
         // all finished
+        Serial.println("Passed new homing");
         return 0;
     }
     // static void clearFaultTimerIRQHandler() {

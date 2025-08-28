@@ -13,6 +13,7 @@
 #include <ArduinoEigen.h>
 #include "networkHandler.h"
 #include <iostream>
+#include "tune.h"
 
 class StrikerController {
 public:
@@ -102,6 +103,7 @@ public:
         // HOME STRUMMER PICKER
         MotorSpec spec4 = EC45_StrummerPicker;
         err = kNoError;
+
         for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
             LOG_LOG("StrummerPicker %i", i);
             err = m_striker[i].init(i, spec4);
@@ -581,6 +583,7 @@ public:
             float qf = pos2pulse;
 
             if(i >= 13){ //Picker
+                float this_state_PICK = start_state_PICK[i - 13];
                 pos2pulse = (start_state_PICK * 1024) / 9.4;
                 if(i == 14){
                     start_state_PICK = 4.0;

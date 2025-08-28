@@ -3,11 +3,13 @@ import queue
 import time
 import socket
 import RobotController
-from UI.messaging.udp_definitions import *
+# from UI.messaging.udp_definitions import *
 from parsing.ArmListParser import ArmListParser
 from pythonosc.osc_message import OscMessage
 from pythonosc.parsing import osc_types
+from GuitarBotParser import GuitarBotParser
 import numpy as np
+
 
 # For External
 # UDP_IP = "192.168.1.1"
@@ -15,11 +17,10 @@ import numpy as np
 UDP_IP = "127.0.0.1"
 UDP_PORT = 12000
 # initial_point = [0,0,0,0,0,0,-10,-10,-10,-10,-10,-10, -115, 9, 7,7]
-# 6 sliders, 6 pressers, 1 strummer-slider, 1 strummer-plucker, Two pluckers for now, convert to encoder_ticks
+# 6 sliders, 6 pressers, Three pluckers for now, convert to encoder_ticks
 message_queue = queue.SimpleQueue()
 # chords = strum = pluck = None
 chords_queue = queue.SimpleQueue()
-strum_queue = queue.SimpleQueue()
 pluck_queue = queue.SimpleQueue()
 initial_point_queue = queue.SimpleQueue()
 song_trajs_queue = queue.SimpleQueue()
@@ -52,10 +53,10 @@ def udp_listener():
 
 def process_messages():
     """Process messages from the queue and handle them."""
-    chords = strum = pluck = None
-    initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, -23965, 1960, 817, 762, 1307]
+    chords = pluck = None
+    initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 817, 762, 1307]
 
-    chords = strum = pluck = None
+    chords = pluck = None
 
     while True:
         try:
@@ -64,12 +65,9 @@ def process_messages():
                 print("DATA: ", data)
                 if message_type == "Chords":
                     chords_queue.put(data)
-                elif message_type == "Strum":
-                    strum_queue.put(data)
                 elif message_type == "Pluck":
                     pluck_queue.put(data)
                 # print(f"Chords Queue Size1", chords_queue.qsize())
-                # print(f"Strum Queue Size1", strum_queue.qsize())
                 # print(f"Pluck Queue Size1", pluck_queue.qsize())
         except queue.Empty:
             pass
@@ -77,36 +75,31 @@ def process_messages():
 
 
 def song_creator():
-    initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, -23965, 1960, 817, 762, 1525]
+    initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 817, 762, 1525]
     while True:
         try:
-            while chords_queue.qsize() > 0 and strum_queue.qsize() > 0 and pluck_queue.qsize() > 0:
+            while chords_queue.qsize() > 0 and pluck_queue.qsize() > 0:
                 # Collect all chords, strums, and plucks together
                 chords = chords_queue.get_nowait()
-                strum = strum_queue.get_nowait()
                 pluck = pluck_queue.get_nowait()
 
                 for i in range(chords_queue.qsize()):
                     chords.extend(chords_queue.get_nowait())
 
-                for i in range(strum_queue.qsize()):
-                    strum.extend(strum_queue.get_nowait())
-
                 for i in range(pluck_queue.qsize()):
                     pluck.extend(pluck_queue.get_nowait())
 
                 # print("ALL CHORDS: ", chords)
-                # print("ALL STRUMS: ", strum)
                 # print("ALL PLUCKS: ", pluck)
                 print("Starting Parse")
 
-                song_trajectories_dict = ArmListParser.parseAllMIDI(chords, strum, pluck, initial_point)
+                song_trajectories_dict = GuitarBotParser.parseAllMIDI(chords, pluck, initial_point)
                 song_trajectories_list = [value for value in song_trajectories_dict.values()]
                 song_trajs_queue.put(song_trajectories_list)
                 print("SONG TRAJS QUEUE LENGTH: ", song_trajs_queue.qsize())
                 initial_point = song_trajectories_list[-1]
                 initial_point_queue.put(initial_point)
-                chords = strum = pluck = None
+                chords = pluck = None
 
 
 

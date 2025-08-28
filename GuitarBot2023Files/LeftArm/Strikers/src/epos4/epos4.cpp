@@ -3,7 +3,7 @@
 // 
 
 #include "epos4.h"
-
+#include "tune.h"
 int Epos4::init(int iNodeID, MotorSpec spec, bool inverted, unsigned long timeout_ms) {
     m_uiNodeID = iNodeID;
     m_motorSpec = spec;
@@ -733,19 +733,19 @@ int Epos4::setOpMode(OpMode opMode, uint8_t uiInterpolationTime, int8_t iInterpo
         }
         break;
 
-    case Homing:
+    case Homing: //TODO: no magic numbers plz
         n = setHomingMethod(homingMethod);
         if (n != 0) {
             LOG_ERROR("setHomingMethod");
             return -1;
         }
-        n = SetHomeOffset(50000); //52000
+        n = SetHomeOffset(home_offset_SLIDE); //50000
+        if(m_uiNodeID > 6 && m_uiNodeID < 13){
+            n = SetHomeOffset(home_offset_PRESS); //-25
+        }
 
         if(m_uiNodeID >= 13){
-            n = SetHomeOffset(0);
-        }
-        if(m_uiNodeID > 6 && m_uiNodeID < 13){
-            n = SetHomeOffset(-25); //-25
+            n = SetHomeOffset(home_offset_PICK);
         }
 //        if(m_uiNodeID == 13){   // Strummer slider
 //            n = SetHomeOffset(29500);
@@ -1194,7 +1194,7 @@ int Epos4::clearFault() {
     return 0;
 }
 
-int Epos4::setCurrentControlParameters() {
+int Epos4::setCurrentControlParameters() { //TODO: Slider magic numbers
     int n;
     n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 1575853); // 781067
     if (n != 0) {
@@ -1244,7 +1244,7 @@ int Epos4::setCurrentControlParameters_StrummerSlider() {
     return 0;
 }
 
-int Epos4::setCurrentControlParameters_Pickers() {
+int Epos4::setCurrentControlParameters_Pickers() {//TODO: magic numbers
     int n;
     n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 1042729);
     if (n != 0) {
@@ -1261,7 +1261,7 @@ int Epos4::setCurrentControlParameters_Pickers() {
     return 0;
 }
 
-int Epos4::setCurrentControlParameters_EC20() {
+int Epos4::setCurrentControlParameters_EC20() { //TODO: magic numbers pressers
     int n;
     n = writeObj(CURRENT_CTRL_PARAM_ADDR, CC_P_GAIN, 3456649);
     if (n != 0) {
@@ -1296,7 +1296,7 @@ int Epos4::setCurrentControlParameters_EC60() {
     return 0;
 }
 
-int Epos4::setPositionControlParameters() {
+int Epos4::setPositionControlParameters() { //TODO: Slider magic numbers
     int n;
     n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 6933308); //830000
     if (n != 0) {
@@ -1419,7 +1419,7 @@ int Epos4::setPositionControlParameters_StrummerPicker() {
     return 0;
 }
 
-int Epos4::setPositionControlParameters_Pickers() {
+int Epos4::setPositionControlParameters_Pickers() { //TODO: Picker magic numbers
     int n;
     n = writeObj(POS_CTRL_PARAM_ADDR, PC_P_GAIN, 18462573);
     if (n != 0) {

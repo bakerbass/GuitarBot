@@ -3,7 +3,7 @@
 // 
 
 #include "epos4.h"
-#include "tune.h"
+#include "../tune.h"
 int Epos4::init(int iNodeID, MotorSpec spec, bool inverted, unsigned long timeout_ms) {
     m_uiNodeID = iNodeID;
     m_motorSpec = spec;

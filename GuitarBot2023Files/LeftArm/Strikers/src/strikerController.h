@@ -454,47 +454,42 @@ public:
         Input: List of trajectory points for all motors
         Output: Pushes point to the queue
     */
-    void processTrajPoints(float *trajPoint)
-    {
+    void processTrajPoints(float *trajPoint) {
         int packetSize = 15;
         int curr_pos;
         Serial.print("RECEIVED: ");
-        for(int i = 0; i<packetSize; i++)
-        {
+        for (int i = 0; i < packetSize; i++) {
             Serial.print(trajPoint[i]);
             Serial.print(" ");
         }
         Serial.println();
 
-        for(int x = 0; x < NUM_MOTORS; x++){
-            if(x < 17)
-            {
-                if(x > 5 && x < 12){
+        for (int x = 0; x < NUM_MOTORS; x++) {
+            if (x < 17) {
+                if (x > 5 && x < 12) {
                     int curr_pos;
-                    curr_pos = pInstance-> m_striker[x+1].getPosition_ticks();
+                    curr_pos = pInstance->m_striker[x + 1].getPosition_ticks();
                     //Serial.print("Current pos at ");
 //                    Serial.print(x + 1);
 //                    Serial.print(" ");
 //                    Serial.print(curr_pos);
-                    if(curr_pos <= 15 && trajPoint[x] <= 0){
-                        if(m_striker[x+1].getPressState()){
-                            m_striker[x+1].setModePOSITION();
+                    if (curr_pos <= 15 && trajPoint[x] <= 0) {
+                        if (m_striker[x + 1].getPressState()) {
+                            m_striker[x + 1].setModePOSITION();
                             //Serial.print(", Setting Position since ");
                         }
                         //Serial.println(", PRESS STATE FALSE");
                         all_Trajs[x][0] = 0;
-                    }
-                    else{
-                        if(!m_striker[x+1].getPressState()){
-                            m_striker[x+1].setModeTORQUE();
+                    } else {
+                        if (!m_striker[x + 1].getPressState()) {
+                            m_striker[x + 1].setModeTORQUE();
                             //Serial.print(", Setting Torque since ");
                         }
                         //Serial.print(", is already in Torque mode; ");
                     }
                     all_Trajs[x][0] = trajPoint[x];
                     //Serial.println(", PRESS STATE TRUE");
-                }
-                else{
+                } else {
                     all_Trajs[x][0] = trajPoint[x];
                 }
             }
@@ -509,62 +504,16 @@ public:
         //Serial.println();
         //Serial.println("PUSHING TO QUEUE: ");
         Trajectory<int32_t>::point_t temp_point;
-        for(int x = 0; x < NUM_MOTORS; x++){
+        for (int x = 0; x < NUM_MOTORS; x++) {
             temp_point[x] = all_Trajs[x][0];
             //Serial.println(temp_point[x]);
         }
         //Serial.println("-------");
         m_traj.push(temp_point);
-
     }
-        if (midiVelocity >= 10 || midiVelocity <= 0){
-            midiVelocity = 1;
-        }
-        int mult = -1;
-        if(idCode == 2 || idCode == 3 || idCode == 4|| idCode == 6){
-            mult = 1;
-        }
 
-        float fretLength = (SCALE_LENGTH - (SCALE_LENGTH / pow(2, (((midiVelocity)) / 12.f)))) - 12;
-        //float fretLength = (SCALE_LENGTH - (SCALE_LENGTH / pow(2, (((midiVelocity)) / 12.f))));
-        float pos2pulse = (fretLength * 2048) / 10;
-        //pos2pulse = (360 * pos2pulse) / 2048;
-//        Serial.print("Position is: ");
-//        Serial.print(" ");
-//        Serial.print(fretLength);
-//        Serial.print(" ");
-//        Serial.print("pulse is: ");
-//        Serial.print(" ");
-//        Serial.println(pos2pulse);
-        midiVelocity = mult*pos2pulse;
-
-        if(idCode > 6){
-            pos2pulse = (360 * 23) / 1024;
-        }
-
-        float m_afTraj[20];
-        Trajectory<int32_t>::point_t temp_point;
-        float q0 = m_striker[1].getPosition_ticks();
-//        Serial.println("q0, qf, and midivelocity");
-//        Serial.println(q0);
-        float qf = pos2pulse;
-//        Serial.println(qf);
-//        Serial.println(midiVelocity);
-        Util::interpWithBlend(q0,midiVelocity, 20,.05, m_afTraj);
-        for (int i = 0; i < 20; i++) {
-            temp_point[0] = m_afTraj[i];
-            //Serial.println(m_afTraj[i]);
-            m_traj.push(temp_point);
-        }
-
-
-        //uint8_t uiStrike = prepare(idCode, mode, midiVelocity, channelPressure);
-        //strike(uiStrike);
-
-    }
-    //TODO: picker queue?
     void start() {
-        float start_state_PICK = 8;
+        //float start_state_PICK = 8;
         float pos2pulse = 0;
 
         float temp_traj_1[50];
@@ -584,14 +533,14 @@ public:
 
             if(i >= 13){ //Picker
                 float this_state_PICK = start_state_PICK[i - 13];
-                pos2pulse = (start_state_PICK * 1024) / 9.4;
+                pos2pulse = (this_state_PICK * 1024) / 9.4;
                 if(i == 14){
-                    start_state_PICK = 4.0;
-                    pos2pulse = (start_state_PICK * 2048) / 9.4;
+                    this_state_PICK = 4.0;
+                    pos2pulse = (this_state_PICK * 2048) / 9.4;
                     }
                 if(i == 15){
-                    start_state_PICK = 6;
-                    pos2pulse = (start_state_PICK * 2048) / 9.4;
+                    this_state_PICK = 6;
+                    pos2pulse = (this_state_PICK * 2048) / 9.4;
                 }
 
                 qf = pos2pulse;
@@ -944,21 +893,21 @@ private:
         }
 
         // Build queue of motors that still need homing
-        std::queue<uint8_t> q;
-        for (uint8_t i = start; i <= end; ++i) q.push(i);
+        ArduinoQueue<uint8_t> q;
+        for (uint8_t i = start; i <= end; ++i) q.enqueue(i);
 
         const unsigned long pollDelayMs = 50;
 
-        while (!q.empty()) {
+        while (!q.isEmpty()) {
             // Grab first motor in queue
-            uint8_t node = q.front();
+            uint8_t node = q.getHead();
             // Pop it off. We will push it back into queue if it is not done homing.
-            q.pop();
+            q.dequeue();
 
             // Check homing status; if still homing, requeue; if finished, it is already out of the queue
             bool isHoming = m_striker[node].homingStatus();
             if (isHoming) {
-                q.push(node);
+                q.enqueue(node);
             } 
             else {
                 // finished homing for this node; do not requeue

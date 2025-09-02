@@ -600,10 +600,6 @@ public:
                     all_Trajs[x][0] = trajPoint[x];
                 }
             }
-//            else if(x == 14 || x == 15) // picker set to default number for now
-//            {
-//                all_Trajs[x][0] = 762; //default value in encoder ticks, same as in start()
-//            }
         }
 
         //Serial.println("PROCESSED TRAJ: ");

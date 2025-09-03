@@ -9,7 +9,7 @@ from pythonosc.osc_message import OscMessage
 from pythonosc.parsing import osc_types
 from GuitarBotParser import GuitarBotParser
 import numpy as np
-
+import tune as tu
 
 # For External
 # UDP_IP = "192.168.1.1"
@@ -72,7 +72,7 @@ def process_messages():
 
 
 def song_creator():
-    initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 817, 762, 1525]
+    initial_point = tu.initial_point
     while True:
         try:
             while chords_queue.qsize() > 0 and pluck_queue.qsize() > 0:

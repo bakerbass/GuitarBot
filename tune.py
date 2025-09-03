@@ -15,6 +15,11 @@ TIME_STEP = .005
 # A higher value creates a more gradual acceleration and deceleration.
 TRAJECTORY_BLEND_PERCENT = 0.2
 
+# Initial Point
+# Controls the starting point for the very first message sent to GuitarBot when the receiver file starts.
+initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 838, 937, 1450]
+
+
 # Number of interpolation points for presser movements (e.g., pressing/unpressing).
 # More points result in a slower movement.
 PRESSER_INTERPOLATION_POINTS = 10
@@ -103,9 +108,9 @@ SLIDER_MOTOR_DIRECTION = [-1, 1, 1, -1, -1, 1]
 # Calibrate the mm positions for the desired picking depth and tone.
 # Key is the motor ID.
 PICKER_MOTOR_INFO = {
-    0: {'down_pluck_mm': 3.75, 'up_pluck_mm': 7.7, 'resolution': 1024}, # E
-    1: {'down_pluck_mm': 0.5, 'up_pluck_mm': 4.3, 'resolution': 2048}, # D
-    2: {'down_pluck_mm': 3, 'up_pluck_mm': 6.7, 'resolution': 2048} # B
+    0: {'down_pluck_mm': 4.7, 'up_pluck_mm': 7.7, 'resolution': 1024}, # E
+    1: {'down_pluck_mm': 1.3, 'up_pluck_mm': 4.3, 'resolution': 2048}, # D
+    2: {'down_pluck_mm': 3.7, 'up_pluck_mm': 6.7, 'resolution': 2048} # B
     # Add entries for other pickers if they exist, e.g., 3, 4, 5
 }
 

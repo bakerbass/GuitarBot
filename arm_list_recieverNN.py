@@ -4,7 +4,7 @@ import time
 import socket
 import RobotController
 # from UI.messaging.udp_definitions import *
-from parsing.ArmListParser import ArmListParser
+# from parsing.ArmListParser import ArmListParser
 from pythonosc.osc_message import OscMessage
 from pythonosc.parsing import osc_types
 from GuitarBotParser import GuitarBotParser
@@ -53,9 +53,6 @@ def udp_listener():
 
 def process_messages():
     """Process messages from the queue and handle them."""
-    chords = pluck = None
-    initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 817, 762, 1307]
-
     chords = pluck = None
 
     while True:

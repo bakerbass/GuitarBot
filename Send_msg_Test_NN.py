@@ -184,13 +184,22 @@ def create_tremolo_message():
 # MARCUS DEMOS POSTER DAY
 # 1. Pluck Speeds
 chords_message = [["On", 8]]
-strum_message =  [["UP", 0]]
-pluck_message = [[42, 2, 1, 0, 1], [45, 2, 10, 0, 4], [40, 2, 1, 0, 1], [40, 2, 10, 0, 4]]
+# strum_message =  [["UP", 0]]
+# # E
+# pluck_message = [[42, 2, 1, 0, 1], [46, 2, 10, 0, 4]]
+
+# D
+# pluck_message = [[50, 2, 1, 0, 1], [52, 2, 10, 0, 4]]
+
+# B
+# pluck_message = [[59, 2, 1, 0, 1], [61, 2, 10, 0, 4]]
 
 # 2. Glissando Multiple Strings
-# chords_message = [["On", 9]]
-# strum_message =  [["UP", 0]]
-# pluck_message = [[59, 3, 7, 1, 1], [61, 3, 7, 1, 3], [63, 3, 7, 1, 5], [65, 2, 7, 1, 7], [50, 3, 7, 1, 1], [52, 3, 7, 1, 3], [54, 3, 7, 1, 5], [56, 2, 7, 1, 7]]
+chords_message = [["On", 9]]
+# # strum_message =  [["UP", 0]]
+pluck_message = [[59, 3, 7, 1, 1], [61, 3, 7, 1, 3], [63, 3, 7, 1, 5], [65, 2, 7, 1, 7],
+                 [50, 3, 7, 0, 1], [52, 3, 7, 0, 3], [54, 3, 7, 0, 5], [56, 2, 7, 0, 7],
+                 [40, 3, 7, 0, 1], [42, 3, 7, 0, 3], [44, 3, 7, 0, 5], [46, 2, 7, 0, 7]]
 
 # # 3. Short Song
 # , ["Dsus2", 5],["Cmaj7", 9],  ["Am", 13], ["On", 17]
@@ -242,7 +251,7 @@ def main():
     # Create an OSC client
     client = SimpleUDPClient(UDP_IP, UDP_PORT)
     send_osc_message(client, "/Chords", chords_message)
-    send_osc_message(client, "/Strum", strum_message)
+    # send_osc_message(client, "/Strum", strum_message)
     # pluck_message = create_tremolo_message()
     send_osc_message(client, "/Pluck", pluck_message)
     time.sleep(1)

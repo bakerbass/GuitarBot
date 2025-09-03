@@ -347,15 +347,12 @@ public:
 
             if(i >= 13){ //Picker
                 float this_state_PICK = start_state_PICK[i - 13];
-                // TODO: can we replace these with EC45_ENC_RES_PLUCKER1 and EC45_ENC_RES_SLIDER? 
-                pos2pulse = (this_state_PICK * 1024) / motor_divisor; //9.4
+                pos2pulse = (this_state_PICK * EC45_ENC_RES_PLUCKER1) / mm_to_enc_conversion_factor; //9.4
                 if(i == 14){
-                    this_state_PICK = 4.0;
-                    pos2pulse = (this_state_PICK * 2048) / motor_divisor;
+                    pos2pulse = (this_state_PICK * EC45_ENC_RES_PLUCKER2) / mm_to_enc_conversion_factor;
                     }
                 if(i == 15){
-                    this_state_PICK = 6;
-                    pos2pulse = (this_state_PICK * 2048) / motor_divisor;
+                    pos2pulse = (this_state_PICK * EC45_ENC_RES_PLUCKER2) / mm_to_enc_conversion_factor;
                 }
 
                 qf = pos2pulse;
@@ -386,9 +383,6 @@ public:
             m_currentPoint[i - 1] = kInitials[i - 1];
         }
 
-
-        //Trajectory<int32_t>::point_t temp_point;
-        // TODO: remove cursed nested for loop
         for (int i = 0; i < 100; i++) {
             for(int x = 0; x < NUM_MOTORS; x++){
                 temp_point[x] = all_Trajs[x][i];
@@ -400,7 +394,7 @@ public:
 
             //PLUCKER PROTOTYPE:
 //        float offset = 7; //MINIMUM needed to go from home to top of string!
-//        float pos2pulse = (offset * 1024) / motor_divisor;
+//        float pos2pulse = (offset * 1024) / mm_to_enc_conversion_factor;
 //        for(int i = 1;i < NUM_MOTORS + 1 ;i++){
 //            temp_point[i - 1] = pos2pulse;
 //            kInitials[i - 1] = pos2pulse;

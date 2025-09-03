@@ -2,7 +2,16 @@
 #define TUNE_H
 
 // strikerController.h
-const float start_state_PICK[3] = {8, 4, 6}; // Picker encoder start position
+
+// Pick start position
+/*
+ * Higher number = higher position for plucker
+ * Lower number = lower position for plucker
+ * (as of 3 string prototype: Low E, B, D respectively
+*/
+// 8, 4, 6 before 9/3/2025
+const float start_state_PICK[3] = {7.7f, 4.3f, 6.7f};
+
 const int   motor_id_PICK[3] = {13, 14, 15}; // maybe this goes in def...
 
 // epos4.cpp
@@ -19,8 +28,7 @@ const uint32_t   pos_control_SLIDE[5] = {6933308, 139254287, 104848, 10219, 637}
 const uint32_t   pos_control_PICK[5] = {18462573, 157853228, 170004, 9945, 585}; // p, i, d, v, a
 const uint32_t   pos_control_PRESS[5] = {200000, 905480, 2643, 507, 36}; // p, i, d, v, a
 
-// not sure what this is yet
-const float motor_divisor = 9.4;
+const float mm_to_enc_conversion_factor = 9.4;
 
 
 #endif // TUNE_H

@@ -7,7 +7,7 @@
 /*
  * Higher number = higher position for plucker
  * Lower number = lower position for plucker
- * (as of 3 string prototype: Low E, B, D respectively
+ * (as of 3 string prototype: Low E, D, B respectively
 */
 // 8, 4, 6 before 9/3/2025
 const float start_state_PICK[3] = {7.7f, 4.3f, 6.7f};

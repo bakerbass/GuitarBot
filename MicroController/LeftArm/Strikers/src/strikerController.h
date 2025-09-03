@@ -262,56 +262,6 @@ public:
             }
         }
     }
-    void executeSetPickerTest(char position){
-        float temp_traj_1[5];
-        int picker_mm_qf = 9;
-        switch(position){
-            case 'D':
-                //prepare for upstrum
-                picker_mm_qf = 8;
-                break;
-            case 'U':
-                //prepare for downstrum
-                picker_mm_qf = 10;
-                break;
-        }
-
-        for(int i = 1; i < NUM_MOTORS + 1; i++) {
-            float q0 = m_striker[i].getPosition_ticks();
-            if(i == 15){
-                // Get initial position in position ticks
-
-                float pos2pulse = (picker_mm_qf * 2048) / 9.4;
-                float qf = pos2pulse;
-                //Interpolate Line
-                Util::interpWithBlend(q0, qf, 5, .25, temp_traj_1);
-                // Put line into list of trajs
-                int index = 0;
-                for (int x = 0; x < 5; x++) {
-                    all_Trajs[i - 1][index++] = temp_traj_1[x];
-                    //Serial.println(temp_traj_1[x]);
-                }
-
-            } else {
-                Util::fill(temp_traj_1, 5, q0);
-                int index = 0;
-                for (int x = 0; x < 5; x++) {
-                    all_Trajs[i - 1][index++] = temp_traj_1[x];
-                }
-            }
-        }
-
-        //TODO: add to picker queue
-        //Make and push traj points to queue
-        Trajectory<int32_t>::point_t temp_point;
-        for (int i = 0; i < 5; i++) {
-            for(int x = 0; x < NUM_MOTORS; x++){
-                //I'd like to seperate all_trajs between left and right hand at some point.
-                temp_point[x] = all_Trajs[x][i];
-            }
-            m_traj.push(temp_point);
-        }
-    }
 
     /*
         Function: processTrajPoints
@@ -398,23 +348,25 @@ public:
             if(i >= 13){ //Picker
                 float this_state_PICK = start_state_PICK[i - 13];
                 // TODO: can we replace these with EC45_ENC_RES_PLUCKER and EC45_ENC_RES_SLIDER? 
-                pos2pulse = (this_state_PICK * 1024) / 9.4;
+                pos2pulse = (this_state_PICK * 1024) / motor_divisor;
                 if(i == 14){
                     this_state_PICK = 4.0;
-                    pos2pulse = (this_state_PICK * 2048) / 9.4;
+                    pos2pulse = (this_state_PICK * 2048) / motor_divisor;
                     }
                 if(i == 15){
                     this_state_PICK = 6;
-                    pos2pulse = (this_state_PICK * 2048) / 9.4;
+                    pos2pulse = (this_state_PICK * 2048) / motor_divisor;
                 }
 
                 qf = pos2pulse;
                 temp_point[i - 1] = pos2pulse;
                 //Interpolate Line
-                Util::interpWithBlend(q0, qf, 50, .25, temp_traj_1);
-                Util::fill(temp_traj_2, 50, qf);
+                const int line_length = 50;
+                Util::interpWithBlend(q0, qf, line_length, .25, temp_traj_1);
+                Util::fill(temp_traj_2, line_length, qf);
                 // Put line into list of trajs
                 int index = 0;
+                // TODO: make this one loop
                 for (int x = 0; x < 50; x++) {
                     all_Trajs[i - 1][index++] = temp_traj_1[x];
                 }
@@ -447,7 +399,7 @@ public:
 
             //PLUCKER PROTOTYPE:
 //        float offset = 7; //MINIMUM needed to go from home to top of string!
-//        float pos2pulse = (offset * 1024) / 9.4;
+//        float pos2pulse = (offset * 1024) / motor_divisor;
 //        for(int i = 1;i < NUM_MOTORS + 1 ;i++){
 //            temp_point[i - 1] = pos2pulse;
 //            kInitials[i - 1] = pos2pulse;

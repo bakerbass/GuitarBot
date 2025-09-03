@@ -388,6 +388,7 @@ public:
 
 
         //Trajectory<int32_t>::point_t temp_point;
+        // TODO: remove cursed nested for loop
         for (int i = 0; i < 100; i++) {
             for(int x = 0; x < NUM_MOTORS; x++){
                 temp_point[x] = all_Trajs[x][i];

@@ -347,8 +347,8 @@ public:
 
             if(i >= 13){ //Picker
                 float this_state_PICK = start_state_PICK[i - 13];
-                // TODO: can we replace these with EC45_ENC_RES_PLUCKER and EC45_ENC_RES_SLIDER? 
-                pos2pulse = (this_state_PICK * 1024) / motor_divisor;
+                // TODO: can we replace these with EC45_ENC_RES_PLUCKER1 and EC45_ENC_RES_SLIDER? 
+                pos2pulse = (this_state_PICK * 1024) / motor_divisor; //9.4
                 if(i == 14){
                     this_state_PICK = 4.0;
                     pos2pulse = (this_state_PICK * 2048) / motor_divisor;

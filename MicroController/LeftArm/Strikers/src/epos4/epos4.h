@@ -200,7 +200,7 @@ private:
 
     MotorSpec m_motorSpec = EC45_Slider;
     int32_t m_iEncoderPosition;
-    int m_iEncoderResolution = EC45_ENC_RES_PLUCKER;
+    int m_iEncoderResolution = EC45_ENC_RES_PLUCKER1;
 
     can_message_t m_txMsg;
     can_message_t m_rxMsg;

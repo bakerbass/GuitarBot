@@ -40,7 +40,7 @@ int Epos4::init(int iNodeID, MotorSpec spec, bool inverted, unsigned long timeou
             err = configEC45Strummer_Picker();
             break;
     case EC45_Plucker_1024:
-        m_iEncoderResolution = EC45_ENC_RES_PLUCKER;
+        m_iEncoderResolution = EC45_ENC_RES_PLUCKER1;
         err = configEC45Pickers();
         break;
     case EC45_Plucker_2048:

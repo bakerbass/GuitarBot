@@ -19,5 +19,8 @@ const uint32_t   pos_control_SLIDE[5] = {6933308, 139254287, 104848, 10219, 637}
 const uint32_t   pos_control_PICK[5] = {18462573, 157853228, 170004, 9945, 585}; // p, i, d, v, a
 const uint32_t   pos_control_PRESS[5] = {200000, 905480, 2643, 507, 36}; // p, i, d, v, a
 
+// not sure what this is yet
+const float motor_divisor = 9.4;
+
 
 #endif // TUNE_H

@@ -156,35 +156,9 @@ public:
             m_striker[i].startHome(i);
         }
         checkHomingInRange(NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1, NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + NUM_PLUCKERS);
-//        LOG_LOG("Homing for pluckers complete, starting strummer. ");
-////        delay(20000);
-//        for (int i = NUM_STRIKERS + NUM_PRESSERS + NUM_STRUMMER_SLIDERS + 1; i < NUM_PRESSERS + NUM_STRIKERS + NUM_STRUMMER_SLIDERS + NUM_STRUMMER_PICKERS + 1; ++i) {
-//            m_striker[i].startHome(i);
-//        }
-//        bool checkHome = false;
-//        isHoming_2 = true;
-//        isHoming_all = isHoming_1 || isHoming_2;
-//        while (isHoming_all) {
-//            delay(50);
-//            isHoming_1 = m_striker[14].homingStatus();
-//            if(!checkHome && !isHoming_1){
-//                checkHome = true;
-//                m_striker[13].startHome(13);
-//            }
-//
-//            if(checkHome){
-//                isHoming_2 = m_striker[13].homingStatus();
-//            }
-//
-//            isHoming_all = isHoming_1 || isHoming_2;
-//
-//            //Serial.println(ii);
-//
-//            if (ii++ > 200) break;
-//        }
 
         Serial.println("finished initializing and homing all controllers.");
-        //delay(45000);
+        //delay(45000); // Testing delay
         //Init all variables needed
         Util::fill(pickerStates, NUM_PLUCKERS, 0); // Initializes picker states to be 0 (pickers start at the up state)
         Util::fill(prev_frets, 6, 100); //Dummy inital values

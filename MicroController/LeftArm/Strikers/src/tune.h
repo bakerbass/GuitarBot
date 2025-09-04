@@ -1,5 +1,6 @@
 #ifndef TUNE_H
 #define TUNE_H
+#include <Arduino_JSON.h>
 
 // strikerController.h
 

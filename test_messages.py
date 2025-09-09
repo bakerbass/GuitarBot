@@ -59,7 +59,7 @@ def string_sweep(string, duration=1, speed=0, slide_toggle=0, debug_flag = False
     for i in range(0, NUM_FRETS):
         timestamp = duration*i
         timestamp = round(timestamp, 5)
-        message = [start_MNN + i, duration, speed, slide_toggle, timestamp]
+        message = [start_MNN + i, 0.1, speed, slide_toggle, timestamp]
         np_messages.append(message)
     
     pluck_messages = prepare_messages(np_messages)
@@ -162,7 +162,7 @@ def scale(type='chromatic', start_MNN=40, octaves=1, duration=1.0, reflect=True)
     np_messages = []
     for i in range(len(notes)):
         timestamp = duration * i
-        message = [notes[i], duration, 0, 0, timestamp]
+        message = [notes[i], 0.1, 0, 0, timestamp]
         np_messages.append(message)
         
     pluck_messages = prepare_messages(np_messages)

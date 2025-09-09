@@ -1,9 +1,10 @@
 import numpy as np
 import time
 from pythonosc.udp_client import SimpleUDPClient
+from test_messages import *
+from pprint import pprint
 UDP_IP = "127.0.0.1"
 UDP_PORT = 12000
-
 # FORMAT
 # chords_message = [[Chord, timestamp]]
 # strum_message = [["DOWN"/"UP"], timestamp]
@@ -183,7 +184,7 @@ def create_tremolo_message():
 
 # MARCUS DEMOS POSTER DAY
 # 1. Pluck Speeds
-chords_message = [["On", 8]]
+# chords_message = [["On", 8]]
 # strum_message =  [["UP", 0]]
 # # E
 # pluck_message = [[42, 2, 1, 0, 1], [46, 2, 10, 0, 4]]
@@ -195,13 +196,13 @@ chords_message = [["On", 8]]
 # pluck_message = [[59, 2, 1, 0, 1], [61, 2, 10, 0, 4]]
 
 # 2. Glissando Multiple Strings
-chords_message = [["On", 9]]
+# chords_message = [["On", 9]]
 # # strum_message =  [["UP", 0]]
-pluck_message = [
-                 [59, 3, 7, 0, 1], [61, 3, 7, 0, 3], [63, 3, 7, 0, 5], [65, 2, 7, 0, 7]
+# pluck_message = [
+#                  [59, 3, 7, 0, 1], [61, 3, 7, 0, 3], [63, 3, 7, 0, 5], [65, 2, 7, 0, 7]
                 # [50, 3, 7, 0, 1], [52, 3, 7, 0, 3], [54, 3, 7, 0, 5], [56, 2, 7, 0, 7]
                 # [40, 3, 7, 0, 1], [42, 3, 7, 0, 3], [44, 3, 7, 0, 5], [46, 2, 7, 0, 7]
-                ]
+                # ]
 
 # # 3. Short Song
 # , ["Dsus2", 5],["Cmaj7", 9],  ["Am", 13], ["On", 17]
@@ -246,12 +247,15 @@ pluck_message = [
 # pluck_message = [[50, 0.1, 1, 0, 0], [50, 0.1, 1, 0, 5], [50, 0.1, 1, 0, 10], [50, 0.1, 1, 0, 15], [50, 0.1, 1, 0, 20], [50, 0.1, 1, 0, 25], [50, 0.1, 1, 0, 30], [50, 0.1, 1, 0, 35], [50, 0.1, 1, 0, 40], [50, 0.1, 1, 0, 45]]
 
 def send_osc_message(client, address, data):
-    print(f"Sending OSC message to {address}: {data}")
+    print(f"Sending OSC message to {address}:")
+    pprint(data)
     client.send_message(address, data)
 
 def main():
     # Create an OSC client
+    chords_message = [["On", 0.0]]
     client = SimpleUDPClient(UDP_IP, UDP_PORT)
+    pluck_message = string_sweep('E')
     send_osc_message(client, "/Chords", chords_message)
     # send_osc_message(client, "/Strum", strum_message)
     # pluck_message = create_tremolo_message()

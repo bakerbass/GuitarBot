@@ -1,4 +1,6 @@
 import numpy as np
+
+# MNN defs and Guitarbot related defs
 NUM_FRETS = 10
 E_MNN = 40
 A_MNN = 45
@@ -8,7 +10,40 @@ B_MNN = 59
 e_MNN = 64
 MAX_MNN = B_MNN + NUM_FRETS - 1
 chord_message = [["On", 0]]
-# pluck_message = [[note (midi value), duration, speed, slide_toggle, timestamp]]
+
+"""
+
+"""
+def prepare_messages(msgs):
+    """
+    Pipeline helper: stack list/array messages then coerce field dtypes.
+    Expects an iterable of message rows; returns a Python list of rows.
+    """
+    msgs = stack_and_list(msgs)
+    msgs = coerce_message_types(msgs)
+    return msgs
+
+def stack_and_list(msgs):
+    """
+    Vertically stack a sequence of 1-D / list rows using numpy, then to list.
+    Input: iterable of homogeneous-length sequences. Output: list of lists.
+    """
+    msgs = np.vstack(msgs)
+    msgs = msgs.tolist()
+    return msgs
+
+def coerce_message_types(msgs):
+    """
+    In-place type casting: note, speed, slide_toggle -> int.
+    Leaves duration & timestamp as floats. Returns msgs for chaining.
+    """
+    for r in msgs:
+        r[0] = int(r[0])
+        r[2] = int(r[2])
+        r[3] = int(r[3])
+    return msgs
+
+# pluck_message = [[int note (midi value), float duration, int speed, int slide_toggle, float timestamp]]
 
 def string_sweep(string, duration=1, speed=0, slide_toggle=0, debug_flag = False):
     if string == 'E':
@@ -27,8 +62,8 @@ def string_sweep(string, duration=1, speed=0, slide_toggle=0, debug_flag = False
         message = [start_MNN + i, duration, speed, slide_toggle, timestamp]
         np_messages.append(message)
     
-    pluck_messages = np.vstack(np_messages)
-    return pluck_messages.tolist()
+    pluck_messages = prepare_messages(np_messages)
+    return pluck_messages
 
 def tremolo_random(lower_bound=E_MNN, upper_bound=B_MNN + NUM_FRETS - 1, num_notes=5, interval=1, slide_toggle=0, debug_flag=False):
     #1. Generate 5 random speeds
@@ -62,8 +97,8 @@ def tremolo_random(lower_bound=E_MNN, upper_bound=B_MNN + NUM_FRETS - 1, num_not
         message = [rand_notes[i], rand_durations[i], rand_speeds[i], slide_toggle, timestamp]
         np_messages.append(message)
 
-    pluck_messages = np.vstack(np_messages)
-    return pluck_messages.tolist()
+    pluck_messages = prepare_messages(np_messages)
+    return pluck_messages
 
 def tremolo_speed_sweep(MNN = E_MNN, duration = 2):
     
@@ -77,8 +112,8 @@ def tremolo_speed_sweep(MNN = E_MNN, duration = 2):
         message = [MNN, duration, speed[i], 0, timestamp]
         np_messages.append(message)
         
-    pluck_messages = np.vstack(np_messages)
-    return pluck_messages.tolist()
+    pluck_messages = prepare_messages(np_messages)
+    return pluck_messages
 
 def scale(type='chromatic', start_MNN=40, octaves=1, duration=1.0, reflect=True):
     if type == 'maj':
@@ -130,6 +165,7 @@ def scale(type='chromatic', start_MNN=40, octaves=1, duration=1.0, reflect=True)
         message = [notes[i], duration, 0, 0, timestamp]
         np_messages.append(message)
         
-    pluck_messages = np.vstack(np_messages)
-    return pluck_messages.tolist()
+    pluck_messages = prepare_messages(np_messages)
+    return pluck_messages
+
 #TODO: Multiphrase test

@@ -110,7 +110,7 @@ SLIDER_MOTOR_DIRECTION = [-1, 1, 1, -1, -1, 1]
 PICKER_MOTOR_INFO = {
     0: {'down_pluck_mm': 4.7, 'up_pluck_mm': 7.7, 'resolution': 1024}, # E
     1: {'down_pluck_mm': 1.3, 'up_pluck_mm': 4.3, 'resolution': 2048}, # D
-    2: {'down_pluck_mm': 3.7, 'up_pluck_mm': 6.7, 'resolution': 2048} # B
+    2: {'down_pluck_mm': 3.9, 'up_pluck_mm': 6.9, 'resolution': 2048} # B
     # Add entries for other pickers if they exist, e.g., 3, 4, 5
 }
 

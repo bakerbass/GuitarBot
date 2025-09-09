@@ -253,9 +253,11 @@ def send_osc_message(client, address, data):
 
 def main():
     # Create an OSC client
-    chords_message = [["On", 0.0]]
     client = SimpleUDPClient(UDP_IP, UDP_PORT)
-    pluck_message = string_sweep('E')
+    pluck_message = scale(type='maj')
+    final_dur = pluck_message[-1][-1] + 1
+    chords_message = [["On", final_dur]]
+
     send_osc_message(client, "/Chords", chords_message)
     # send_osc_message(client, "/Strum", strum_message)
     # pluck_message = create_tremolo_message()

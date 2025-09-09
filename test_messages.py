@@ -153,7 +153,7 @@ def scale(type='chromatic', start_MNN=40, octaves=1, duration=1.0, reflect=True)
 
     if reflect and notes.size > 1:
         notes = np.concatenate([notes, notes[-2:0:-1]])  # mirror without duplicating endpoints
-
+    # TODO: resolve (last 'root note' is not in scale)
     # Build messages
     idx = np.arange(len(notes))
     timestamps = idx * duration

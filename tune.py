@@ -139,3 +139,46 @@ STRING_MIDI_RANGES = [
 # Filepath for the chord voicing library.
 CHORD_LIBRARY_FILE = "Alternate_Chords.csv"
 
+# ----------------------------------------------------------------------------
+# 6. Arduino/OpenCR firmware interop aliases (for header generation)
+# ----------------------------------------------------------------------------
+# These names mirror what the firmware expects, so the generator can export
+# them directly without additional mapping. Keep values in sync above.
+# Note that these values are not used in the python code, but are here so that 
+# tune.h can be generated programatically.
+
+# Picker start state (positions). Using same values as firmware comment history.
+START_STATE_PICK = [7.7, 4.3, 6.7]
+
+# Motor IDs for pickers (E, D, B). Adjust if wiring changes.
+MOTOR_ID_PICK = [13, 14, 15]
+
+# Homing offsets
+HOME_OFFSET_SLIDE = 50000
+HOME_OFFSET_PRESS = -25
+HOME_OFFSET_PICK = 0
+
+# EPOS4 controller gains (p, i[, d, v, a])
+CURRENT_CONTROL_SLIDE = [1575853, 4837093]
+CURRENT_CONTROL_PICK = [1042729, 2976309]
+CURRENT_CONTROL_PRESS = [3456649, 10257]
+
+POS_CONTROL_SLIDE = [6933308, 139254287, 104848, 10219, 637]
+POS_CONTROL_PICK = [18462573, 157853228, 170004, 9945, 585]
+POS_CONTROL_PRESS = [200000, 905480, 2643, 507, 36]
+
+# Unit conversion
+MM_TO_ENC_CONVERSION_FACTOR = MM_TO_ENCODER_CONVERSION_FACTOR
+
+
+if __name__ == "__main__":
+    # When run directly, regenerate the firmware header from this module.
+    from pathlib import Path
+    from gen_tune_h import generate_tune_h
+
+    out = generate_tune_h(
+        tune_py_path=Path(__file__),
+        header_out_path=Path(__file__).parent / "MicroController/LeftArm/Strikers/src/tune.h",
+    )
+    print(f"Regenerated header at: {out}")
+

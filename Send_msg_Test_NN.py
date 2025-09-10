@@ -254,7 +254,7 @@ def send_osc_message(client, address, data):
 def main():
     # Create an OSC client
     client = SimpleUDPClient(UDP_IP, UDP_PORT)
-    pluck_message, final_dur = scale(scale='maj')
+    pluck_message, final_dur = scale(scale='maj', octaves=2)
     chords_message = [["On", final_dur]]
 
     send_osc_message(client, "/Chords", chords_message)

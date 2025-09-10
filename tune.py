@@ -167,6 +167,10 @@ POS_CONTROL_SLIDE = [6933308, 139254287, 104848, 10219, 637]
 POS_CONTROL_PICK = [18462573, 157853228, 170004, 9945, 585]
 POS_CONTROL_PRESS = [200000, 905480, 2643, 507, 36]
 
+# Unit conversion
+MM_TO_ENC_CONVERSION_FACTOR = MM_TO_ENCODER_CONVERSION_FACTOR
+
+
 if __name__ == "__main__":
     # When run directly, regenerate the firmware header from this module.
     from pathlib import Path

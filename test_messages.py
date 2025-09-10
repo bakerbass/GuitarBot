@@ -9,7 +9,7 @@ G_MNN = 55
 B_MNN = 59
 e_MNN = 64
 MAX_MNN = B_MNN + NUM_FRETS - 1
-chord_message = [["On", 0]]
+DUR_PAD = 1.0 # Time that is added to final duration to create empty chord message
 
 """
 
@@ -43,7 +43,7 @@ def coerce_message_types(msgs):
         r[3] = int(r[3])
     return msgs
 
-# pluck_message = [[int note (midi value), float duration, int speed, int slide_toggle, float timestamp]]
+# pluck_messages = [[int note (midi value), float duration, int speed, int slide_toggle, float timestamp]]
 
 def string_sweep(string, duration=1, speed=0, slide_toggle=0, debug_flag = False):
     if string == 'E':
@@ -61,10 +61,11 @@ def string_sweep(string, duration=1, speed=0, slide_toggle=0, debug_flag = False
         timestamp = round(timestamp, 5)
         message = [start_MNN + i, 0.1, speed, slide_toggle, timestamp]
         np_messages.append(message)
-    
+        
     pluck_messages = prepare_messages(np_messages)
-    return pluck_messages
-
+    final_dur = pluck_messages[-1][-1] + DUR_PAD
+    return pluck_messages, final_dur
+   
 def tremolo_random(lower_bound=E_MNN, upper_bound=B_MNN + NUM_FRETS - 1, num_notes=5, interval=1, slide_toggle=0, debug_flag=False):
     #1. Generate 5 random speeds
     speeds = np.arange(1, 11)
@@ -98,9 +99,10 @@ def tremolo_random(lower_bound=E_MNN, upper_bound=B_MNN + NUM_FRETS - 1, num_not
         np_messages.append(message)
 
     pluck_messages = prepare_messages(np_messages)
-    return pluck_messages
+    final_dur = pluck_messages[-1][-1] + DUR_PAD
+    return pluck_messages, final_dur
 
-def tremolo_speed_sweep(MNN = E_MNN, duration = 2):
+def tremolo_speed_sweep(mnn = E_MNN, duration = 2):
     
     speed = np.arange(1, 11)
     
@@ -109,21 +111,22 @@ def tremolo_speed_sweep(MNN = E_MNN, duration = 2):
     for i in range(len(speed)):
         timestamp = duration * i
         timestamp = round(timestamp, 5)
-        message = [MNN, duration, speed[i], 0, timestamp]
+        message = [mnn, duration, speed[i], 0, timestamp]
         np_messages.append(message)
         
     pluck_messages = prepare_messages(np_messages)
-    return pluck_messages
+    final_dur = pluck_messages[-1][-1] + DUR_PAD
+    return pluck_messages, final_dur
 
-def scale(type='chromatic', start_MNN=40, octaves=1, duration=1.0, reflect=True):
-    if type == 'maj':
+def scale(scale='chromatic', mnn=40, octaves=1, duration=1.0, reflect=True):
+    if scale == 'maj':
         base_degrees = np.array([0, 2, 4, 5, 7, 9, 11, 12])  # include octave
-    elif type == 'min':
+    elif scale == 'min':
         base_degrees = np.array([0, 2, 3, 5, 7, 8, 10, 12])
-    elif type == 'chromatic':
+    elif scale == 'chromatic':
         base_degrees = np.arange(0, 13)  # 0..12 inclusive
     else:
-        raise ValueError("Unsupported scale type")
+        raise ValueError("Unsupported scale. Use maj, min, chromatic")
 
     if octaves < 1:
         return []
@@ -131,7 +134,7 @@ def scale(type='chromatic', start_MNN=40, octaves=1, duration=1.0, reflect=True)
     # Repeat degrees for each octave, then shift each block
     # Shape: (octaves, len(base_degrees))
     octave_offsets = (12 * np.arange(octaves)).reshape(-1, 1)
-    grid = start_MNN + octave_offsets + base_degrees  # broadcast add
+    grid = mnn + octave_offsets + base_degrees  # broadcast add
 
     # Flatten
     notes = grid.ravel()
@@ -166,6 +169,7 @@ def scale(type='chromatic', start_MNN=40, octaves=1, duration=1.0, reflect=True)
         np_messages.append(message)
         
     pluck_messages = prepare_messages(np_messages)
-    return pluck_messages
+    final_dur = pluck_messages[-1][-1] + DUR_PAD
+    return pluck_messages, final_dur
 
 #TODO: Multiphrase test

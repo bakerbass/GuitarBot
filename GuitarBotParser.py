@@ -19,7 +19,7 @@ class GuitarBotParser:
     '''
 
     @staticmethod
-    def parseAllMIDI(chords, pluck, initial_point, graph=True):
+    def parseAllMIDI(chords, pluck, initial_point, graph=tu.graph):
         # Initialize full dictionary
         allpoints = {}
         # Dictionaries for LH and RH

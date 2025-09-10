@@ -11,6 +11,10 @@
 
 TIME_STEP = .005
 
+#Graphing
+# Controls graphing the functions used on each motor. False turns off, true turns on.
+graph = False
+
 # Blend percentage for trajectory interpolation (0.0 to 1.0).
 # A higher value creates a more gradual acceleration and deceleration.
 TRAJECTORY_BLEND_PERCENT = 0.2
@@ -37,12 +41,12 @@ PICKER_PLUCK_MOTION_POINTS = 11
 LH_PRESSER_UNPRESSED_POS = -650
 
 # Position value for a fully pressed left-hand presser motor.
-LH_PRESSER_PRESSED_POS = 600
+LH_PRESSER_PRESSED_POS = 500
 
-# Torque value for a "hard" press, used for sliding to ensure string contact.
+# Torque value for a press, used for sliding to ensure string contact.
 # Given in terms of LH_PRESSER_SLIDE_PRESS_POS/1000 % of torque rating. For example, LH_PRESSER_SLIDE_PRESS_POS = 650 then the motor is outputting 65% of the motors' rated torque value.
 # Values over 1000 overwork the motor, which can result in overheating and stalling.
-LH_PRESSER_SLIDE_PRESS_POS = 650
+LH_PRESSER_SLIDE_PRESS_POS = 400
 
 # ----------------------------------------------------------------------------
 # 2. Timing and Synchronization Parameters
@@ -82,7 +86,7 @@ SLIDER_MM_PER_FRET = [19, 54, 87, 114, 141, 165, 188, 212, 234]
 
 # Position values for the three states of the presser motors:
 # 1: Open/Unpressed, 2: Pressed, 3: Muted (partially pressed).
-PRESSER_ENCODER_POSITIONS = [-500, 500, 100]
+PRESSER_ENCODER_POSITIONS = [-500, 650, 100]
 
 # Conversion factor from millimeters to encoder ticks for the slider motors.
 # Generally only needs to change if the motor is not Maxxon

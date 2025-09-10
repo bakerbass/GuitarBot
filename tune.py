@@ -145,7 +145,7 @@ CHORD_LIBRARY_FILE = "Alternate_Chords.csv"
 # These names mirror what the firmware expects, so the generator can export
 # them directly without additional mapping. Keep values in sync above.
 # Note that these values are not used in the python code, but are here so that 
-# tune.h can be generated programatically.
+# tune.h can be generated programmatically.
 
 # Picker start state (positions). Using same values as firmware comment history.
 START_STATE_PICK = [7.7, 4.3, 6.7]
@@ -166,10 +166,6 @@ CURRENT_CONTROL_PRESS = [3456649, 10257]
 POS_CONTROL_SLIDE = [6933308, 139254287, 104848, 10219, 637]
 POS_CONTROL_PICK = [18462573, 157853228, 170004, 9945, 585]
 POS_CONTROL_PRESS = [200000, 905480, 2643, 507, 36]
-
-# Unit conversion
-MM_TO_ENC_CONVERSION_FACTOR = MM_TO_ENCODER_CONVERSION_FACTOR
-
 
 if __name__ == "__main__":
     # When run directly, regenerate the firmware header from this module.

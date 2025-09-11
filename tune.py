@@ -147,8 +147,8 @@ CHORD_LIBRARY_FILE = "Alternate_Chords.csv"
 # Note that these values are not used in the python code, but are here so that 
 # tune.h can be generated programmatically.
 
-# Picker start state (positions). Using same values as firmware comment history.
-START_STATE_PICK = [7.7, 4.3, 6.7]
+# Picker start state (positions). Should match picker motor dictionary 'up_pluck_mm'
+START_STATE_PICK = [PICKER_MOTOR_INFO[0]['up_pluck_mm'], PICKER_MOTOR_INFO[1]['up_pluck_mm'], PICKER_MOTOR_INFO[2]['up_pluck_mm']]
 
 # Motor IDs for pickers (E, D, B). Adjust if wiring changes.
 MOTOR_ID_PICK = [13, 14, 15]

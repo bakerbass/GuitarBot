@@ -594,10 +594,10 @@ class GuitarBotParser:
                 all_points = []
                 for _ in range(num_tremolos):
                     num_points = tu.PICKER_PLUCK_MOTION_POINTS
-                    points1 = GuitarBotParser.interp_with_sine_blend(start_pos, qf_encoder_picker, num_points)
+                    points1 = GuitarBotParser.interp_with_blend(start_pos, qf_encoder_picker, num_points, .2)
                     points2 = GuitarBotParser.interp_with_sine_blend(qf_encoder_picker, qf_encoder_picker, fill_points)
                     start_pos = down_encoder if not pick_states[motor_id] else up_encoder
-                    points3 = GuitarBotParser.interp_with_sine_blend(qf_encoder_picker, start_pos, num_points)
+                    points3 = GuitarBotParser.interp_with_blend(qf_encoder_picker, start_pos, num_points, .2)
                     points4 = GuitarBotParser.interp_with_sine_blend(start_pos, start_pos, fill_points)
                     all_points.extend(points1)
                     all_points.extend(points2)

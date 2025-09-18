@@ -82,7 +82,7 @@ TIMESTAMP_ROUNDING_FACTOR = 200.0
 # The physical distance (in mm) from the nut to the center of each fret.
 # Controls where the slider lands for fret 1, fret 2, fret 3, etc. respectively.
 # Index 0 corresponds to Fret 1.
-SLIDER_MM_PER_FRET = [19, 54, 87, 114, 141, 165, 188, 212, 234]
+SLIDER_MM_PER_FRET = [17, 52, 87, 114, 141, 165, 188, 212, 234]
 
 # Position values for the three states of the presser motors:
 # 1: Open/Unpressed, 2: Pressed, 3: Muted (partially pressed).
@@ -112,9 +112,9 @@ SLIDER_MOTOR_DIRECTION = [-1, 1, 1, -1, -1, 1]
 # Calibrate the mm positions for the desired picking depth and tone.
 # Key is the motor ID.
 PICKER_MOTOR_INFO = {
-    0: {'down_pluck_mm': 4.7, 'up_pluck_mm': 7.7, 'resolution': 1024}, # E
-    1: {'down_pluck_mm': 1.3, 'up_pluck_mm': 4.3, 'resolution': 2048}, # D
-    2: {'down_pluck_mm': 3.9, 'up_pluck_mm': 6.9, 'resolution': 2048} # B
+    0: {'down_pluck_mm': 4.3, 'up_pluck_mm': 7.3, 'resolution': 1024}, # E
+    1: {'down_pluck_mm': 2.1, 'up_pluck_mm': 5.4, 'resolution': 2048}, # D
+    2: {'down_pluck_mm': 3.6, 'up_pluck_mm': 6.6, 'resolution': 2048} # B
     # Add entries for other pickers if they exist, e.g., 3, 4, 5
 }
 

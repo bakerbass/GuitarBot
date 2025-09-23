@@ -19,11 +19,6 @@ graph = True
 # A higher value creates a more gradual acceleration and deceleration.
 TRAJECTORY_BLEND_PERCENT = 0.2
 
-# Initial Point
-# Controls the starting point for the very first message sent to GuitarBot when the receiver file starts.
-initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 795, 1132, 1437]
-
-
 # Number of interpolation points for presser movements (e.g., pressing/unpressing).
 # More points result in a slower movement.
 PRESSER_INTERPOLATION_POINTS = 10
@@ -135,6 +130,21 @@ STRING_MIDI_RANGES = [
     # (55, 65, -1), # String 4
     # (64, 74, 1)   # String 6
 ]
+
+# Initial Point
+# Controls the starting point for the very first message sent to GuitarBot when the receiver file starts.
+initial_point = [
+                 # Sliders
+                 0, 0, 0, 0, 0, 0,
+                 # Pressers
+                 -10, -10, -10, -10, -10, -10,
+                 # Pluckers
+                 int(PICKER_MOTOR_INFO[0]["up_pluck_mm"]*1024/9.4),
+                 int(PICKER_MOTOR_INFO[1]["up_pluck_mm"]*2048/9.4),
+                 int(PICKER_MOTOR_INFO[2]["up_pluck_mm"]*2048/9.4)
+                 ]
+
+initial_point_test = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 795, 1132, 1437]
 
 # Filepath for the chord voicing library.
 CHORD_LIBRARY_FILE = "Alternate_Chords.csv"

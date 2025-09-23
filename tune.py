@@ -13,7 +13,7 @@ TIME_STEP = .005
 
 #Graphing
 # Controls graphing the functions used on each motor. False turns off, true turns on.
-graph = False
+graph = True
 
 # Blend percentage for trajectory interpolation (0.0 to 1.0).
 # A higher value creates a more gradual acceleration and deceleration.
@@ -21,7 +21,7 @@ TRAJECTORY_BLEND_PERCENT = 0.2
 
 # Initial Point
 # Controls the starting point for the very first message sent to GuitarBot when the receiver file starts.
-initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 838, 937, 1450]
+initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 795, 1132, 1437]
 
 
 # Number of interpolation points for presser movements (e.g., pressing/unpressing).

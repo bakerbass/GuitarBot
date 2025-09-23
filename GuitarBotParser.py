@@ -134,6 +134,166 @@ class GuitarBotParser:
 
         return fret_numbers, fret_play, dtraj, utraj
 
+    @staticmethod
+    def interp_with_midstep(
+        q0,
+        qf,
+        N: int,
+        tb_cent: float,          # blend fraction per side (like your original)
+        mid_step: float,         # desired per-sample step at the midpoint (ticks/sample)
+        max_step: float = 10_000,
+        integer_ticks: bool = True,
+    ):
+        """
+        Adjustable slope blended picker trajectory
+        set the mid_step value between 10 and 50 for meaningful differences.
+        setting it to 44 approximates the old blend quite closely
+        """
+        # ---- Guardrails ----
+        if N < 2:
+            raise ValueError("N must be >= 2.")
+        if not (0.0 < tb_cent < 0.5):
+            raise ValueError("tb_cent must be in (0, 0.5) so there is an interior segment.")
+        if mid_step <= 0:
+            raise ValueError("mid_step must be > 0.")
+        if max_step <= 0:
+            raise ValueError("max_step must be > 0.")
+
+        dq = int(qf) - int(q0)
+        if dq == 0:
+            return np.full(N, int(q0), dtype=int if integer_ticks else float)
+
+        sgn = 1 if dq >= 0 else -1
+        D = abs(dq)
+
+        # Discrete intervals between samples
+        S = N - 1
+
+        # Blend length in samples per side
+        nb = int(np.floor(tb_cent * N))
+        nb = max(1, min(nb, (S - 2)))          # ensure at least 1 per side and keep interior
+        n_mid = S - 2 * nb
+        if n_mid < 1:
+            # keep at least a 1-sample interior
+            nb = (S - 1) // 2
+            n_mid = S - 2 * nb
+
+        # Hard cap on midpoint step
+        mid_step = min(mid_step, max_step)
+
+        # Feasibility: with symmetric ramps from s0 -> mid_step over nb steps per side,
+        # total distance (in ticks) is:
+        #   D = nb*(s0 + mid_step) + n_mid*mid_step
+        # For given D, nb, n_mid, the smallest attainable mid_step occurs when s0 -> tiny+,
+        # and the largest attainable mid_step is when s0 -> mid_step (triangle limit on ramps).
+        # Solve s0 from D and chosen mid_step:
+        #   s0 = (D - mid_step*(n_mid + nb)) / nb
+        # We need 0 < s0 <= mid_step.
+        # This implies an upper bound on mid_step:
+        #   mid_step <= D / (n_mid + nb)
+        mid_step_max_dist = D / (n_mid + nb)
+        mid_step = min(mid_step, mid_step_max_dist, max_step)
+
+        # Now compute starting ramp step; keep it positive (avoid position flats)
+        s0 = (D - mid_step * (n_mid + nb)) / nb
+        # Due to integer targets and rounding, s0 can hit 0 by a hair: enforce a small floor
+        eps = 1.0  # 1 tick/sample minimum to avoid zero steps; adjust if needed
+        if s0 < eps:
+            s0 = eps
+            # Recompute feasible mid_step with this s0
+            # D = nb*(s0 + mid_step) + n_mid*mid_step  => mid_step = (D - nb*s0) / (n_mid + nb)
+            mid_step = min((D - nb * s0) / (n_mid + nb), max_step)
+            if mid_step < s0:  # if still infeasible, collapse towards near-constant steps
+                mid_step = s0
+
+        # Build step magnitudes:
+        # End ramps are linear in step size (=> quadratic position near ends)
+        if nb == 1:
+            accel = np.array([mid_step])  # single step equals mid_step
+        else:
+            accel = np.linspace(s0, mid_step, nb)
+        decel = accel[::-1]
+        cruise = np.full(n_mid, mid_step, dtype=float)
+
+        steps_mag = np.concatenate([accel, cruise, decel])  # length S
+        # Clamp numerically to max_step
+        steps_mag = np.minimum(steps_mag, max_step)
+
+        # Orient to sign
+        steps = sgn * steps_mag
+
+        # Integer hygiene: make the summed steps equal dq exactly without violating max_step
+        # Start with nearest-integer steps
+        steps_i = np.rint(steps).astype(int)
+        residual = dq - steps_i.sum()
+        if residual != 0:
+            # Adjust from the center outward to preserve shape and avoid ends
+            indices = list(range(len(steps_i)))
+            # prioritize middle region, then move outward symmetrically
+            mid_idx = len(steps_i) // 2
+            order = [mid_idx]
+            for k in range(1, len(steps_i)):
+                i1 = mid_idx - k
+                i2 = mid_idx + k
+                if 0 <= i1 < len(steps_i): order.append(i1)
+                if 0 <= i2 < len(steps_i): order.append(i2)
+
+            r = residual
+            for i in order:
+                if r == 0:
+                    break
+                # available room before hitting max_step bound (respecting sign)
+                if sgn > 0:
+                    room_up = int(max_step) - steps_i[i]
+                    room_dn = steps_i[i] - 1  # keep >= 1 tick/sample
+                else:
+                    room_up = -1 - steps_i[i]  # keep <= -1 tick/sample
+                    room_dn = steps_i[i] + int(max_step)
+
+                if r > 0:
+                    give = min(r, room_up)
+                    if give > 0:
+                        steps_i[i] += give
+                        r -= give
+                else:  # r < 0
+                    take = min(-r, room_dn)
+                    if take > 0:
+                        steps_i[i] -= take
+                        r += take
+
+            if r != 0:
+                # As a last resort, allow a single sample to hit the bound exactly
+                for i in order:
+                    if r == 0:
+                        break
+                    if sgn > 0:
+                        room = int(max_step) - steps_i[i]
+                        give = min(r, room)
+                        if give > 0:
+                            steps_i[i] += give
+                            r -= give
+                    else:
+                        room = steps_i[i] + int(max_step)
+                        take = min(-r, room)
+                        if take > 0:
+                            steps_i[i] -= take
+                            r += take
+                if r != 0:
+                    raise RuntimeError("Could not accommodate residual without violating max_step.")
+
+        # Integrate to positions
+        curve = np.empty(N, dtype=float)
+        curve[0] = q0
+        curve[1:] = q0 + np.cumsum(steps_i)
+
+        # Enforce exact endpoints
+        curve[0], curve[-1] = float(q0), float(qf)
+
+        if integer_ticks:
+            curve = np.rint(curve).astype(int)
+            curve[0], curve[-1] = int(q0), int(qf)
+
+        return curve
     # This function creates a curve from q0 to qf with N points and smoothness of tb_cent of the curve.
     @staticmethod
     def interp_with_blend(q0, qf, N, tb_cent):
@@ -577,7 +737,7 @@ class GuitarBotParser:
                 qf_mm = tu.PICKER_MOTOR_INFO[motor_id][destination_key]
                 resolution = tu.PICKER_MOTOR_INFO[motor_id]['resolution']
                 qf_encoder_picker = (qf_mm * resolution) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
-                all_points = GuitarBotParser.interp_with_blend(start_pos, qf_encoder_picker, tu.PICKER_PLUCK_MOTION_POINTS, tb_cent)
+                all_points = GuitarBotParser.interp_with_midstep(start_pos, qf_encoder_picker, tu.PICKER_PLUCK_MOTION_POINTS, tb_cent, 10 + (speed - 1)* 5)
                 events_list.append([all_points, motor_id, event[1]])
             else:
                 fill_points = min(30, int(30 - (speed - 1) * (25 / 9))) - 4

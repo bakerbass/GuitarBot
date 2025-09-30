@@ -160,18 +160,21 @@ class GuitarBotParser:
     @staticmethod
     def lh_interpolate(lh_motor_positions, lh_pick_pos, initial_point, num_points=tu.PRESSER_INTERPOLATION_POINTS,
                        tb_cent=tu.TRAJECTORY_BLEND_PERCENT, plot=False):
-        initial_point = initial_point[0:12] # We only want the lh motors, sliders and pressers
+        initial_point = initial_point[0:12]  # We only want the lh motors, sliders and pressers
         current_encoder_position = []
         sorted_lh_pick_pos = sorted(lh_pick_pos, key=lambda x: x[-1])
+
+        # Determine the maximum timestamp to build a complete time range for the matrix
         if not lh_pick_pos:
-            max_timestamp = lh_motor_positions[-1][1] + 0.6 # Creates placeholder if lh_pick_pos is empty
+            max_timestamp = lh_motor_positions[-1][1] + 0.6  # Creates placeholder if lh_pick_pos is empty
         else:
             max_timestamp = max(lh_motor_positions[-1][1] + 0.6, sorted_lh_pick_pos[-1][3] + .6)
 
+        PLACEHOLDER_VALUE = 100000
         full_matrix = {}
         for t in np.arange(0, max_timestamp + tu.TIME_STEP, tu.TIME_STEP):
-            # Initialize to empty values
-            full_matrix[round(t, 3)] = [100000] * 12
+            # Initialize the matrix with placeholder values
+            full_matrix[round(t, 3)] = [PLACEHOLDER_VALUE] * 12
 
         for i, value in enumerate(initial_point):
             current_encoder_position.append(value)
@@ -179,9 +182,9 @@ class GuitarBotParser:
         print("LH UPDATED EVENTS LIST (NO SYNC LH EVENTS): ")
         lh_motor_positions = GuitarBotParser.checkSyncEvents("LH", lh_motor_positions)
         GuitarBotParser.print_Events(lh_motor_positions)
-        curr_ts = 0
-        full_LH = []
 
+        # Combine chord and note events into a single chronological list
+        full_LH = []
         for motor_pos, timestamp in lh_motor_positions:
             full_LH.append({'type': 'chord', 'positions': motor_pos, 'timestamp': timestamp})
 
@@ -191,75 +194,73 @@ class GuitarBotParser:
                  'timestamp': timestamp})
 
         full_LH.sort(key=lambda x: x['timestamp'])
+
+        # Set the starting position at time 0
         full_matrix[0] = initial_point
         prev_type = None
         prev_position = None
         prev_motor_id = None
+
+        # --- Main Loop to Populate Trajectory ---
         for i, event in enumerate(full_LH):
             timestamp = round(event['timestamp'], 3)
 
             if timestamp in full_matrix:
                 if event['type'] == 'chord':
-                    # Use all six pressers and all 6 sliders for the movement.
-                    # TODO: Only use the necessary sliders/pressers in the chord.
+                    # Generate a 3-part motion: UNPRESS -> SLIDE -> PRESS
                     points = []
                     target_positions_slider = event['positions'][:6]
                     target_positions_presser = event['positions'][6:12]
                     curr_pos = current_encoder_position.copy()
-                    # -----------
-                    # UNPRESS
-                    # -----------
+
+                    # 1. UNPRESS
                     interpolated_values_1 = [
-                        GuitarBotParser.interp_with_blend(curr_pos[i], curr_pos[i], num_points, tb_cent)
-                        for i in range(len(target_positions_slider))
-                    ]
+                        GuitarBotParser.interp_with_blend(curr_pos[i], curr_pos[i], num_points, tb_cent) for i in
+                        range(len(target_positions_slider))]
                     interpolated_points_1 = list(map(list, zip(*interpolated_values_1)))
                     interpolated_values_2 = [
-                        GuitarBotParser.interp_with_blend(curr_pos[i + 6], tu.LH_PRESSER_UNPRESSED_POS, num_points, tb_cent)
-                        for i in range(len(target_positions_presser))
-                    ]
+                        GuitarBotParser.interp_with_blend(curr_pos[i + 6], tu.LH_PRESSER_UNPRESSED_POS, num_points,
+                                                          tb_cent) for i in range(len(target_positions_presser))]
                     interpolated_points_2 = list(map(list, zip(*interpolated_values_2)))
                     f_20 = [points1 + points2 for points1, points2 in zip(interpolated_points_1, interpolated_points_2)]
                     points.extend(f_20)
-                    # -----------
-                    # SLIDE
-                    # -----------
-                    interpolated_values_3 = [
-                        GuitarBotParser.interp_with_blend(curr_pos[i], target_positions_slider[i],
-                                                          tu.LH_SLIDER_MOTION_POINTS, tb_cent)
-                        for i in range(len(target_positions_slider))
-                    ]
+
+                    # 2. SLIDE
+                    interpolated_values_3 = [GuitarBotParser.interp_with_blend(curr_pos[i], target_positions_slider[i],
+                                                                               tu.LH_SLIDER_MOTION_POINTS, tb_cent) for
+                                             i in range(len(target_positions_slider))]
                     interpolated_points_3 = list(map(list, zip(*interpolated_values_3)))
                     interpolated_values_4 = [
-                        GuitarBotParser.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS, tu.LH_PRESSER_UNPRESSED_POS, tu.LH_SLIDER_MOTION_POINTS, tb_cent)
-                        for i in range(len(target_positions_presser))]
+                        GuitarBotParser.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS, tu.LH_PRESSER_UNPRESSED_POS,
+                                                          tu.LH_SLIDER_MOTION_POINTS, tb_cent) for i in
+                        range(len(target_positions_presser))]
                     interpolated_points_4 = list(map(list, zip(*interpolated_values_4)))
                     s_20 = [points1 + points2 for points1, points2 in zip(interpolated_points_3, interpolated_points_4)]
                     points.extend(s_20)
-                    # -----------
-                    # PRESS
-                    # -----------
+
+                    # 3. PRESS
                     interpolated_values_5 = [
                         GuitarBotParser.interp_with_blend(target_positions_slider[i], target_positions_slider[i],
-                                                          num_points, tb_cent)
-                        for i in range(len(target_positions_slider))
-                    ]
+                                                          num_points, tb_cent) for i in
+                        range(len(target_positions_slider))]
                     interpolated_points_5 = list(map(list, zip(*interpolated_values_5)))
                     interpolated_values_6 = [
-                        GuitarBotParser.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS, target_positions_presser[i], num_points, tb_cent)
-                        for i in range(len(target_positions_presser))
-                    ]
+                        GuitarBotParser.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS, target_positions_presser[i],
+                                                          num_points, tb_cent) for i in
+                        range(len(target_positions_presser))]
                     interpolated_points_6 = list(map(list, zip(*interpolated_values_6)))
                     t_20 = [points1 + points2 for points1, points2 in zip(interpolated_points_5, interpolated_points_6)]
-                    curr_t = timestamp
                     points.extend(t_20)
+
+                    # Populate the full_matrix with the generated points
+                    curr_t = timestamp
                     for curr_p in points:
                         full_matrix[curr_t] = curr_p
                         curr_t = round(curr_t + tu.TIME_STEP, 3)
-                        current_encoder_position = copy.deepcopy(curr_p)
+                    current_encoder_position = copy.deepcopy(points[-1])
 
                 elif event['type'] == 'note':
-                    # Move a single finger for a movement
+                    # Move a single finger for a note event
                     slider_points = []
                     presser_points = []
                     motor_index = event['motor_id']
@@ -269,49 +270,59 @@ class GuitarBotParser:
                     q0_presser_motor = current_encoder_position[presser_motor_ID]
                     qf_slider = int(event['position'])
                     qf_presser = tu.LH_PRESSER_PRESSED_POS
-                    if int(event['position']) == -1:  # open string
+                    if int(event['position']) == -1:  # Open string case
                         qf_slider = q0_slider_motor
                         qf_presser = tu.LH_PRESSER_UNPRESSED_POS
 
                     if prev_type == 'chord' or not (
-                            event['type'] == prev_type and prev_position == event['position'] and prev_motor_id == event[
-                        'motor_id']):
+                            event['type'] == prev_type and prev_position == event['position'] and prev_motor_id ==
+                            event['motor_id']):
                         if event['slide_toggle']:
-                            s1 = GuitarBotParser.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
-                            p1 = GuitarBotParser.interp_with_blend(q0_presser_motor, tu.LH_PRESSER_SLIDE_PRESS_POS, num_points, tb_cent)
+                            s1 = GuitarBotParser.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points,
+                                                                   tb_cent)
+                            p1 = GuitarBotParser.interp_with_blend(q0_presser_motor, tu.LH_PRESSER_SLIDE_PRESS_POS,
+                                                                   num_points, tb_cent)
                             slider_points.extend(s1)
                             presser_points.extend(p1)
 
-                            s2 = GuitarBotParser.interp_with_blend(q0_slider_motor, qf_slider, tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
-                            p2 = GuitarBotParser.interp_with_blend(tu.LH_PRESSER_SLIDE_PRESS_POS, tu.LH_PRESSER_SLIDE_PRESS_POS, tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
+                            s2 = GuitarBotParser.interp_with_blend(q0_slider_motor, qf_slider,
+                                                                   tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
+                            p2 = GuitarBotParser.interp_with_blend(tu.LH_PRESSER_SLIDE_PRESS_POS,
+                                                                   tu.LH_PRESSER_SLIDE_PRESS_POS,
+                                                                   tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
                             slider_points.extend(s2)
                             presser_points.extend(p2)
 
                             s3 = GuitarBotParser.interp_with_blend(qf_slider, qf_slider, num_points, tb_cent)
-                            p3 = GuitarBotParser.interp_with_blend(tu.LH_PRESSER_SLIDE_PRESS_POS, qf_presser, num_points, tb_cent)
+                            p3 = GuitarBotParser.interp_with_blend(tu.LH_PRESSER_SLIDE_PRESS_POS, qf_presser,
+                                                                   num_points, tb_cent)
                             slider_points.extend(s3)
                             presser_points.extend(p3)
-                        else:
-                            s1 = GuitarBotParser.interp_with_blend(q0_slider_motor, q0_slider_motor, 20, tb_cent)
-                            p1 = GuitarBotParser.interp_with_blend(q0_presser_motor, tu.LH_PRESSER_UNPRESSED_POS, 20, tb_cent)
+                        else:  # Not a slide
+                            s1 = GuitarBotParser.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
+                            p1 = GuitarBotParser.interp_with_blend(q0_presser_motor, tu.LH_PRESSER_UNPRESSED_POS, num_points,
+                                                                   tb_cent)
                             slider_points.extend(s1)
                             presser_points.extend(p1)
 
-                            s2 = GuitarBotParser.interp_with_blend(q0_slider_motor, qf_slider, 25, tb_cent)
-                            p2 = GuitarBotParser.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS, tu.LH_PRESSER_UNPRESSED_POS, 25, tb_cent)
+                            s2 = GuitarBotParser.interp_with_blend(q0_slider_motor, qf_slider, tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
+                            p2 = GuitarBotParser.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS,
+                                                                   tu.LH_PRESSER_UNPRESSED_POS, tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
                             slider_points.extend(s2)
                             presser_points.extend(p2)
 
-                            s3 = GuitarBotParser.interp_with_blend(qf_slider, qf_slider, 20, tb_cent)
-                            p3 = GuitarBotParser.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS, qf_presser, 20, tb_cent)
+                            s3 = GuitarBotParser.interp_with_blend(qf_slider, qf_slider, num_points, tb_cent)
+                            p3 = GuitarBotParser.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS, qf_presser, num_points, tb_cent)
                             slider_points.extend(s3)
                             presser_points.extend(p3)
-                    else:
-                        s3 = GuitarBotParser.interp_with_blend(q0_slider_motor, qf_slider, tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
+                    else:  # Repeated note
+                        s3 = GuitarBotParser.interp_with_blend(q0_slider_motor, qf_slider,
+                                                               tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
                         p3 = GuitarBotParser.interp_with_blend(q0_presser_motor, qf_presser, num_points, tb_cent)
-                        slider_points.extend(s3)
+                        slider_points.extend(s3);
                         presser_points.extend(p3)
 
+                    # Populate the full_matrix with the generated points for the specific motors
                     curr_t = timestamp
                     for curr_p in slider_points:
                         full_matrix[curr_t][slider_motor_ID] = copy.deepcopy(curr_p)
@@ -328,25 +339,15 @@ class GuitarBotParser:
                     prev_position = event["position"]
                     prev_motor_id = event["motor_id"]
 
-        prev_values = initial_point.copy()
+        last_known_values = initial_point.copy()
         for t in sorted(full_matrix.keys()):
+            current_positions = full_matrix[t]
             for i in range(12):
-                if full_matrix[t][i] == initial_point[i]:
-                    full_matrix[t][i] = prev_values[i]
+                if current_positions[i] == PLACEHOLDER_VALUE:
+                    current_positions[i] = last_known_values[i]
                 else:
-                    prev_values[i] = full_matrix[t][i]
+                    last_known_values[i] = current_positions[i]
 
-        sorted_timestamps = sorted(full_matrix.keys())
-        previous_values = copy.deepcopy(initial_point)
-        for timestamp in sorted_timestamps:
-            current_values = full_matrix[timestamp]
-            for i in range(len(current_values)):
-                # Fill placeholders with previous value
-                if current_values[i] == 100000:
-                    current_values[i] = previous_values[i]
-                else:
-                    previous_values[i] = current_values[i]
-            full_matrix[timestamp] = current_values
         return full_matrix
 
     @staticmethod
@@ -400,10 +401,12 @@ class GuitarBotParser:
                                                                                initial_point)
         lh_interpolated_dictionary = GuitarBotParser.lh_interpolate(lh_positions_adj, lh_pick_pos, initial_point,
                                                                       plot=False)
+
         return lh_interpolated_dictionary, pick_interpolated_dictionary
 
     @staticmethod
     def interpolate_dict(dictionary, all_timestamps):
+        # print(dictionary)
         interpolated = {}
         last_value = None
         for timestamp in all_timestamps:
@@ -562,7 +565,7 @@ class GuitarBotParser:
         initial_point = initial_point[12:]
         current_positions = initial_point.copy()
         result = {}
-        pick_states = [1] * len(tu.PICKER_MOTOR_INFO)
+        # The 'pick_states' variable has been removed.
         events_list = []
         lh_pick_events = []
 
@@ -571,47 +574,62 @@ class GuitarBotParser:
             is_pluck = duration < tu.TREMOLO_DURATION_THRESHOLD
             start_pos = current_positions[motor_id]
 
+            # --- Common Setup for Both Pluck and Tremolo ---
+            # Get encoder positions for up and down, as they are needed to determine the opposite point.
+            down_mm = tu.PICKER_MOTOR_INFO[motor_id]['down_pluck_mm']
+            up_mm = tu.PICKER_MOTOR_INFO[motor_id]['up_pluck_mm']
+            resolution = tu.PICKER_MOTOR_INFO[motor_id]['resolution']
+            down_encoder = (down_mm * resolution) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
+            up_encoder = (up_mm * resolution) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
+
+            # Determine the midpoint to decide if the current position is "up" or "down".
+            mid_point = (up_encoder + down_encoder) / 2
+
             if is_pluck:
-                pick_states[motor_id] = not pick_states[motor_id]
-                destination_key = 'down_pluck_mm' if not pick_states[motor_id] else 'up_pluck_mm'
-                qf_mm = tu.PICKER_MOTOR_INFO[motor_id][destination_key]
-                resolution = tu.PICKER_MOTOR_INFO[motor_id]['resolution']
-                qf_encoder_picker = (qf_mm * resolution) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
-                all_points = GuitarBotParser.interp_with_blend(start_pos, qf_encoder_picker, tu.PICKER_PLUCK_MOTION_POINTS, tb_cent)
+                destination_pos = down_encoder if start_pos > mid_point else up_encoder
+
+                all_points = GuitarBotParser.interp_with_blend(start_pos, destination_pos,
+                                                               tu.PICKER_PLUCK_MOTION_POINTS, tb_cent)
                 events_list.append([all_points, motor_id, event[1]])
+                current_positions[motor_id] = all_points[-1]
             else:
+                # --- Tremolo Logic (Position-Based) ---
                 fill_points = min(30, int(30 - (speed - 1) * (25 / 9))) - 4
-                num_tremolos = math.floor(duration / (((fill_points * tu.TIME_STEP) + .055) * 2))
+                single_pick_duration = (fill_points * tu.TIME_STEP) + 0.055
 
-                # Determine up and down positions
-                down_mm = tu.PICKER_MOTOR_INFO[motor_id]['down_pluck_mm']
-                up_mm = tu.PICKER_MOTOR_INFO[motor_id]['up_pluck_mm']
-                resolution = tu.PICKER_MOTOR_INFO[motor_id]['resolution']
-                down_encoder = (down_mm * resolution) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
-                up_encoder = (up_mm * resolution) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
+                if single_pick_duration > 0:
+                    num_picks = math.floor(duration / single_pick_duration)
+                else:
+                    num_picks = 0
 
-                qf_encoder_picker = up_encoder if not pick_states[motor_id] else down_encoder
                 all_points = []
-                for _ in range(num_tremolos):
-                    num_points = tu.PICKER_PLUCK_MOTION_POINTS
-                    points1 = GuitarBotParser.interp_with_blend(start_pos, qf_encoder_picker, num_points, .2)
-                    points2 = GuitarBotParser.interp_with_sine_blend(qf_encoder_picker, qf_encoder_picker, fill_points)
-                    start_pos = down_encoder if not pick_states[motor_id] else up_encoder
-                    points3 = GuitarBotParser.interp_with_blend(qf_encoder_picker, start_pos, num_points, .2)
-                    points4 = GuitarBotParser.interp_with_sine_blend(start_pos, start_pos, fill_points)
+                current_pick_pos = start_pos
+                num_motion_points = tu.PICKER_PLUCK_MOTION_POINTS
+
+                for _ in range(num_picks):
+                    destination_pos = down_encoder if current_pick_pos > mid_point else up_encoder
+                    points1 = GuitarBotParser.interp_with_blend(current_pick_pos, destination_pos, num_motion_points,
+                                                                .2)
+                    points2 = GuitarBotParser.interp_with_sine_blend(destination_pos, destination_pos, fill_points)
                     all_points.extend(points1)
                     all_points.extend(points2)
-                    all_points.extend(points3)
-                    all_points.extend(points4)
-                events_list.append([all_points, motor_id, event[1]])
 
-            current_positions[motor_id] = all_points[-1]
+                    current_pick_pos = destination_pos
+
+                if all_points:
+                    events_list.append([all_points, motor_id, event[1]])
+                    current_positions[motor_id] = all_points[-1]
+                else:
+                    current_positions[motor_id] = start_pos
+
+            # --- Remainder of the function (unchanged) ---
             fret = note - tu.STRING_MIDI_RANGES[motor_id][0]
             if fret == 0:
                 lh_enc_val = -1
             else:
                 slider_direction = tu.STRING_MIDI_RANGES[motor_id][2]
-                lh_enc_val = ((tu.SLIDER_MM_PER_FRET[fret - 1] * 2048) / tu.MM_TO_ENCODER_CONVERSION_FACTOR + tu.SLIDER_ENCODER_OFFSET) * slider_direction
+                lh_enc_val = ((tu.SLIDER_MM_PER_FRET[
+                                   fret - 1] * 2048) / tu.MM_TO_ENCODER_CONVERSION_FACTOR + tu.SLIDER_ENCODER_OFFSET) * slider_direction
             curr_lhp_event = [motor_id, lh_enc_val, slide_toggles[i], event[1] - tu.LH_PREP_TIME_BEFORE_PICK]
             lh_pick_events.append(curr_lhp_event)
 

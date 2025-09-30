@@ -26,6 +26,7 @@ initial_point_queue = queue.SimpleQueue()
 song_trajs_queue = queue.SimpleQueue()
 data_queue = queue.SimpleQueue()
 
+
 def decode_osc_message(data):
     print("Message In")
     try:
@@ -35,6 +36,7 @@ def decode_osc_message(data):
     except osc_types.ParseError:
         print("Failed to parse OSC message")
     return None, None
+
 
 def udp_listener():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -51,6 +53,7 @@ def udp_listener():
                 print(f"Received {message_type}: {message_body}")
                 print("Message Queue Size: ", message_queue.qsize())
 
+
 def process_messages():
     """Process messages from the queue and handle them."""
     chords = pluck = None
@@ -64,8 +67,6 @@ def process_messages():
                     chords_queue.put(data)
                 elif message_type == "Pluck":
                     pluck_queue.put(data)
-                # print(f"Chords Queue Size1", chords_queue.qsize())
-                # print(f"Pluck Queue Size1", pluck_queue.qsize())
         except queue.Empty:
             pass
         time.sleep(0.001)
@@ -73,10 +74,12 @@ def process_messages():
 
 def song_creator():
     initial_point = tu.initial_point
+    last_activity_time = time.time()
+    IDLE_TIMEOUT_SECONDS = 3.0
+
     while True:
-        try:
-            while chords_queue.qsize() > 0 and pluck_queue.qsize() > 0:
-                # Collect all chords, strums, and plucks together
+        if chords_queue.qsize() > 0 and pluck_queue.qsize() > 0:
+            try:
                 chords = chords_queue.get_nowait()
                 pluck = pluck_queue.get_nowait()
 
@@ -86,8 +89,6 @@ def song_creator():
                 for i in range(pluck_queue.qsize()):
                     pluck.extend(pluck_queue.get_nowait())
 
-                # print("ALL CHORDS: ", chords)
-                # print("ALL PLUCKS: ", pluck)
                 print("Starting Parse")
 
                 song_trajectories_dict = GuitarBotParser.parseAllMIDI(chords, pluck, initial_point)
@@ -97,26 +98,31 @@ def song_creator():
                 initial_point = song_trajectories_list[-1]
                 initial_point_queue.put(initial_point)
                 chords = pluck = None
+                last_activity_time = time.time()
+                print("Activity detected, idle timer reset.")
 
+            except queue.Empty:
+                pass
+        else:
+            if chords_queue.qsize() == 0 and pluck_queue.qsize() == 0:
+                if time.time() - last_activity_time > IDLE_TIMEOUT_SECONDS:
+                    print(f" idle for over {IDLE_TIMEOUT_SECONDS} seconds. Sending 'On' to reset state.")
 
+                    idle_chord_message = [["On", 0]]
+                    message_queue.put(("Chords", idle_chord_message))
 
-        except queue.Empty:
-            pass
+                    last_activity_time = time.time()
 
-        time.sleep(0.001)
+        time.sleep(0.01)
 
 
 def robot_controller():
     while True:
         try:
             song_trajectories_list = []
-            # While theres song lists in the queue
-            # print("Empty")
             while not song_trajs_queue.empty():
-
-                # If they're more than one song list in the queue
                 if song_trajs_queue.qsize() > 1:
-                    for i in range(song_trajs_queue.qsize()):  # Combine all the song lists into one
+                    for i in range(song_trajs_queue.qsize()):
                         song_trajectories_list.append(song_trajs_queue.get_nowait())
 
                     song_trajectories_list = np.vstack(song_trajectories_list)
@@ -129,8 +135,8 @@ def robot_controller():
 
         except queue.Empty:
             pass
-
         time.sleep(0.001)
+
 
 if __name__ == "__main__":
     # Start the UDP listener in a separate thread

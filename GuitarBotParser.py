@@ -236,41 +236,41 @@ class GuitarBotParser:
                         s1 = self.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
                         p1 = self.interp_with_blend(q0_presser_motor, tu.LH_PRESSER_SLIDE_PRESS_POS, num_points,
                                                     tb_cent)
-                        slider_points.extend(s1);
+                        slider_points.extend(s1)
                         presser_points.extend(p1)
 
                         s2 = self.interp_with_blend(q0_slider_motor, qf_slider, tu.LH_SINGLE_NOTE_MOTION_POINTS,
                                                     tb_cent)
                         p2 = self.interp_with_blend(tu.LH_PRESSER_SLIDE_PRESS_POS, tu.LH_PRESSER_SLIDE_PRESS_POS,
                                                     tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
-                        slider_points.extend(s2);
+                        slider_points.extend(s2)
                         presser_points.extend(p2)
 
                         s3 = self.interp_with_blend(qf_slider, qf_slider, num_points, tb_cent)
                         p3 = self.interp_with_blend(tu.LH_PRESSER_SLIDE_PRESS_POS, qf_presser, num_points, tb_cent)
-                        slider_points.extend(s3);
+                        slider_points.extend(s3)
                         presser_points.extend(p3)
                     else:
                         s1 = self.interp_with_blend(q0_slider_motor, q0_slider_motor, num_points, tb_cent)
                         p1 = self.interp_with_blend(q0_presser_motor, tu.LH_PRESSER_UNPRESSED_POS, num_points, tb_cent)
-                        slider_points.extend(s1);
+                        slider_points.extend(s1)
                         presser_points.extend(p1)
 
                         s2 = self.interp_with_blend(q0_slider_motor, qf_slider, tu.LH_SINGLE_NOTE_MOTION_POINTS,
                                                     tb_cent)
                         p2 = self.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS, tu.LH_PRESSER_UNPRESSED_POS,
                                                     tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
-                        slider_points.extend(s2);
+                        slider_points.extend(s2)
                         presser_points.extend(p2)
 
                         s3 = self.interp_with_blend(qf_slider, qf_slider, num_points, tb_cent)
                         p3 = self.interp_with_blend(tu.LH_PRESSER_UNPRESSED_POS, qf_presser, num_points, tb_cent)
-                        slider_points.extend(s3);
+                        slider_points.extend(s3)
                         presser_points.extend(p3)
                 else:
                     s3 = self.interp_with_blend(q0_slider_motor, qf_slider, tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
                     p3 = self.interp_with_blend(q0_presser_motor, qf_presser, num_points, tb_cent)
-                    slider_points.extend(s3);
+                    slider_points.extend(s3)
                     presser_points.extend(p3)
 
                 num_generated_points = len(slider_points)

@@ -22,17 +22,24 @@ class DynamicsParser:
         # Track current state of each picker motor (0=down, 1=up)
         self.picker_states = {13: 1, 14: 1, 15: 1}  # Start in up position
         
-        # Motor position mappings from tune.py
-        self.motor_positions = {
-            13: {'down': tu.PICKER_MOTOR_INFO[0]['down_pluck_mm'], 
-                 'up': tu.PICKER_MOTOR_INFO[0]['up_pluck_mm']},
-            14: {'down': tu.PICKER_MOTOR_INFO[1]['down_pluck_mm'],
-                 'up': tu.PICKER_MOTOR_INFO[1]['up_pluck_mm']}, 
-            15: {'down': tu.PICKER_MOTOR_INFO[2]['down_pluck_mm'],
-                 'up': tu.PICKER_MOTOR_INFO[2]['up_pluck_mm']}
-        }
+        # Motor position mappings from tune.py - convert mm to encoder ticks like GuitarBotParser
+        self.motor_positions = {}
+        for motor_id in [13, 14, 15]:
+            picker_index = motor_id - 13  # Convert to 0-2 index for PICKER_MOTOR_INFO
+            down_mm = tu.PICKER_MOTOR_INFO[picker_index]['down_pluck_mm']
+            up_mm = tu.PICKER_MOTOR_INFO[picker_index]['up_pluck_mm']
+            resolution = tu.PICKER_MOTOR_INFO[picker_index]['resolution']
+            
+            # Convert mm to encoder ticks using same formula as GuitarBotParser
+            down_ticks = (down_mm * resolution) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
+            up_ticks = (up_mm * resolution) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
+            
+            self.motor_positions[motor_id] = {
+                'down': round(down_ticks, 3),
+                'up': round(up_ticks, 3)
+            }
         
-        # Current positions (start at up positions)
+        # Current positions in encoder ticks (start at up positions)
         self.current_positions = [
             self.motor_positions[13]['up'],  # Motor 13
             self.motor_positions[14]['up'],  # Motor 14  
@@ -51,12 +58,24 @@ class DynamicsParser:
             raise ValueError(f"MNN {mnn} out of supported range (40+)")
     
     def get_next_position(self, motor_id):
-        """Get the next position for a motor (toggle between up/down)."""
+        """Get the next position for a motor (toggle between up/down). 
+        Mimics GuitarBotParser picker state logic."""
         current_state = self.picker_states[motor_id]
-        if current_state == 1:  # Currently up, go down
-            return self.motor_positions[motor_id]['down'], 0
-        else:  # Currently down, go up
-            return self.motor_positions[motor_id]['up'], 1
+        picker_index = motor_id - 13
+        
+        # Toggle state first (like GuitarBotParser does)
+        new_state = not current_state
+        self.picker_states[motor_id] = new_state
+        
+        # Choose destination based on NEW state
+        destination_key = 'down_pluck_mm' if new_state == 0 else 'up_pluck_mm'
+        qf_mm = tu.PICKER_MOTOR_INFO[picker_index][destination_key]
+        resolution = tu.PICKER_MOTOR_INFO[picker_index]['resolution']
+        
+        # Convert to encoder ticks (same formula as GuitarBotParser)
+        pos_ticks = (qf_mm * resolution) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
+        
+        return round(pos_ticks, 3), new_state
     
     def generate_trajectory(self, motor_id, target_position, num_points=tu.PICKER_PLUCK_MOTION_POINTS):
         """Generate smooth trajectory for a single motor using interp_with_blend."""
@@ -106,9 +125,8 @@ class DynamicsParser:
             motor_index = motor_id - 13
             
             if motor_actions[motor_id]:  # Motor has actions
-                # Get next position and update state
+                # Get next position (state is updated inside get_next_position)
                 target_pos, new_state = self.get_next_position(motor_id)
-                self.picker_states[motor_id] = new_state
                 
                 # Generate trajectory
                 trajectory = self.generate_trajectory(motor_id, target_pos)
@@ -116,7 +134,7 @@ class DynamicsParser:
                 # Update current position
                 self.current_positions[motor_index] = target_pos
                 
-                print(f"Motor {motor_id}: {self.current_positions[motor_index]:.1f}mm "
+                print(f"Motor {motor_id}: {self.current_positions[motor_index]:.1f} ticks "
                       f"({'down' if new_state == 0 else 'up'})")
                 
             else:  # Motor stays at current position
@@ -130,17 +148,19 @@ class DynamicsParser:
                 max_length = max(max_length, tu.PICKER_PLUCK_MOTION_POINTS)
         
         # Pad trajectories to same length and create combined trajectory matrix
+        # Use initial_point format from tune.py to match GuitarBotParser output
         trajectories_list = []
         for i in range(max_length):
-            # Create full 15-motor position array (12 LH + 3 RH)
-            full_position = [0] * 12  # LH motors stay at 0 for dynamics testing
+            # Create full 15-motor position array using initial_point as template
+            full_position = tu.initial_point.copy()
             
-            # Add picker positions (motors 13, 14, 15)
+            # Update picker positions (motors 13, 14, 15 are at indices 12, 13, 14)
             for motor_idx, traj in enumerate(all_trajectories):
+                array_index = 12 + motor_idx  # Picker motors start at index 12
                 if i < len(traj):
-                    full_position.append(int(traj[i]))
+                    full_position[array_index] = int(traj[i])
                 else:
-                    full_position.append(int(traj[-1]))  # Hold last position
+                    full_position[array_index] = int(traj[-1])  # Hold last position
             
             trajectories_list.append(full_position)
         
@@ -168,9 +188,16 @@ class DynamicsParser:
         for motor_id in [13, 14, 15]:
             motor_idx = motor_id - 13
             state = self.picker_states[motor_id]
-            pos = self.current_positions[motor_idx]
+            pos_ticks = self.current_positions[motor_idx]
+            
+            # Convert back to mm for display (reverse of the conversion)
+            picker_index = motor_id - 13
+            resolution = tu.PICKER_MOTOR_INFO[picker_index]['resolution']
+            pos_mm = (pos_ticks * tu.MM_TO_ENCODER_CONVERSION_FACTOR) / resolution
+            
             status[motor_id] = {
-                'position_mm': pos,
+                'position_ticks': pos_ticks,
+                'position_mm': round(pos_mm, 2),
                 'state': 'up' if state == 1 else 'down'
             }
         return status
@@ -211,7 +238,7 @@ class DynamicsParser:
         fig.update_layout(
             title='Dynamics Test - Picker Motor Trajectories',
             xaxis_title='Time (seconds)',
-            yaxis_title='Motor Position (mm)',
+            yaxis_title='Motor Position (encoder ticks)',
             legend_title='Picker Motors',
             showlegend=True,
             hovermode='x unified',
@@ -231,8 +258,15 @@ class DynamicsParser:
 if __name__ == "__main__":
     parser = DynamicsParser()
     
-    print("=== Initial Status ===")
-    print(parser.get_status())
+    print("=== Initial Status (Encoder Ticks) ===")
+    status = parser.get_status()
+    for motor_id, info in status.items():
+        print(f"Motor {motor_id}: {info['position_ticks']:.1f} ticks ({info['position_mm']:.2f}mm) - {info['state']}")
+    
+    print(f"\n=== Tune.py Values ===")
+    print(f"TIME_STEP: {tu.TIME_STEP}")
+    print(f"PICKER_PLUCK_MOTION_POINTS: {tu.PICKER_PLUCK_MOTION_POINTS}")
+    print(f"MM_TO_ENCODER_CONVERSION_FACTOR: {tu.MM_TO_ENCODER_CONVERSION_FACTOR}")
     
     print("\n=== Test 1: Single notes ===")
     # Test single note on each motor
@@ -240,9 +274,15 @@ if __name__ == "__main__":
     traj2 = parser.parse_dyn_message([55])  # Motor 14  
     traj3 = parser.parse_dyn_message([65])  # Motor 15
     
+    print(f"\nTrajectory length: {len(traj1)} points, duration: {len(traj1) * tu.TIME_STEP:.3f}s")
+    print(f"Sample trajectory point (all 15 motors): {traj1[0]}")
+    print(f"Final picker positions: [{traj1[-1][12]}, {traj1[-1][13]}, {traj1[-1][14]}]")
+    
     print("\n=== Test 2: Multiple notes ===")
     # Test multiple notes (should toggle states)
     traj4 = parser.parse_dyn_message([41, 52, 63])  # All motors
     
-    print("\n=== Final Status ===")
-    print(parser.get_status())
+    print("\n=== Final Status (Encoder Ticks) ===")
+    status = parser.get_status()
+    for motor_id, info in status.items():
+        print(f"Motor {motor_id}: {info['position_ticks']:.1f} ticks ({info['position_mm']:.2f}mm) - {info['state']}")

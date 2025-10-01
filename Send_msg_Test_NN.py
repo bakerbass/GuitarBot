@@ -1,14 +1,16 @@
 import numpy as np
 import time
 from pythonosc.udp_client import SimpleUDPClient
-from test_messages import *
-from pprint import pprint
 UDP_IP = "127.0.0.1"
 UDP_PORT = 12000
+import RandomNoteGenerator
+
 # FORMAT
 # chords_message = [[Chord, timestamp]]
 # strum_message = [["DOWN"/"UP"], timestamp]
 # pluck_message = [[note (midi value), duration, speed, slide_toggle, timestamp]]
+# NOTES
+# Duration cannot overlap with the onset of new notes.
 
 # chords_message = [["A", 0.0], ["D", 4.0], ["E", 5.0], ["A", 6.0], ["On", 8.0]] # Marcus Demo 3/6/2025
 # strum_message = [ ["DOWN", 1.0], ["UP", 2.0], ["DOWN", 4.0], ["UP", 5.0], ["DOWN", 6.0]] # Marcus Demo 3/6/2025
@@ -187,7 +189,7 @@ def create_tremolo_message():
 # chords_message = [["On", 8]]
 # strum_message =  [["UP", 0]]
 # # E
-# pluck_message = [[42, 2, 1, 0, 1], [46, 2, 10, 0, 4]]
+# pluck_message = [[42, 6, 10, 0, 1], [46, 2, 10, 0, 4]]
 
 # D
 # pluck_message = [[50, 2, 1, 0, 1], [52, 2, 10, 0, 4]]
@@ -196,32 +198,55 @@ def create_tremolo_message():
 # pluck_message = [[59, 2, 1, 0, 1], [61, 2, 10, 0, 4]]
 
 # 2. Glissando Multiple Strings
-# chords_message = [["On", 9]]
-# # strum_message =  [["UP", 0]]
+# chords_message = [["On", 10]]
+# # # strum_message =  [["UP", 0]]
 # pluck_message = [
-#                  [59, 3, 7, 0, 1], [61, 3, 7, 0, 3], [63, 3, 7, 0, 5], [65, 2, 7, 0, 7]
-                # [50, 3, 7, 0, 1], [52, 3, 7, 0, 3], [54, 3, 7, 0, 5], [56, 2, 7, 0, 7]
-                # [40, 3, 7, 0, 1], [42, 3, 7, 0, 3], [44, 3, 7, 0, 5], [46, 2, 7, 0, 7]
-                # ]
+#                [59, 1, 8, 0, 1], [61, 1, 3, 0, 3], [63, 1, 1, 0, 5], [65, 1, 9, 0, 7],
+#                [50, 3, 1, 0, 2], [52, 3, 1, 0, 4], [54, 3, 1, 0, 6], [56, 2, 1, 0, 8],
+#                [40, 1, 10, 0, 3], [42, 1, 5, 0, 5], [44, 1, 3, 0, 7], [46, 1, 7, 0, 9]
+#                 ]
+#
+# chords_message_2 = [["On", 10]]
+# # # strum_message =  [["UP", 0]]
+# pluck_message_2 = [
+#                [65, 1, 7, 0, 3], [63, 1, 3, 0, 5], [61, 1, 1, 0, 7], [59, 1, 7, 0, 9],
+#                [56, 3, 1, 0, 2], [54, 3, 1, 0, 4], [52, 3, 1, 0, 6], [50, 2, 1, 0, 8],
+#                [46, 1, 9, 0, 1], [44, 1, 4, 0, 3], [42, 1, 2, 0, 5], [40, 1, 1, 0, 7]
+#                 ]
+
+# pluck_message = [
+# #               [59, .1, 7, 0, 1], [61, .1, 7, 0, 2], [63, .1, 7, 0, 3], [65, .1, 7, 0, 4],
+# #                [50, .1, 7, 0, 1],[50, .1, 7, 0, 1.5], [52, .1, .1, 0, 2], [54, .1, 7, 0, 3], [56, .1, 7, 0, 4], [56, .1, 7, 0, 4.5],
+# #             [40, .1, 7, 0, 1], [42, .1, 7, 0, 2], [44, .1, 7, 0, 3], [46, .1, 7, 0, 4]
+#                 ]
 
 # # 3. Short Song
 # , ["Dsus2", 5],["Cmaj7", 9],  ["Am", 13], ["On", 17]
-# chords_message = [["On", 0]]
+# chords_message = [["On", 17]]
 # strum_message =  [["UP", 0]]
-# pluck_message = [[50, .5, 10, 0, 1.5], [50, .1, 1, 0, 2.5], [50, .1, 1, 0, 3],
+# pluck_message = [
+#                  [50, .5, 10, 0, 1.5], [50, .1, 1, 0, 2.5], [50, .1, 1, 0, 3],
 #                  [50, .5, 10, 0, 3.5], [50, .1, 1, 0, 4.5], [50, .1, 1, 0, 5],
 #                  [54, .5, 10, 0, 5.5], [54, .1, 1, 0, 6.5], [54, .1, 1, 0, 7],
 #                  [54, .5, 10, 0, 7.5], [54, .1, 1, 0, 8.5], [54, .1, 1, 0, 9],
-#                  [50, .5, 10, 0, 9.5], [50, .1, 1, 0, 10.5], [50, .1, 1, 0, 11],
-#                  [52, .5, 10, 0, 11.5], [52, .1, 1, 0, 12.5], [52, .1, 1, 0, 13],
+#                  # [50, .5, 10, 0, 9.5], [50, .1, 1, 0, 10.5], [50, .1, 1, 0, 11],
+#                  # [52, .5, 10, 0, 11.5], [52, .1, 1, 0, 12.5], [52, .1, 1, 0, 13],
 #                  [54, .5, 10, 0, 13.5], [54, .1, 1, 0, 14.5], [54, .1, 1, 0, 15],
-#                  [54, .5, 10, 0, 15.5], [54, .1, 1, 0, 16.5], [54, .1, 1, 0, 17],
-#                  # String seperator
+#                  # [54, .5, 10, 0, 15.5], [54, .1, 1, 0, 16.5], [54, .1, 1, 0, 17],
+#                  # # String seperator
 #                  [62, .5, 10, 0, 1.5], [62, .6, 5, 0, 2], [62, 3, 5, 0, 3],
-#                  [66, 1, 10, 1, 5.2], [66, .6, 2, 1, 6.5], [66, .6, 2, 1, 7.5],
+#                  # [66, 1, 10, 1, 5.2], [66, .6, 2, 1, 6.5], [66, .6, 2, 1, 7.5],
 #                  [62, .5, 1, 0, 9.5], [62, .6, 1, 0, 10.5], [62, 1, 10, 0, 11.5],
-#                  [66, 1, 10, 1, 13], [66, .6, 2, 1, 14], [66, .6, 2, 1, 15]]
+#                  [66, 1, 10, 1, 13], [66, .6, 2, 1, 14], [66, .6, 2, 1, 15],
+#                  # String seperator
+#                  [43, .5, 10, 0, 1.5], [47, .6, 5, 0, 2], [43, 3, 5, 0, 3],
+#                  [47, 1, 10, 1, 5.2], [42, .6, 2, 1, 6.5], [47, .6, 2, 1, 7.5],
+#                  [43, .5, 1, 0, 9.5], [45, .6, 1, 0, 10.5], [43, 1, 10, 0, 11.5],
+#                  [47, 1, 10, 1, 13], [42, .6, 2, 1, 14], [47, .6, 2, 1, 15]
 #
+#                  ]
+
+
 # chords_message_2 = [["On", 11]]
 # strum_message_2 = [["UP", 0.0]]
 # pluck_message_2 = [[64, 1, 10, 0, 0], [55, 1, 10, 0, 0],
@@ -230,7 +255,26 @@ def create_tremolo_message():
 #                    [64, 1, 5, 0, 5], [62, 1, 5, 0, 7], [62, 1, 5, 0, 8], [62, .6, 10, 0, 10],
 #                    # String Seperator
 #                    [55, 2, 10, 0, .5], [52, 2, 5, 1, 2], [54, 2, 2, 0, 4],
-#                    [55, .5, 10, 1, 6], [50, 2, 3, 1, 7], [50, 1.5, 5, 0, 9]]
+#                    [55, .5, 10, 1, 6], [50, 2, 3, 1, 7], [50, 1.5, 5, 0, 9],
+#                    # String seperator
+#                    [45, 2, 10, 0, .5], [48, 2, 5, 1, 2], [47, 1.5, 5, 0, 3],
+#                    [45, 1, 5, 0, 5], [43, 1, 5, 0, 7], [43, 1, 5, 0, 8], [43, .6, 10, 0, 10],
+#                     ]
+
+chords_message = [["On", 4]] # Should be folded into an function that opens the pressers.
+# pluck_message = RandomNoteGenerator.generateSong()
+# print(pluck_message)
+pluck_message = [
+                [45, 1, 5, 0, 1],
+ #              [55, 1, 5, 0, 1],
+ #              [59, 2, 10, 0, 1],
+                ]
+
+# pluck_message = [
+#                [48, 2, 3, 0, 1],
+#                [55, 2, 3, 0, 1],
+#                [64, 2, 3, 0, 1],
+#                 ]
 
 # chords_message = [["On", 0]]
 # strum_message = [["UP", 0.0]]
@@ -247,24 +291,19 @@ def create_tremolo_message():
 # pluck_message = [[50, 0.1, 1, 0, 0], [50, 0.1, 1, 0, 5], [50, 0.1, 1, 0, 10], [50, 0.1, 1, 0, 15], [50, 0.1, 1, 0, 20], [50, 0.1, 1, 0, 25], [50, 0.1, 1, 0, 30], [50, 0.1, 1, 0, 35], [50, 0.1, 1, 0, 40], [50, 0.1, 1, 0, 45]]
 
 def send_osc_message(client, address, data):
-    print(f"Sending OSC message to {address}:")
-    pprint(data)
+    print(f"Sending OSC message to {address}: {data}")
     client.send_message(address, data)
 
 def main():
     # Create an OSC client
     client = SimpleUDPClient(UDP_IP, UDP_PORT)
-    # pluck_message, final_dur = scale(scale='maj', octaves=2)
-    pluck_message, final_dur = string_sweep('E')
-    chords_message = [["On", final_dur]]
-
     send_osc_message(client, "/Chords", chords_message)
     # send_osc_message(client, "/Strum", strum_message)
     # pluck_message = create_tremolo_message()
     send_osc_message(client, "/Pluck", pluck_message)
     time.sleep(1)
     # send_osc_message(client, "/Chords", chords_message_2)
-    # send_osc_message(client, "/Strum", strum_message_2)
+    # # send_osc_message(client, "/Strum", strum_message_2)
     # # # pluck_message = create_tremolo_message()
     # send_osc_message(client, "/Pluck", pluck_message_2)
     # # time.sleep(1)
@@ -281,6 +320,8 @@ def main():
     #     send_osc_message(client, "/Pluck", pluck_message)
     #     counter += 1
     #     time.sleep(1)
+
+
 
 
 if __name__ == "__main__":

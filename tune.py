@@ -13,16 +13,11 @@ TIME_STEP = .005
 
 #Graphing
 # Controls graphing the functions used on each motor. False turns off, true turns on.
-graph = False
+graph = True
 
 # Blend percentage for trajectory interpolation (0.0 to 1.0).
 # A higher value creates a more gradual acceleration and deceleration.
 TRAJECTORY_BLEND_PERCENT = 0.2
-
-# Initial Point
-# Controls the starting point for the very first message sent to GuitarBot when the receiver file starts.
-initial_point = [0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, -10, 838, 937, 1450]
-
 
 # Number of interpolation points for presser movements (e.g., pressing/unpressing).
 # More points result in a slower movement.
@@ -41,7 +36,7 @@ PICKER_PLUCK_MOTION_POINTS = 11
 LH_PRESSER_UNPRESSED_POS = -650
 
 # Position value for a fully pressed left-hand presser motor.
-LH_PRESSER_PRESSED_POS = 500
+LH_PRESSER_PRESSED_POS = 600
 
 # Torque value for a press, used for sliding to ensure string contact.
 # Given in terms of LH_PRESSER_SLIDE_PRESS_POS/1000 % of torque rating. For example, LH_PRESSER_SLIDE_PRESS_POS = 650 then the motor is outputting 65% of the motors' rated torque value.
@@ -82,11 +77,11 @@ TIMESTAMP_ROUNDING_FACTOR = 200.0
 # The physical distance (in mm) from the nut to the center of each fret.
 # Controls where the slider lands for fret 1, fret 2, fret 3, etc. respectively.
 # Index 0 corresponds to Fret 1.
-SLIDER_MM_PER_FRET = [19, 54, 87, 114, 141, 165, 188, 212, 234]
+SLIDER_MM_PER_FRET = [17, 52, 87, 114, 141, 165, 188, 212, 234]
 
 # Position values for the three states of the presser motors:
 # 1: Open/Unpressed, 2: Pressed, 3: Muted (partially pressed).
-PRESSER_ENCODER_POSITIONS = [-500, 650, 100]
+PRESSER_ENCODER_POSITIONS = [-650, 600, 100]
 
 # Conversion factor from millimeters to encoder ticks for the slider motors.
 # Generally only needs to change if the motor is not Maxxon
@@ -112,9 +107,9 @@ SLIDER_MOTOR_DIRECTION = [-1, 1, 1, -1, -1, 1]
 # Calibrate the mm positions for the desired picking depth and tone.
 # Key is the motor ID.
 PICKER_MOTOR_INFO = {
-    0: {'down_pluck_mm': 4.7, 'up_pluck_mm': 7.7, 'resolution': 1024}, # E
-    1: {'down_pluck_mm': 1.3, 'up_pluck_mm': 4.3, 'resolution': 2048}, # D
-    2: {'down_pluck_mm': 3.9, 'up_pluck_mm': 6.9, 'resolution': 2048} # B
+    0: {'down_pluck_mm': 4.3, 'up_pluck_mm': 7.3, 'resolution': 1024}, # E
+    1: {'down_pluck_mm': 2.1, 'up_pluck_mm': 5.4, 'resolution': 2048}, # D
+    2: {'down_pluck_mm': 2.8, 'up_pluck_mm': 5.8, 'resolution': 2048} # B
     # Add entries for other pickers if they exist, e.g., 3, 4, 5
 }
 
@@ -135,6 +130,20 @@ STRING_MIDI_RANGES = [
     # (55, 65, -1), # String 4
     # (64, 74, 1)   # String 6
 ]
+
+# Initial Point
+# Controls the starting point for the very first message sent to GuitarBot when the receiver file starts.
+initial_point = [
+                 # Sliders
+                 0, 0, 0, 0, 0, 0,
+                 # Pressers
+                 -650, -650, -650, -650, -650, -650, # Position, not Torque value
+                 # Pluckers
+                 int(PICKER_MOTOR_INFO[0]["up_pluck_mm"]*1024/9.4),
+                 int(PICKER_MOTOR_INFO[1]["up_pluck_mm"]*2048/9.4),
+                 int(PICKER_MOTOR_INFO[2]["up_pluck_mm"]*2048/9.4)
+                 ]
+
 
 # Filepath for the chord voicing library.
 CHORD_LIBRARY_FILE = "Alternate_Chords.csv"

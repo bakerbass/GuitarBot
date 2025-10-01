@@ -261,13 +261,13 @@ def create_tremolo_message():
 #                    [45, 1, 5, 0, 5], [43, 1, 5, 0, 7], [43, 1, 5, 0, 8], [43, .6, 10, 0, 10],
 #                     ]
 
-chords_message = [["On", 3]] # Should be folded into an function that opens the pressers.
+chords_message = [["On", 4]] # Should be folded into an function that opens the pressers.
 # pluck_message = RandomNoteGenerator.generateSong()
 # print(pluck_message)
 pluck_message = [
-  #              [40, 2, 10, 0, 1], [42, 2, 5, 0, 3], [44, 2, 10, 0, 5], [46, 2, 5, 0, 7],
-                 [51, .9, 5, 0, 1]
-  #              [60, 2, 10, 0, 1],
+                [45, 1, 5, 0, 1],
+ #              [55, 1, 5, 0, 1],
+ #              [59, 2, 10, 0, 1],
                 ]
 
 # pluck_message = [

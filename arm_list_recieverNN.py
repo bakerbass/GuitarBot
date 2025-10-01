@@ -8,6 +8,7 @@ import RobotController
 from pythonosc.osc_message import OscMessage
 from pythonosc.parsing import osc_types
 from GuitarBotParser import GuitarBotParser
+from DynamicsParser import DynamicsParser
 import numpy as np
 import tune as tu
 
@@ -22,15 +23,19 @@ message_queue = queue.SimpleQueue()
 # chords = strum = pluck = None
 chords_queue = queue.SimpleQueue()
 pluck_queue = queue.SimpleQueue()
+dyn_queue = queue.SimpleQueue()  # New queue for dynamics messages
 initial_point_queue = queue.SimpleQueue()
 song_trajs_queue = queue.SimpleQueue()
 data_queue = queue.SimpleQueue()
+
+# Initialize dynamics parser
+dynamics_parser = DynamicsParser()
 
 def decode_osc_message(data):
     print("Message In")
     try:
         msg = OscMessage(data)
-        if msg.address in ["/Chords", "/Strum", "/Pluck"]:
+        if msg.address in ["/Chords", "/Strum", "/Pluck", "/Dyn"]:
             return msg.address[1:], msg.params  # Remove the leading '/'
     except osc_types.ParseError:
         print("Failed to parse OSC message")
@@ -64,6 +69,8 @@ def process_messages():
                     chords_queue.put(data)
                 elif message_type == "Pluck":
                     pluck_queue.put(data)
+                elif message_type == "Dyn":
+                    dyn_queue.put(data)
                 # print(f"Chords Queue Size1", chords_queue.qsize())
                 # print(f"Pluck Queue Size1", pluck_queue.qsize())
         except queue.Empty:
@@ -106,6 +113,26 @@ def song_creator():
         time.sleep(0.001)
 
 
+def dynamics_processor():
+    """Process /Dyn messages for immediate motor testing."""
+    while True:
+        try:
+            while not dyn_queue.empty():
+                dyn_data = dyn_queue.get_nowait()
+                print(f"Processing dynamics message: {dyn_data}")
+                
+                # Parse the dynamics message (list of MNN values)
+                trajectories_list = dynamics_parser.parse_dyn_message(dyn_data)
+                
+                print(f"Dynamics Trajs Length: {len(trajectories_list)}")
+                print("Executing dynamics test")
+                RobotController.main(trajectories_list)
+                
+        except queue.Empty:
+            pass
+        time.sleep(0.001)
+
+
 def robot_controller():
     while True:
         try:
@@ -119,7 +146,12 @@ def robot_controller():
                     for i in range(song_trajs_queue.qsize()):  # Combine all the song lists into one
                         song_trajectories_list.append(song_trajs_queue.get_nowait())
 
-                    song_trajectories_list = np.vstack(song_trajectories_list)
+                    if len(song_trajectories_list) > 1:
+                        # Convert to numpy arrays first, then vstack
+                        arrays = [np.array(traj) for traj in song_trajectories_list]
+                        song_trajectories_list = np.vstack(arrays).tolist()
+                    else:
+                        song_trajectories_list = song_trajectories_list[0]
                 else:
                     song_trajectories_list = song_trajs_queue.get_nowait()
 
@@ -144,10 +176,16 @@ if __name__ == "__main__":
     song_creation_thread = threading.Thread(target=song_creator, daemon=True)
     song_creation_thread.start()
 
+    # Start the dynamics processor thread
+    dynamics_thread = threading.Thread(target=dynamics_processor, daemon=True)
+    dynamics_thread.start()
+
     robot_controller_thread = threading.Thread(target=robot_controller, daemon=True)
     robot_controller_thread.start()
 
     print("Main program running. Press Ctrl+C to stop.")
+    print("Supports OSC messages: /Chords, /Pluck, /Dyn")
+    print("/Dyn message format: [mnn1, mnn2, ...] where MNN 40-49→Motor 13, 50-59→Motor 14, 60+→Motor 15")
 
     try:
         while True:

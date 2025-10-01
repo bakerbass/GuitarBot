@@ -14,6 +14,7 @@ import numpy as np
 import copy
 from GuitarBotParser import GuitarBotParser  # Import for reusing interp_with_blend
 import tune as tu
+import plotly.graph_objects as go
 
 
 class DynamicsParser:
@@ -70,6 +71,10 @@ class DynamicsParser:
             tu.TRAJECTORY_BLEND_PERCENT
         )
         
+        # Handle case where interp_with_blend returns None
+        if trajectory is None:
+            trajectory = np.linspace(start_position, target_position, num_points)
+        
         return trajectory
     
     def parse_dyn_message(self, mnn_list):
@@ -119,7 +124,10 @@ class DynamicsParser:
                                    self.current_positions[motor_index])
             
             all_trajectories.append(trajectory)
-            max_length = max(max_length, len(trajectory))
+            if trajectory is not None:
+                max_length = max(max_length, len(trajectory))
+            else:
+                max_length = max(max_length, tu.PICKER_PLUCK_MOTION_POINTS)
         
         # Pad trajectories to same length and create combined trajectory matrix
         trajectories_list = []
@@ -137,6 +145,11 @@ class DynamicsParser:
             trajectories_list.append(full_position)
         
         print(f"Generated {len(trajectories_list)} trajectory points")
+        
+        # Plot trajectories if graphing is enabled (mimic GuitarBotParser behavior)
+        if tu.graph:
+            self.plot_trajectories(trajectories_list)
+        
         return trajectories_list
     
     def reset_positions(self):
@@ -161,6 +174,57 @@ class DynamicsParser:
                 'state': 'up' if state == 1 else 'down'
             }
         return status
+    
+    def plot_trajectories(self, trajectories_list):
+        """
+        Plot motor trajectories using plotly, mimicking GuitarBotParser's plotting routine.
+        """
+        if not trajectories_list:
+            print("No trajectories to plot")
+            return
+        
+        fig = go.Figure()
+        
+        # Create time axis
+        timestamps = [i * tu.TIME_STEP for i in range(len(trajectories_list))]
+        
+        # Add traces for picker motors only (motors 12, 13, 14 in the array = motors 13, 14, 15)
+        picker_motor_indices = [12, 13, 14]  # Array indices for motors 13, 14, 15
+        picker_motor_names = [13, 14, 15]    # Actual motor IDs
+        
+        for i, (motor_idx, motor_id) in enumerate(zip(picker_motor_indices, picker_motor_names)):
+            y_values = [traj[motor_idx] for traj in trajectories_list]
+            
+            # Add trace with motor-specific styling
+            fig.add_trace(
+                go.Scatter(
+                    x=timestamps, 
+                    y=y_values, 
+                    mode='lines+markers', 
+                    name=f'Motor {motor_id} (Picker {i+1})',
+                    line=dict(width=3),
+                    marker=dict(size=4)
+                )
+            )
+        
+        # Update layout to match GuitarBotParser style
+        fig.update_layout(
+            title='Dynamics Test - Picker Motor Trajectories',
+            xaxis_title='Time (seconds)',
+            yaxis_title='Motor Position (mm)',
+            legend_title='Picker Motors',
+            showlegend=True,
+            hovermode='x unified',
+            template='plotly_white'
+        )
+        
+        # Add grid for better readability
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
+        
+        # Show the plot
+        print("Displaying dynamics trajectory plot...")
+        fig.show()
 
 
 # Example usage and testing

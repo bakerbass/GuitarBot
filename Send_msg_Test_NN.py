@@ -265,7 +265,7 @@ chords_message = [["On", 4]] # Should be folded into an function that opens the 
 # pluck_message = RandomNoteGenerator.generateSong()
 # print(pluck_message)
 pluck_message = [
-                [45, 1, 5, 0, 1],
+                [45, 0.1, 5, 0, 1],
  #              [55, 1, 5, 0, 1],
  #              [59, 2, 10, 0, 1],
                 ]

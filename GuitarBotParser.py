@@ -443,7 +443,7 @@ class GuitarBotParser:
         if pick_events:
             max_timestamp = max(event[1] + event[0][3] for event in pick_events)
 
-        num_rows = int(max_timestamp / tu.TIME_STEP) + 100  # Add buffer
+        num_rows = int(max_timestamp / tu.TIME_STEP) + 100 # Add buffer
         trajectory_array = np.full((num_rows, num_pickers), np.nan)
         trajectory_array[0, :] = initial_point_rh
         current_positions = list(initial_point_rh)
@@ -460,11 +460,12 @@ class GuitarBotParser:
             up_enc = (info['up_pluck_mm'] * res) / tu.MM_TO_ENCODER_CONVERSION_FACTOR
             mid_point = (up_enc + down_enc) / 2
 
-            all_points = []
+            all_points = np.array([]) # Initialize as empty numpy array
             if is_pluck:
                 dest_pos = down_enc if start_pos > mid_point else up_enc
                 all_points = self.interp_with_blend(start_pos, dest_pos, tu.PICKER_PLUCK_MOTION_POINTS, tb_cent)
-            else:  # Tremolo
+            else: # Tremolo
+                tremolo_points = []
                 fill_points = min(30, int(30 - (speed - 1) * (25 / 9))) - 4
                 single_pick_duration = (fill_points * tu.TIME_STEP) + (tu.PICKER_PLUCK_MOTION_POINTS * tu.TIME_STEP)
                 num_picks = math.floor(duration / single_pick_duration) if single_pick_duration > 0 else 0
@@ -474,14 +475,16 @@ class GuitarBotParser:
                     dest_pos = down_enc if current_pick_pos > mid_point else up_enc
                     points1 = self.interp_with_blend(current_pick_pos, dest_pos, tu.PICKER_PLUCK_MOTION_POINTS, 0.2)
                     points2 = np.full(fill_points, dest_pos)
-                    all_points.extend(points1)
-                    all_points.extend(points2)
+                    tremolo_points.extend(points1)
+                    tremolo_points.extend(points2)
                     current_pick_pos = dest_pos
+                if tremolo_points:
+                    all_points = np.array(tremolo_points)
 
-            if all_points:
+            if all_points.size > 0:
                 num_gen = len(all_points)
                 if start_index + num_gen <= num_rows:
-                    trajectory_array[start_index: start_index + num_gen, motor_id] = all_points
+                    trajectory_array[start_index : start_index + num_gen, motor_id] = all_points
                 current_positions[motor_id] = all_points[-1]
 
             fret = note - tu.STRING_MIDI_RANGES[motor_id][0]
@@ -489,8 +492,7 @@ class GuitarBotParser:
                 lh_enc_val = -1
             else:
                 s_dir = tu.STRING_MIDI_RANGES[motor_id][2]
-                lh_enc_val = ((tu.SLIDER_MM_PER_FRET[
-                                   fret - 1] * 2048) / tu.MM_TO_ENCODER_CONVERSION_FACTOR + tu.SLIDER_ENCODER_OFFSET) * s_dir
+                lh_enc_val = ((tu.SLIDER_MM_PER_FRET[fret - 1] * 2048) / tu.MM_TO_ENCODER_CONVERSION_FACTOR + tu.SLIDER_ENCODER_OFFSET) * s_dir
             lh_pick_events.append([motor_id, lh_enc_val, slide_toggles[i], timestamp - tu.LH_PREP_TIME_BEFORE_PICK])
 
         df = pd.DataFrame(trajectory_array)

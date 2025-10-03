@@ -142,19 +142,50 @@ class GuitarBotParser:
 
         return curve.astype(int)
 
-    def lh_interpolate(self, lh_motor_positions, lh_pick_pos, initial_point, num_points=tu.PRESSER_INTERPOLATION_POINTS,
-                       tb_cent=tu.TRAJECTORY_BLEND_PERCENT, plot=False):
+    def lh_interpolate(self, lh_motor_positions, lh_pick_pos, initial_point,
+                              num_points=tu.PRESSER_INTERPOLATION_POINTS,
+                              tb_cent=tu.TRAJECTORY_BLEND_PERCENT, plot=False):
         initial_point_lh = initial_point[0:12]
 
-        max_timestamp = 0
+        # --- START: Robust max_timestamp calculation ---
+        all_events_for_sizing = []
         if lh_motor_positions:
-            max_timestamp = max(max_timestamp, lh_motor_positions[-1][1] + 0.6)
-        if lh_pick_pos:
-            sorted_lh_pick_pos = sorted(lh_pick_pos, key=lambda x: x[-1])
-            if sorted_lh_pick_pos:
-                max_timestamp = max(max_timestamp, sorted_lh_pick_pos[-1][3] + 0.6)
+            for _, timestamp in lh_motor_positions:
+                all_events_for_sizing.append({'timestamp': timestamp, 'type': 'chord'})
 
-        num_rows = int(max_timestamp / tu.TIME_STEP) + 1
+        if lh_pick_pos:
+            for _, _, _, timestamp in lh_pick_pos:
+                # Ensure timestamps are not negative, which can happen with LH_PREP_TIME
+                if timestamp >= 0:
+                    all_events_for_sizing.append({'timestamp': timestamp, 'type': 'note'})
+
+        max_required_time = 0
+        if all_events_for_sizing:
+            # Find the event with the latest start time
+            latest_event = max(all_events_for_sizing, key=lambda x: x['timestamp'])
+            latest_start_time = latest_event['timestamp']
+
+            # Calculate the duration of that latest event to find its end time
+            duration_of_last_event = 0
+            if latest_event['type'] == 'chord':
+                num_generated_points = (2 * tu.PRESSER_INTERPOLATION_POINTS) + tu.LH_SLIDER_MOTION_POINTS
+                duration_of_last_event = num_generated_points * tu.TIME_STEP
+            elif latest_event['type'] == 'note':
+                # A single note movement consists of 3 interpolation stages
+                num_generated_points = tu.PRESSER_INTERPOLATION_POINTS + tu.LH_SINGLE_NOTE_MOTION_POINTS + tu.PRESSER_INTERPOLATION_POINTS
+                duration_of_last_event = num_generated_points * tu.TIME_STEP
+
+            # The total time needed is the start of the last event plus its duration
+            max_required_time = latest_start_time + duration_of_last_event
+
+        # Add a small safety buffer (e.g., 200 timesteps) to prevent edge case errors
+        buffer = 200 * tu.TIME_STEP
+        num_rows = int((max_required_time + buffer) / tu.TIME_STEP)
+        if num_rows == 0:
+            # Handle cases with no events by creating a minimal array
+            num_rows = 1
+        # --- END: Robust max_timestamp calculation ---
+
         trajectory_array = np.full((num_rows, 12), np.nan)
 
         print("LH UPDATED EVENTS LIST (NO SYNC LH EVENTS): ")
@@ -176,6 +207,10 @@ class GuitarBotParser:
         prev_type, prev_position, prev_motor_id = None, None, None
 
         for event in full_LH:
+            # Ignore events with negative timestamps
+            if event['timestamp'] < 0:
+                continue
+
             timestamp = round(event['timestamp'], 3)
             start_index = int(timestamp / tu.TIME_STEP)
 
@@ -185,7 +220,6 @@ class GuitarBotParser:
                 curr_pos = current_encoder_position.copy()
                 all_points = []
 
-                # UNPRESS, SLIDE, PRESS logic... (omitted for brevity, same as before)
                 # 1. UNPRESS
                 unpress_sliders = np.array(
                     [self.interp_with_blend(curr_pos[i], curr_pos[i], num_points, tb_cent) for i in range(6)]).T
@@ -217,6 +251,12 @@ class GuitarBotParser:
                 if start_index + num_generated_points <= num_rows:
                     trajectory_array[start_index: start_index + num_generated_points, :] = all_points
                     current_encoder_position = list(all_points[-1])
+                else:
+                    safe_points = num_rows - start_index
+                    if safe_points > 0:
+                        trajectory_array[start_index:, :] = all_points[:safe_points]
+                        current_encoder_position = list(all_points[safe_points - 1])
+
 
             elif event['type'] == 'note':
                 slider_points, presser_points = [], []
@@ -268,8 +308,10 @@ class GuitarBotParser:
                         slider_points.extend(s3)
                         presser_points.extend(p3)
                 else:
-                    s3 = self.interp_with_blend(q0_slider_motor, qf_slider, tu.LH_SINGLE_NOTE_MOTION_POINTS, tb_cent)
-                    p3 = self.interp_with_blend(q0_presser_motor, qf_presser, num_points, tb_cent)
+                    s3 = self.interp_with_blend(q0_slider_motor, qf_slider, tu.LH_SINGLE_NOTE_MOTION_POINTS,
+                                                tb_cent)
+                    p3 = self.interp_with_blend(q0_presser_motor, qf_presser, tu.LH_SINGLE_NOTE_MOTION_POINTS,
+                                                tb_cent)
                     slider_points.extend(s3)
                     presser_points.extend(p3)
 
@@ -279,6 +321,13 @@ class GuitarBotParser:
                     trajectory_array[start_index: start_index + num_generated_points, presser_motor_ID] = presser_points
                     current_encoder_position[slider_motor_ID] = slider_points[-1]
                     current_encoder_position[presser_motor_ID] = presser_points[-1]
+                else:
+                    safe_points = num_rows - start_index
+                    if safe_points > 0:
+                        trajectory_array[start_index:, slider_motor_ID] = slider_points[:safe_points]
+                        trajectory_array[start_index:, presser_motor_ID] = presser_points[:safe_points]
+                        current_encoder_position[slider_motor_ID] = slider_points[safe_points - 1]
+                        current_encoder_position[presser_motor_ID] = presser_points[safe_points - 1]
 
                 prev_type, prev_position, prev_motor_id = event["type"], event["position"], event["motor_id"]
 

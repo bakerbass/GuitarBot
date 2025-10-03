@@ -27,7 +27,7 @@ PRESSER_INTERPOLATION_POINTS = 10
 LH_SLIDER_MOTION_POINTS = 40
 
 # Number of interpolation points when the left hand is moving to a single note.
-LH_SINGLE_NOTE_MOTION_POINTS = 60
+LH_SINGLE_NOTE_MOTION_POINTS = 40
 
 # Number of interpolation points for a single pluck.
 PICKER_PLUCK_MOTION_POINTS = 11
@@ -36,7 +36,7 @@ PICKER_PLUCK_MOTION_POINTS = 11
 LH_PRESSER_UNPRESSED_POS = -650
 
 # Position value for a fully pressed left-hand presser motor.
-LH_PRESSER_PRESSED_POS = 600
+LH_PRESSER_PRESSED_POS = 700
 
 # Torque value for a press, used for sliding to ensure string contact.
 # Given in terms of LH_PRESSER_SLIDE_PRESS_POS/1000 % of torque rating. For example, LH_PRESSER_SLIDE_PRESS_POS = 650 then the motor is outputting 65% of the motors' rated torque value.
@@ -81,7 +81,7 @@ SLIDER_MM_PER_FRET = [17, 52, 87, 114, 141, 165, 188, 212, 234]
 
 # Position values for the three states of the presser motors:
 # 1: Open/Unpressed, 2: Pressed, 3: Muted (partially pressed).
-PRESSER_ENCODER_POSITIONS = [-650, 600, 100]
+PRESSER_ENCODER_POSITIONS = [-650, 700, 100]
 
 # Conversion factor from millimeters to encoder ticks for the slider motors.
 # Generally only needs to change if the motor is not Maxxon

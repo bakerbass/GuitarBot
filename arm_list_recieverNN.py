@@ -41,7 +41,7 @@ def udp_listener():
     print(f"UDP Server listening on {UDP_IP}:{UDP_PORT}")
 
     while True:
-        data, addr = sock.recvfrom(1024)
+        data, addr = sock.recvfrom(8192) # Controls how big a single "Song" can be
         data_queue.put(data)
         if not data_queue.empty():
             message_type, message_body = decode_osc_message(data_queue.get_nowait())
@@ -106,7 +106,7 @@ def song_creator():
                 if time.time() - last_activity_time > IDLE_TIMEOUT_SECONDS:
                     print(f" idle for over {IDLE_TIMEOUT_SECONDS} seconds. Sending 'On' to reset state.")
                     idle_chord_message = [["On", 0]]
-                    message_queue.put(("Chords", idle_chord_message))
+                    # message_queue.put(("Chords", idle_chord_message))
                     last_activity_time = time.time()
 
         time.sleep(0.01)

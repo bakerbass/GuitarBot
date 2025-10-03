@@ -3,6 +3,7 @@ import time
 from pythonosc.udp_client import SimpleUDPClient
 UDP_IP = "127.0.0.1"
 UDP_PORT = 12000
+import RandomNoteGenerator
 
 # FORMAT
 # chords_message = [[Chord, timestamp]]
@@ -260,12 +261,23 @@ def create_tremolo_message():
 #                    [45, 1, 5, 0, 5], [43, 1, 5, 0, 7], [43, 1, 5, 0, 8], [43, .6, 10, 0, 10],
 #                     ]
 
-chords_message = [["On", 9]]
-pluck_message = [
-#                [40, 2, 10, 0, 1], [42, 2, 5, 0, 3], [44, 2, 10, 0, 5], [46, 2, 5, 0, 7],
-#                [50, 2, 5, 0, 1], [52, 2, 5, 0, 3], [54, 2, 5, 0, 5], [56, 2, 5, 0, 7],
-                [59, 0.1, 10, 0, 1], [61, 2, 5, 0, 3], [63, 2, 10, 0, 5], [65, 2, 7, 0, 7],
-                ]
+chords_message = [["On", 126]] # Should be folded into an function that opens the pressers.
+# pluck_message = RandomNoteGenerator.generateSong()
+pluck_message = RandomNoteGenerator.generate_scale_progression(12)
+# pluck_message = RandomNoteGenerator.sequential_Plucks(1)
+
+# print(pluck_message)
+# pluck_message = [
+# #                [40, .1, 5, 0, 1],
+# #                [55, 1, 5, 0, 1],
+# #                [59, 2, 10, 0, 1],
+#                 ]
+
+# pluck_message = [
+#                [48, 2, 3, 0, 1],
+#                [55, 2, 3, 0, 1],
+#                [64, 2, 3, 0, 1],
+#                 ]
 
 # chords_message = [["On", 0]]
 # strum_message = [["UP", 0.0]]
@@ -288,20 +300,18 @@ def send_osc_message(client, address, data):
 def main():
     # Create an OSC client
     client = SimpleUDPClient(UDP_IP, UDP_PORT)
+
+    client = SimpleUDPClient(UDP_IP, UDP_PORT)
     send_osc_message(client, "/Chords", chords_message)
-    # send_osc_message(client, "/Strum", strum_message)
+    #long_pluck_message_list = RandomNoteGenerator.generate_scale_progression(iterations=20)
+
+    # 2. Call the new batch sender function
+    # batch_send_pluck_messages(client, long_pluck_message_list, batch_size=60)
+    # send_osc_message(client, "/Chords", chords_message)
+
     # pluck_message = create_tremolo_message()
     send_osc_message(client, "/Pluck", pluck_message)
     time.sleep(1)
-    # send_osc_message(client, "/Chords", chords_message_2)
-    # # send_osc_message(client, "/Strum", strum_message_2)
-    # # # pluck_message = create_tremolo_message()
-    # send_osc_message(client, "/Pluck", pluck_message_2)
-    # # time.sleep(1)
-
-    # send_osc_message(client, "/Chords", chords_message_2)
-    # send_osc_message(client, "/Strum", strum_message_2)
-    # send_osc_message(client, "/Pluck", pluck_message_2)
 
     counter = 0
 
@@ -311,6 +321,28 @@ def main():
     #     send_osc_message(client, "/Pluck", pluck_message)
     #     counter += 1
     #     time.sleep(1)
+
+
+# def batch_send_pluck_messages(client, full_pluck_list, batch_size=60):
+#     """
+#     Splits the full pluck list into smaller batches and sends them sequentially.
+#     """
+#     total_messages = len(full_pluck_list)
+#     print(f"Total pluck messages to send: {total_messages}")
+#
+#     for i in range(0, total_messages, batch_size):
+#         # Get a batch of messages
+#         batch = full_pluck_list[i:i + batch_size]
+#
+#         # The plucked notes are sent as a list of lists:
+#         # e.g., [[note1, dur1, spd1, slide1, ts1], [note2, ...], ...]
+#         send_osc_message(client, "/Pluck", batch)
+#
+#         # Add a short delay to ensure the receiver processes the batch
+#         # before the next one arrives. 10ms is usually safe.
+#
+#     print("Finished sending all pluck batches.")
+
 
 
 if __name__ == "__main__":

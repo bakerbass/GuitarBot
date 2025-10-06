@@ -3,7 +3,7 @@ import time
 from pythonosc.udp_client import SimpleUDPClient
 UDP_IP = "127.0.0.1"
 UDP_PORT = 12000
-import RandomNoteGenerator
+from MusicGeneration import RandomNoteGenerator
 
 # FORMAT
 # chords_message = [[Chord, timestamp]]
@@ -261,10 +261,11 @@ def create_tremolo_message():
 #                    [45, 1, 5, 0, 5], [43, 1, 5, 0, 7], [43, 1, 5, 0, 8], [43, .6, 10, 0, 10],
 #                     ]
 
-chords_message = [["On", 126]] # Should be folded into an function that opens the pressers.
+chords_message = [["On", 35]] # Should be folded into an function that opens the pressers.
 # pluck_message = RandomNoteGenerator.generateSong()
-pluck_message = RandomNoteGenerator.generate_scale_progression(12)
+# pluck_message = RandomNoteGenerator.generate_scale_progression(12)
 # pluck_message = RandomNoteGenerator.sequential_Plucks(1)
+pluck_message = RandomNoteGenerator.generate_polyphonic_texture(2)
 
 # print(pluck_message)
 # pluck_message = [
